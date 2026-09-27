@@ -1,0 +1,23 @@
+/*
+ * Söhne Breit — primary typeface (titles + main text).
+ * Converted to WOFF2 from the files in /Font. These are Klim's *trial* cuts:
+ * they cover A–Z, a–z, 0–9 and , - . Ö ö only (anything else falls back to
+ * Instrument Sans per glyph) and are not licensed for production. Swap in the
+ * licensed WOFF2 files under the same names before launch.
+ */
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-250.woff2") format("woff2"); font-weight: 250; font-style: normal; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-250-italic.woff2") format("woff2"); font-weight: 250; font-style: italic; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-300.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-300-italic.woff2") format("woff2"); font-weight: 300; font-style: italic; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-400-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-500-italic.woff2") format("woff2"); font-weight: 500; font-style: italic; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-600-italic.woff2") format("woff2"); font-weight: 600; font-style: italic; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-700-italic.woff2") format("woff2"); font-weight: 700; font-style: italic; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-800.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-800-italic.woff2") format("woff2"); font-weight: 800; font-style: italic; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-900.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Söhne Breit"; src: url("/fonts/soehne-breit-900-italic.woff2") format("woff2"); font-weight: 900; font-style: italic; font-display: swap; }

@@ -1,0 +1,48 @@
+/*
+ * HunterPark design tokens — source of truth: Figma "HUNTERPARK" design system.
+ * Primary typeface: Söhne Breit (titles + main text, see fonts.css).
+ * Secondary typeface: Instrument Sans (small supporting text: indexes, meta, captions).
+ */
+:root {
+  /* Color */
+  --hp-lime: #eeff41; /* Electric Lime — Primary */
+  --hp-violet: #4c4fee; /* Blue Violet — Accent / Secondary */
+  --hp-night: #0d0d0d; /* Night Black — Background */
+  --hp-soft: #000000; /* Soft Black — Surface */
+  --hp-off-white: #f5f5f0; /* Off White — Primary Text */
+  --hp-gray: #a6a6a6; /* Cool Gray — Secondary Text */
+  --hp-dark: #292929; /* Dark Gray — Border */
+  --hp-overlay: rgb(0 0 0 / 0.4); /* Media overlay used on key visuals */
+  --hp-hero-overlay: rgb(0 0 0 / 0.5); /* Hero backgrounds — shared with the preloader hand-off */
+
+  /* Type families */
+  --hp-font-primary: "Söhne Breit", "Instrument Sans Variable", "Instrument Sans", system-ui, sans-serif;
+  --hp-font-secondary: "Instrument Sans Variable", "Instrument Sans", system-ui, sans-serif;
+
+  /* Type scale (Figma: H1 60 · H2 45 · H3 30 · H4 25 · H5 20 · H6 18 · 16 · 14 · 12) */
+  --hp-text-h1: clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);
+  --hp-text-h2: clamp(1.875rem, 1.3rem + 2.3vw, 2.8125rem);
+  --hp-text-h3: clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);
+  --hp-text-h4: clamp(1.25rem, 1.05rem + 0.8vw, 1.5625rem);
+  --hp-text-h5: 1.25rem;
+  --hp-text-h6: 1.125rem;
+  --hp-text-body: 1rem;
+  --hp-text-sm: 0.875rem;
+  --hp-text-xs: 0.75rem;
+
+  --hp-leading-tight: 1.16;
+  --hp-leading-snug: 1.2;
+
+  /* Layout — Figma frames are 1728 wide with 65px side margins */
+  --hp-gutter: clamp(1.25rem, 3.76vw, 4.0625rem);
+  --hp-header-h: clamp(4rem, 3.2rem + 2vw, 5.5rem);
+
+  /* Motion */
+  --hp-ease-out: cubic-bezier(0.19, 1, 0.22, 1); /* expo-out */
+  --hp-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* Layers */
+  --hp-z-header: 50;
+  --hp-z-menu: 40; /* sits under the header so logo + close stay reachable */
+  --hp-z-preloader: 100;
+}

@@ -1,0 +1,523 @@
+---
+/**
+ * Hero — a living contact sheet.
+ * The full-bleed background cycles through the stills; the same stills sit in a
+ * small row at the foot of the frame, with the active one ringed in lime.
+ * Every thumbnail is a landscape frame, cropped with object-fit: cover.
+ * A slide can be a film: it plays muted as the background while active, and the
+ * sequence waits for it to finish (see scripts/hero.ts for the timing rules).
+ */
+import { Image, getImage } from "astro:assets";
+import { heroSlides, HERO_INTERVAL_MS } from "../../data/media";
+
+// Poster frames for film slides — shown until the first video frame is ready.
+const posters = await Promise.all(
+  heroSlides.map((slide) =>
+    slide.video ? getImage({ src: slide.src, width: 1920, format: "webp", quality: 70 }).then((img) => img.src) : null,
+  ),
+);
+---
+
+<section class="hero" aria-labelledby="hero-title" data-hero data-interval={HERO_INTERVAL_MS}>
+  <div class="hero__backdrop" aria-hidden="true">
+    {
+      heroSlides.map((slide, i) =>
+        slide.video ? (
+          <video
+            class:list={["hero__bg", { "is-active": i === 0 }]}
+            style={`object-position: ${slide.focus}`}
+            data-hero-bg={i}
+            poster={posters[i]!}
+            muted
+            loop
+            playsinline
+            autoplay={i === 0}
+            preload={i === 0 ? "auto" : "none"}
+            disablepictureinpicture
+          >
+            <source src={slide.video.sd} type="video/mp4" media="(max-width: 767px)" />
+            <source src={slide.video.sdWebm} type="video/webm" media="(max-width: 767px)" />
+            <source src={slide.video.hd} type="video/mp4" />
+            <source src={slide.video.hdWebm} type="video/webm" />
+          </video>
+        ) : (
+        <Image
+          src={slide.src}
+          alt=""
+          width={1920}
+          widths={[768, 1280, 1920, 2560]}
+          sizes="100vw"
+          format="webp"
+          quality={75}
+          loading={i === 0 ? "eager" : "lazy"}
+          fetchpriority={i === 0 ? "high" : "low"}
+          class:list={["hero__bg", { "is-active": i === 0 }]}
+          style={`object-position: ${slide.focus}`}
+          data-hero-bg={i}
+        />
+        ),
+      )
+    }
+  </div>
+
+  <div class="hero__content">
+    <!-- Two scales: whispered lead-ins, shouted keywords. Reads as one sentence to assistive tech. -->
+    <h1 class="hero__title" id="hero-title" data-hero-tilt>
+      <span class="hero__row hero__row--1">
+        <span class="hero__mask hero__small"><span data-hero-reveal>We do not</span></span>
+        <span class="hero__mask hero__big"><span data-hero-reveal>hunt,</span></span>
+      </span>
+      <span class="hero__row hero__row--2">
+        <span class="hero__mask hero__small"><span data-hero-reveal>we aren<span class="hero__apos">’</span>t the</span></span>
+        <span class="hero__mask hero__big"><span data-hero-reveal>park.</span></span>
+      </span>
+    </h1>
+
+    <div class="hero__reel">
+      <!-- Caption for the photographs below -->
+      <div class="hero__reel-head" data-hero-fade>
+        <p class="hero__caption">Newest Project</p>
+        <!-- Editorial folio: the current number leads, the total whispers -->
+        <p class="hero__counter" aria-hidden="true">
+          <span class="hero__counter-now"><span data-hero-count>01</span></span>
+          <span class="hero__counter-total"><span class="hero__counter-slash">/</span>{String(heroSlides.length).padStart(2, "0")}</span>
+        </p>
+      </div>
+
+      <ul class="hero__thumbs" aria-label="Featured stills">
+        {
+          heroSlides.map((slide, i) => (
+            <li class="hero__thumb-item" data-hero-thumb-item>
+              <button
+                type="button"
+                class:list={["hero__thumb", { "is-active": i === 0 }]}
+                aria-label={`Show ${slide.video ? "film" : "still"} ${i + 1} of ${heroSlides.length}`}
+                aria-current={i === 0 ? "true" : undefined}
+                data-hero-thumb={i}
+              >
+                <Image
+                  src={slide.src}
+                  alt=""
+                  width={400}
+                  widths={[200, 400]}
+                  sizes="(max-width: 767px) 180px, 160px"
+                  format="webp"
+                  quality={70}
+                  loading="eager"
+                  style={`object-position: ${slide.focus}`}
+                />
+                {slide.video && (
+                  <span class="hero__film" aria-hidden="true">
+                    <svg viewBox="0 0 10 12" width="8" height="10"><path d="M0 0l10 6-10 6z" fill="currentColor" /></svg>
+                  </span>
+                )}
+                <span class="hero__progress" aria-hidden="true" />
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    /* Six landscape frames in a row — height chosen so the row sits beside the title */
+    /* Height nudged up ~7%; the 16:10 frame below carries most of the growth in width */
+    --thumb-h: clamp(4.75rem, 2.8rem + 3.6vw, 7.75rem);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 100svh;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* --- Background --------------------------------------------------------- */
+  .hero__backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--hp-night);
+  }
+
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transform: scale(1.06);
+    transition:
+      opacity 1.1s var(--hp-ease-in-out),
+      transform 3.2s var(--hp-ease-out);
+  }
+
+  .hero__bg.is-active {
+    z-index: 1;
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* The outgoing still stays put underneath while the new one fades over it */
+  .hero__bg.is-leaving {
+    opacity: 1;
+    transform: scale(1);
+    transition: none;
+  }
+
+  /* Image → 50% black → text & UI. Sits above every slide, so it holds through transitions. */
+  .hero__backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: var(--hp-hero-overlay);
+  }
+
+  /* --- Foreground --------------------------------------------------------- */
+  .hero__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 2rem;
+    padding: calc(var(--hp-header-h) + 2rem) var(--hp-gutter) var(--hp-gutter);
+  }
+
+  /* Caption for the photo row — the design system's label style (Söhne Leicht, caps, lime) */
+  .hero__caption {
+    font-family: var(--hp-font-primary);
+    font-weight: 300;
+    font-size: clamp(0.75rem, 0.65rem + 0.3vw, 0.9375rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--hp-lime);
+  }
+
+  .hero__caption::before {
+    content: "";
+    display: inline-block;
+    width: 2.5em;
+    height: 1px;
+    margin-right: 0.9em;
+    vertical-align: 0.3em;
+    background: currentColor;
+  }
+
+  /* --- Title: editorial scale contrast ---------------------------------------
+   * Keywords in Söhne Breit Extrafett, oversized and lime; lead-ins in Leicht Kursiv,
+   * small and tucked against them. Row 1 hangs its lead-in from the cap line, row 2
+   * sits it on the baseline, and row 2 steps right — a diagonal read, not a stack.
+   * Centred in the hero, independent of the reel below. */
+  .hero__title {
+    --big: clamp(3.4rem, min(13.5vw, 21svh), 14.5rem);
+    --small: max(0.8125rem, calc(var(--big) * 0.135));
+
+    /* Centred with inset + auto margins (not translate) so the tilt can own `transform` */
+    position: absolute;
+    inset: 0;
+    width: fit-content;
+    height: fit-content;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--hp-font-primary);
+    white-space: nowrap;
+    transform-style: preserve-3d; /* lets the lead-ins sit on their own depth plane when tilted */
+  }
+
+  .hero__row {
+    transform-style: preserve-3d;
+    display: flex;
+    gap: calc(var(--big) * 0.12);
+  }
+
+  .hero__row--1 {
+    align-items: flex-start;
+  }
+
+  .hero__row--2 {
+    align-items: baseline;
+    margin-top: calc(var(--big) * -0.02);
+    padding-left: calc(var(--big) * 1.15);
+  }
+
+  .hero__mask {
+    display: block;
+    overflow: hidden;
+  }
+
+  .hero__mask > span {
+    display: block;
+  }
+
+  /* Lead-ins: Söhne Breit Buch — the cut the files name "Test Söhne Breit" */
+  .hero__small {
+    font-size: var(--small);
+    font-weight: 400;
+    font-style: normal;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    color: var(--hp-off-white);
+    transform: translateZ(calc(var(--big) * 0.15)); /* shallow depth plane: parallax under tilt, ~2% at rest */
+  }
+
+  /* The trial Söhne cut has no apostrophe; the fallback glyph needs pulling into the word */
+  .hero__apos {
+    margin-inline: -0.03em -0.01em;
+  }
+
+  /* Hang the first lead-in off the keyword's cap height */
+  .hero__row--1 .hero__small {
+    padding-top: calc(var(--big) * 0.1);
+  }
+
+  .hero__big {
+    font-size: var(--big);
+    font-weight: 900;
+    line-height: 0.86;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+    color: var(--hp-lime);
+    padding-bottom: 0.04em; /* room for the comma's tail inside the reveal mask */
+  }
+
+  .hero__reel {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.875rem;
+  }
+
+  .hero__reel-head {
+    align-self: stretch; /* spans the thumbnail row: caption left, counter right */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.5rem;
+  }
+
+  /* Folio: large light numeral in Söhne Breit, total tucked top-right in Instrument Sans,
+     one lime stroke between them */
+  .hero__counter {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    line-height: 1;
+  }
+
+  .hero__counter-now {
+    display: block;
+    overflow: hidden; /* mask for the number roll */
+    font-family: var(--hp-font-primary);
+    font-weight: 300;
+    font-size: clamp(1.75rem, 1.1rem + 1.3vw, 2.625rem);
+    line-height: 0.82;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    color: var(--hp-off-white);
+  }
+
+  .hero__counter-now > span {
+    display: block;
+  }
+
+  .hero__counter-total {
+    font-family: var(--hp-font-secondary);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+    color: var(--hp-gray);
+  }
+
+  .hero__counter-slash {
+    margin-right: 0.3em;
+    color: var(--hp-lime);
+  }
+
+  .hero__thumbs {
+    display: flex;
+    gap: clamp(0.5rem, 0.8vw, 0.875rem);
+  }
+
+  .hero__thumb {
+    position: relative;
+    display: block;
+    height: var(--thumb-h);
+    aspect-ratio: 16 / 10; /* wider, more cinematic landscape frame */
+    overflow: hidden;
+    border-radius: 0; /* default: sharp, like the type */
+    transition: border-radius 0.5s var(--hp-ease-out);
+  }
+
+  /* Selected: rounded + lime border — the design system's sample-row treatment */
+  .hero__thumb.is-active {
+    border-radius: 0.5rem;
+  }
+
+  /* Border drawn above the image so the still can't paint over it */
+  .hero__thumb::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: 3px solid transparent;
+    border-radius: inherit;
+    pointer-events: none;
+    transition: border-color 0.4s var(--hp-ease-out);
+  }
+
+  .hero__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.7;
+    transform: scale(1.04);
+    transition:
+      opacity 0.5s var(--hp-ease-out),
+      transform 0.8s var(--hp-ease-out);
+  }
+
+  .hero__thumb:hover img,
+  .hero__thumb:focus-visible img {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Marks the film thumbnail */
+  .hero__film {
+    position: absolute;
+    left: 0.4rem;
+    bottom: 0.45rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background: var(--hp-lime);
+    color: var(--hp-soft);
+    padding-left: 1px;
+  }
+
+  /* Active still — lime border, per the design system's sample row */
+  .hero__thumb.is-active::after {
+    border-color: var(--hp-lime);
+  }
+
+  .hero__thumb.is-active img {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Timer: a lime hairline fills across the active thumbnail — driven by hero.ts
+     (the still interval, or a film's playback position) */
+  .hero__progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    height: 3px;
+    background: var(--hp-lime);
+    transform-origin: left center;
+    transform: scaleX(0);
+  }
+
+
+  /* Before the preloader hands off, text + reel wait off-stage (JS only) */
+  :global(html.js:not([data-site-ready])) .hero__mask > span {
+    transform: translateY(110%);
+  }
+
+  :global(html.js:not([data-site-ready])) .hero__thumb-item,
+  :global(html.js:not([data-site-ready])) .hero__reel-head {
+    opacity: 0;
+  }
+
+  /* Tablet and below: the reel moves to the left edge */
+  @media (max-width: 1023px) {
+    .hero__content {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.75rem;
+    }
+
+    .hero__reel {
+      grid-column: 1;
+      align-items: flex-start;
+      justify-self: start; /* caption row stays as wide as the photos, not the page */
+    }
+  }
+
+  @media (max-width: 767px) {
+    .hero {
+      --thumb-h: 7rem;
+    }
+
+    .hero__title {
+      bottom: 8%; /* centres at 46%: the optical middle of the space above the reel */
+    }
+
+    .hero__row--2 {
+      padding-left: calc(var(--big) * 0.55);
+    }
+
+    .hero__content {
+      grid-template-columns: minmax(0, 1fr); /* don't let the scrolling thumb row widen the track */
+      gap: 1.75rem;
+    }
+
+    .hero__reel {
+      align-items: stretch;
+      justify-self: stretch; /* the row scrolls here, so the caption spans the screen */
+      /* let the row bleed to the screen edges and scroll sideways */
+      margin-inline: calc(var(--hp-gutter) * -1);
+    }
+
+    .hero__reel-head {
+      padding-inline: var(--hp-gutter);
+    }
+
+    .hero__thumbs {
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      padding-inline: var(--hp-gutter);
+      scroll-padding-inline: var(--hp-gutter);
+    }
+
+    .hero__thumbs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero__thumb-item {
+      flex-shrink: 0;
+      scroll-snap-align: start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__bg,
+    .hero__thumb,
+    .hero__thumb img {
+      transition-duration: 0.01ms;
+    }
+  }
+</style>
+
+<script>
+  import { initHero } from "../../scripts/hero";
+  import { createTilt } from "../../scripts/tilt";
+
+  initHero();
+
+  // Mouse-driven depth on the title (desktop pointers only; off for reduced motion).
+  const title = document.querySelector<HTMLElement>("[data-hero-tilt]");
+  const hero = document.querySelector<HTMLElement>("[data-hero]");
+  if (title && hero) createTilt(title, { area: hero });
+</script>
