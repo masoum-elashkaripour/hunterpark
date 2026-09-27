@@ -73,7 +73,7 @@ const posters = await Promise.all(
       </span>
     </h1>
 
-    <div class="hero__reel">
+    <div class="hero__reel" style={`--count: ${heroSlides.length}`}>
       <!-- Caption for the photographs below -->
       <div class="hero__reel-head" data-hero-fade>
         <p class="hero__caption">Newest Project</p>
@@ -84,7 +84,8 @@ const posters = await Promise.all(
         </p>
       </div>
 
-      <ul class="hero__thumbs" aria-label="Featured stills">
+      <!-- Project strip: the active project opens wide, the rest fold into slivers -->
+      <ul class="hero__thumbs" aria-label="Projects">
         {
           heroSlides.map((slide, i) => (
             <li class="hero__thumb-item" data-hero-thumb-item>
@@ -98,9 +99,9 @@ const posters = await Promise.all(
                 <Image
                   src={slide.src}
                   alt=""
-                  width={400}
-                  widths={[200, 400]}
-                  sizes="(max-width: 767px) 180px, 160px"
+                  width={480}
+                  widths={[240, 480]}
+                  sizes="(max-width: 767px) 180px, 240px"
                   format="webp"
                   quality={70}
                   loading="eager"
@@ -117,15 +118,30 @@ const posters = await Promise.all(
           ))
         }
       </ul>
+
+      <!-- View Project: kin to the Contact CTA (hairline rules, rolling label, arrow cell)
+           but its own shape. No destination yet — project pages don't exist. -->
+      <button type="button" class="view-project" data-view-project data-hero-fade>
+        <span class="view-project__roll" data-text="View Project"><span>View Project</span></span>
+        <span class="view-project__line" aria-hidden="true"></span>
+        <span class="view-project__arrow" aria-hidden="true" data-view-arrow>
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 12L12 4M5.5 4H12v6.5" />
+          </svg>
+        </span>
+      </button>
     </div>
   </div>
 </section>
 
 <style>
   .hero {
-    /* Six landscape frames in a row — height chosen so the row sits beside the title */
-    /* Height nudged up ~7%; the 16:10 frame below carries most of the growth in width */
-    --thumb-h: clamp(4.75rem, 2.8rem + 3.6vw, 7.75rem);
+    /* Project strip geometry: one open card (2:1) + folded slivers, fixed total width */
+    --reel-h: clamp(5rem, min(3.4rem + 3.6vw, 12svh), 8.25rem); /* width- and height-aware so short screens keep clear of the title */
+    --card-w: calc(var(--reel-h) * 2);
+    --sliver: calc(var(--reel-h) * 0.36);
+    --peek: calc(var(--reel-h) * 0.62);
+    --reel-gap: 6px;
 
     position: relative;
     display: flex;
@@ -340,16 +356,35 @@ const posters = await Promise.all(
     color: var(--hp-lime);
   }
 
+  /* Fixed-width strip: the open card takes whatever the slivers leave, so hovering
+     a sliver open borrows from the card and nothing around the strip shifts */
   .hero__thumbs {
     display: flex;
-    gap: clamp(0.5rem, 0.8vw, 0.875rem);
+    gap: var(--reel-gap);
+    width: calc(var(--card-w) + (var(--count) - 1) * (var(--sliver) + var(--reel-gap)));
+  }
+
+  .hero__thumb-item {
+    flex: 0 0 var(--sliver);
+    min-width: 0;
+    transition:
+      flex-grow 0.8s var(--hp-ease-out),
+      flex-basis 0.8s var(--hp-ease-out);
+  }
+
+  .hero__thumb-item:has(.is-active) {
+    flex: 1 1 0;
+  }
+
+  .hero__thumb-item:not(:has(.is-active)):hover {
+    flex-basis: var(--peek);
   }
 
   .hero__thumb {
     position: relative;
     display: block;
-    height: var(--thumb-h);
-    aspect-ratio: 16 / 10; /* wider, more cinematic landscape frame */
+    width: 100%;
+    height: var(--reel-h);
     overflow: hidden;
     border-radius: 0; /* default: sharp, like the type */
     transition: border-radius 0.5s var(--hp-ease-out);
@@ -430,13 +465,128 @@ const posters = await Promise.all(
   }
 
 
+  /* --- View Project -------------------------------------------------------- */
+  .view-project {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    height: 2.5rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--hp-off-white);
+  }
+
+  .view-project:focus-visible {
+    outline-offset: 6px;
+  }
+
+  /* Label rolls up to a lime copy */
+  .view-project__roll {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .view-project__roll > span,
+  .view-project__roll::after {
+    display: block;
+    transition: transform 0.55s var(--hp-ease-out);
+  }
+
+  .view-project__roll::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 100% 0 auto;
+    color: var(--hp-lime);
+  }
+
+  /* Hairline that draws out across the strip */
+  .view-project__line {
+    flex: 1;
+    height: 1px;
+    background: var(--hp-lime);
+    transform-origin: left center;
+    transform: scaleX(0.22);
+    transition: transform 0.9s var(--hp-ease-out);
+  }
+
+  /* Arrow cell — floods lime from the bottom (the Contact CTA sweeps from the left) */
+  .view-project__arrow {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 2.5rem;
+    height: 2.5rem;
+    overflow: hidden;
+    border: 1px solid var(--hp-lime);
+    color: var(--hp-lime);
+    transition: color 0.45s var(--hp-ease-out);
+  }
+
+  .view-project__arrow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--hp-lime);
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 0.55s var(--hp-ease-out);
+  }
+
+  .view-project__arrow svg {
+    transition: transform 0.6s var(--hp-ease-out);
+  }
+
+  /* Hover — on the bar itself, or on the open project card above it */
+  .view-project:hover .view-project__roll > span,
+  .view-project:hover .view-project__roll::after,
+  .view-project:focus-visible .view-project__roll > span,
+  .view-project:focus-visible .view-project__roll::after,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__roll > span,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__roll::after {
+    transform: translateY(-100%);
+  }
+
+  .view-project:hover .view-project__line,
+  .view-project:focus-visible .view-project__line,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__line {
+    transform: scaleX(1);
+  }
+
+  .view-project:hover .view-project__arrow,
+  .view-project:focus-visible .view-project__arrow,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__arrow {
+    color: var(--hp-soft);
+  }
+
+  .view-project:hover .view-project__arrow::before,
+  .view-project:focus-visible .view-project__arrow::before,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__arrow::before {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .view-project:hover .view-project__arrow svg,
+  .view-project:focus-visible .view-project__arrow svg,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__arrow svg {
+    transform: rotate(45deg);
+  }
+
   /* Before the preloader hands off, text + reel wait off-stage (JS only) */
   :global(html.js:not([data-site-ready])) .hero__mask > span {
     transform: translateY(110%);
   }
 
   :global(html.js:not([data-site-ready])) .hero__thumb-item,
-  :global(html.js:not([data-site-ready])) .hero__reel-head {
+  :global(html.js:not([data-site-ready])) .hero__reel-head,
+  :global(html.js:not([data-site-ready])) .view-project {
     opacity: 0;
   }
 
@@ -456,7 +606,10 @@ const posters = await Promise.all(
 
   @media (max-width: 767px) {
     .hero {
-      --thumb-h: 7rem;
+      --reel-h: 6rem;
+      --card-w: calc(var(--reel-h) * 1.7);
+      --sliver: calc(var(--reel-h) * 0.3);
+      --peek: calc(var(--reel-h) * 0.5);
     }
 
     .hero__title {
@@ -468,51 +621,32 @@ const posters = await Promise.all(
     }
 
     .hero__content {
-      grid-template-columns: minmax(0, 1fr); /* don't let the scrolling thumb row widen the track */
+      grid-template-columns: minmax(0, 1fr);
       gap: 1.75rem;
-    }
-
-    .hero__reel {
-      align-items: stretch;
-      justify-self: stretch; /* the row scrolls here, so the caption spans the screen */
-      /* let the row bleed to the screen edges and scroll sideways */
-      margin-inline: calc(var(--hp-gutter) * -1);
-    }
-
-    .hero__reel-head {
-      padding-inline: var(--hp-gutter);
-    }
-
-    .hero__thumbs {
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      padding-inline: var(--hp-gutter);
-      scroll-padding-inline: var(--hp-gutter);
-    }
-
-    .hero__thumbs::-webkit-scrollbar {
-      display: none;
-    }
-
-    .hero__thumb-item {
-      flex-shrink: 0;
-      scroll-snap-align: start;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .hero__bg,
     .hero__thumb,
-    .hero__thumb img {
+    .hero__thumb img,
+    .hero__thumb-item,
+    .view-project__roll > span,
+    .view-project__roll::after,
+    .view-project__line,
+    .view-project__arrow,
+    .view-project__arrow::before,
+    .view-project__arrow svg {
       transition-duration: 0.01ms;
     }
   }
 </style>
 
 <script>
+  import { gsap } from "gsap";
   import { initHero } from "../../scripts/hero";
   import { createTilt } from "../../scripts/tilt";
+  import { prefersReducedMotion } from "../../scripts/lifecycle";
 
   initHero();
 
@@ -520,4 +654,21 @@ const posters = await Promise.all(
   const title = document.querySelector<HTMLElement>("[data-hero-tilt]");
   const hero = document.querySelector<HTMLElement>("[data-hero]");
   if (title && hero) createTilt(title, { area: hero });
+
+  // View Project: the arrow cell leans a few px toward the pointer while it's over the bar.
+  const bar = document.querySelector<HTMLElement>("[data-view-project]");
+  const arrow = document.querySelector<HTMLElement>("[data-view-arrow]");
+  if (bar && arrow && !prefersReducedMotion() && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    const toX = gsap.quickTo(arrow, "x", { duration: 0.6, ease: "power3.out" });
+    const toY = gsap.quickTo(arrow, "y", { duration: 0.6, ease: "power3.out" });
+    bar.addEventListener("pointermove", (e) => {
+      const r = arrow.getBoundingClientRect();
+      toX(gsap.utils.clamp(-6, 6, (e.clientX - (r.left + r.width / 2)) * 0.12));
+      toY(gsap.utils.clamp(-4, 4, (e.clientY - (r.top + r.height / 2)) * 0.2));
+    });
+    bar.addEventListener("pointerleave", () => {
+      toX(0);
+      toY(0);
+    });
+  }
 </script>
