@@ -6,6 +6,7 @@ import { initHeroParallax } from "./hero-parallax";
 import { initScrollScenes } from "./scroll-scenes";
 import { initChapterIndicator } from "./chapter-indicator";
 import { initCapabilities } from "./capabilities";
+import { initSoundtrack } from "./soundtrack";
 
 /**
  * Starts every page script, in the order the sections depend on each other:
@@ -32,4 +33,5 @@ export function startSite(): void {
   initScrollScenes(); // the chapters as one scroll-driven film
   initChapterIndicator();
   initCapabilities(); // titles: jump to a capability (motion) / switch media directly (static)
+  initSoundtrack(); // the ambient soundtrack: one engine for the whole visit + the header toggle
 }

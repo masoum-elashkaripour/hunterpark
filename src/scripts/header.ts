@@ -12,11 +12,12 @@ export function initHeader(): void {
   const logo = header.querySelector<HTMLElement>("[data-header-logo]")!;
   const srLabel = toggle.querySelector<HTMLElement>("[data-menu-toggle-sr]")!;
   const cta = header.querySelector<HTMLElement>("[data-header-cta]");
+  const sound = header.querySelector<HTMLElement>("[data-sound-toggle]");
 
   // --- Intro: runs the moment the preloader hands off ---------------------
   onSiteReady(() => {
     if (reduced) {
-      gsap.set([logo, toggle, cta], { opacity: 1 });
+      gsap.set([logo, toggle, cta, sound], { opacity: 1 });
       return;
     }
     // When the preloader played, its wordmark has already flown into this slot.
@@ -33,7 +34,7 @@ export function initHeader(): void {
     // Trigger and CTA drift in from their own edges
     intro
       .fromTo(toggle, { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 1 }, 0.5)
-      .fromTo(cta, { opacity: 0, x: 12 }, { opacity: 1, x: 0, duration: 1 }, 0.6);
+      .fromTo([sound, cta], { opacity: 0, x: 12 }, { opacity: 1, x: 0, duration: 1 }, 0.6);
   });
 
   // The bar itself is static: no scroll states (see header.css).

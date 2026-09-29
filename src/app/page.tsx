@@ -3,6 +3,7 @@ import Studio from "../components/studio/Studio";
 import ChapterIndicator from "../components/chapter/ChapterIndicator";
 import Capabilities from "../components/capabilities/Capabilities";
 import Work from "../components/work/Work";
+import SiteFooter from "../components/footer/SiteFooter";
 
 export default function HomePage() {
   return (
@@ -20,6 +21,8 @@ export default function HomePage() {
         <Capabilities />
         {/* Chapter 03 — Work: WORK clears, the last capability becomes the first project */}
         <Work />
+        {/* The footer: the call to action parts, the wordmark descends to sign the page */}
+        <SiteFooter />
       </div>
     </>
   );

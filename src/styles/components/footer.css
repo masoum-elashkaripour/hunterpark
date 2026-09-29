@@ -1,0 +1,427 @@
+/* ==========================================================================
+   Site footer (components/footer/SiteFooter.tsx)
+   One full-screen composition resting on the wordmark. The same layout with motion off
+   (it follows the page) and on (the film's last frame — scripts/footer.ts).
+   ========================================================================== */
+.footer {
+  position: relative;
+  background: var(--hp-night);
+}
+
+.footer__stage {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.footer__ground {
+  position: absolute;
+  inset: 0;
+  background: var(--hp-night);
+}
+
+/* Asymmetric, not columns: the statement holds the top-left, the links step down the right,
+   the small print and the tagline sit on the wordmark */
+.footer__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: auto auto 1fr auto auto;
+  column-gap: clamp(1rem, 2vw, 2rem);
+  min-height: 100svh;
+  padding: calc(var(--hp-header-h) + clamp(1.5rem, 5svh, 3.5rem)) var(--hp-gutter) clamp(1rem, 3svh, 2.25rem);
+}
+
+/* --- The line field: the whole section, behind the type ---------------------
+   Two arrangements (components/footer/SiteFooter.tsx): the wide one is laid out against
+   the desktop footer, the tall one against the phone footer. */
+.footer__grid {
+  --mark-h: min(calc((100vw - 2 * var(--hp-gutter)) / 6.13), 32svh);
+}
+
+.footer__grid > * {
+  position: relative;
+  z-index: 1;
+}
+
+.footer__pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.footer__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  overflow: visible;
+}
+
+.footer__lines--tall {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .footer__lines--wide {
+    display: none;
+  }
+
+  .footer__lines--tall {
+    display: block;
+  }
+}
+
+/* WHO WE ARE's hairline: lime at 16%, about a pixel */
+.footer__lines [data-footer-line] {
+  fill: none;
+  stroke: var(--hp-lime);
+  stroke-width: 1.1;
+  opacity: 0.16;
+}
+
+.footer__lines--tall [data-footer-line] {
+  stroke-width: 0.9;
+}
+
+.footer__lines [data-footer-line="cross"] {
+  opacity: 0.4;
+}
+
+/* Barely-there light, as in WHO WE ARE — centred on the circle */
+.footer__glow {
+  position: absolute;
+  left: 29%;
+  top: 50%;
+  width: 60vmax;
+  height: 60vmax;
+  margin: -30vmax 0 0 -30vmax; /* centred by margin: the scroll timeline owns its transform */
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(238 255 65 / 0.06), rgb(238 255 65 / 0) 70%);
+}
+
+/* --- Statement ------------------------------------------------------------ */
+.footer__statement {
+  grid-column: 1 / span 6;
+  grid-row: 1 / span 2;
+  align-self: start;
+  max-width: 17em;
+  font-family: var(--hp-font-primary);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 0.95rem + 1.9vw, 2.75rem);
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  color: var(--hp-off-white);
+}
+
+.footer__statement [data-em] {
+  color: var(--hp-lime);
+}
+
+/* --- Link groups ---------------------------------------------------------- */
+.footer__group {
+  align-self: start;
+}
+
+.footer__group--index {
+  grid-column: 8 / span 2;
+  grid-row: 1;
+}
+
+/* stepped down from the index: the groups don't sit on one line */
+.footer__group--social {
+  grid-column: 10 / span 3;
+  grid-row: 1;
+  margin-top: clamp(2.5rem, 8svh, 5.5rem);
+}
+
+.footer__label {
+  margin-bottom: 1rem;
+  font-family: var(--hp-font-secondary);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hp-gray);
+}
+
+.footer__group li + li {
+  margin-top: 0.45rem;
+}
+
+.footer__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--hp-font-secondary);
+  font-weight: 500;
+  font-size: clamp(1rem, 0.9rem + 0.35vw, 1.25rem);
+  color: var(--hp-off-white);
+  transition: color 0.45s var(--hp-ease-out);
+}
+
+.footer__link svg {
+  color: var(--hp-lime);
+}
+
+.footer__link:hover,
+.footer__link:focus-visible {
+  color: var(--hp-lime);
+}
+
+/* Label rolls up to a fresh copy of itself — the header CTA's gesture */
+.footer__roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  line-height: 1.25;
+}
+
+.footer__roll > span,
+.footer__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+
+.footer__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+}
+
+.footer__link:hover .footer__roll > span,
+.footer__link:hover .footer__roll::after,
+.footer__link:focus-visible .footer__roll > span,
+.footer__link:focus-visible .footer__roll::after {
+  transform: translateY(-100%);
+}
+
+/* --- Contact -------------------------------------------------------------- */
+.footer__contact {
+  grid-column: 8 / span 5;
+  grid-row: 2;
+  align-self: start;
+  margin-top: clamp(2rem, 7svh, 4.5rem);
+}
+
+.footer__say {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: clamp(2rem, 0.9rem + 3.6vw, 4.75rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+  transition: color 0.45s var(--hp-ease-out);
+}
+
+.footer__say-arrow {
+  display: grid;
+  place-items: center;
+  width: 0.62em;
+  height: 0.62em;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    background-color 0.45s var(--hp-ease-out),
+    color 0.45s var(--hp-ease-out);
+}
+
+.footer__say-arrow svg {
+  width: 38%;
+  height: 38%;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+
+.footer__say:hover,
+.footer__say:focus-visible {
+  color: var(--hp-lime);
+}
+
+.footer__say:hover .footer__say-arrow,
+.footer__say:focus-visible .footer__say-arrow {
+  background: var(--hp-lime);
+  color: var(--hp-soft);
+}
+
+.footer__say:hover .footer__say-arrow svg,
+.footer__say:focus-visible .footer__say-arrow svg {
+  transform: rotate(45deg);
+}
+
+/* --- Tagline, small print ------------------------------------------------- */
+.footer__tagline {
+  grid-column: 1 / span 5;
+  grid-row: 4;
+  align-self: end;
+  margin-bottom: clamp(0.9rem, 2.5svh, 1.5rem);
+  font-family: var(--hp-font-secondary);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  line-height: 1.8;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hp-gray);
+}
+
+.footer__tagline span {
+  display: block;
+}
+
+.footer__base {
+  grid-column: 7 / -1;
+  grid-row: 4;
+  align-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  row-gap: 0.9rem;
+  margin-bottom: clamp(0.9rem, 2.5svh, 1.5rem);
+}
+
+.footer__rule {
+  flex: 0 0 100%;
+  height: 1px;
+  background: var(--hp-dark);
+  transform-origin: left center;
+}
+
+.footer__small {
+  font-family: var(--hp-font-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--hp-gray);
+}
+
+.footer__top {
+  transition: color 0.45s var(--hp-ease-out);
+}
+
+.footer__top:hover,
+.footer__top:focus-visible {
+  color: var(--hp-lime);
+}
+
+/* --- The wordmark: the page's signature ----------------------------------- */
+.footer__mark {
+  grid-column: 1 / -1;
+  grid-row: 5;
+  width: min(100%, calc(32svh * 6.13)); /* never taller than a third of the frame */
+}
+
+.footer__mark img {
+  width: 100%;
+  height: auto;
+}
+
+/* --- Staged (motion on): the film's last frame ---------------------------- */
+html.hp-motion .footer {
+  z-index: 4;
+  background: transparent;
+  pointer-events: none;
+}
+
+html.hp-motion .footer.is-live {
+  pointer-events: auto;
+}
+
+html.hp-motion .footer__stage {
+  height: 100svh;
+  overflow: hidden;
+}
+
+html.hp-motion .footer__ground {
+  opacity: 0;
+}
+
+html.hp-motion .footer__mark {
+  will-change: transform;
+}
+
+/* --- Responsive ----------------------------------------------------------- */
+@media (max-width: 1023px) {
+  .footer__statement {
+    grid-column: 1 / span 7;
+  }
+
+  .footer__group--index {
+    grid-column: 9 / span 2;
+  }
+
+  .footer__group--social {
+    grid-column: 11 / span 2;
+  }
+
+  .footer__contact {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin-top: clamp(1.5rem, 5svh, 3rem);
+  }
+
+  .footer__tagline {
+    grid-column: 1 / span 6;
+  }
+}
+
+@media (max-width: 767px) {
+  .footer__grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto 1fr auto auto auto;
+  }
+
+  .footer__statement {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-bottom: clamp(1.5rem, 5svh, 2.5rem);
+  }
+
+  .footer__group--index {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .footer__group--social {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 0;
+  }
+
+  .footer__contact {
+    grid-row: 3;
+  }
+
+  .footer__tagline {
+    grid-column: 1 / -1;
+    grid-row: 5;
+  }
+
+  .footer__base {
+    grid-column: 1 / -1;
+    grid-row: 6;
+  }
+
+  .footer__base .footer__rule {
+    display: none;
+  }
+
+  .footer__mark {
+    grid-row: 7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer__link,
+  .footer__roll > span,
+  .footer__roll::after,
+  .footer__say,
+  .footer__say-arrow,
+  .footer__say-arrow svg,
+  .footer__top {
+    transition-duration: 0.01ms;
+  }
+}
