@@ -155,9 +155,11 @@ export function footerTimeline(): gsap.core.Timeline | null {
   });
   if (guides.length) tl.fromTo(guides, { y: 12 }, { y: 0, duration: A.rest[1] - A.rest[0], ease: "power1.out", immediateRender: false }, A.rest[0]);
 
-  // The footer takes the pointer once it has settled
+  // The footer takes the pointer the moment it owns the frame (the night has fully risen over
+  // the call to action) — so its links and hovers work as soon as they're seen, not only at
+  // the very end of the scroll
   tl.to({}, { duration: Math.max(0, 1 - tl.duration()) }).eventCallback("onUpdate", () =>
-    root.classList.toggle("is-live", tl.progress() > 0.9),
+    root.classList.toggle("is-live", tl.progress() >= m.night.end),
   );
   return tl;
 }
