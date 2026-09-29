@@ -295,7 +295,8 @@ html.hp-motion .film {
 html.hp-motion .film > .hero,
 html.hp-motion .film > .studio,
 html.hp-motion .film > .caps,
-html.hp-motion .film > .work {
+html.hp-motion .film > .work,
+html.hp-motion .film > .footer {
   position: absolute;
   inset: 0;
 }

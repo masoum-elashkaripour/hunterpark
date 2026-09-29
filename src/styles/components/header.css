@@ -34,6 +34,66 @@
   height: auto;
 }
 
+/* --- Right-hand actions: sound toggle + Contact CTA -------------------- */
+.site-header__actions {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+/* Sound toggle — the CTA's arrow cell on its own: a lime-ruled square. Four bars stand
+   while the soundtrack plays and lie flat when it's muted (scripts/soundtrack.ts). */
+.sound-toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    background-color 0.45s var(--hp-ease-out),
+    color 0.45s var(--hp-ease-out);
+}
+
+.sound-toggle:hover,
+.sound-toggle:focus-visible {
+  background: var(--hp-lime);
+  color: var(--hp-soft);
+}
+
+.sound-toggle__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+
+.sound-toggle__bars span {
+  width: 2px;
+  height: 2px;
+  background: currentColor;
+  transition: height 0.45s var(--hp-ease-out);
+}
+
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(1) {
+  height: 7px;
+}
+
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(2) {
+  height: 13px;
+}
+
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(3) {
+  height: 9px;
+}
+
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(4) {
+  height: 14px;
+}
+
 /* --- Contact CTA ------------------------------------------------------- */
 .header-cta {
   grid-column: 3;
@@ -320,6 +380,7 @@
 /* Before the preloader hands off, intro elements wait off-stage (JS only) */
 html.js:not([data-site-ready]) .site-header__logo,
 html.js:not([data-site-ready]) .header-cta,
+html.js:not([data-site-ready]) .sound-toggle,
 html.js:not([data-site-ready]) .menu-toggle {
   opacity: 0;
 }
@@ -347,6 +408,8 @@ html.js:not([data-site-ready]) .menu-toggle {
   .menu-toggle__icon span,
   .header-cta,
   .header-cta::before,
+  .sound-toggle,
+  .sound-toggle__bars span,
   .header-cta__roll > span,
   .header-cta__roll::after,
   .header-cta__arrow,

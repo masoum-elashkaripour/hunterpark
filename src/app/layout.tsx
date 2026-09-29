@@ -8,6 +8,7 @@ import "../styles/components/hero.css";
 import "../styles/components/studio.css";
 import "../styles/components/capabilities.css";
 import "../styles/components/work.css";
+import "../styles/components/footer.css";
 import Preloader from "../components/preloader/Preloader";
 import SiteHeader from "../components/header/SiteHeader";
 import SiteScripts from "../components/SiteScripts";
