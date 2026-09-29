@@ -14,6 +14,9 @@ import { onSiteReady, prefersReducedMotion } from "./lifecycle";
  * so rapid clicks or a film ending mid-switch can never double-advance.
  * The clock pauses only when the hero is off-screen or the tab is hidden.
  */
+/** Pause/resume the hero reel from outside (e.g. while Chapter 02 covers it). */
+export let pauseHero: (on: boolean) => void = () => {};
+
 export function initHero(): void {
   const hero = document.querySelector<HTMLElement>("[data-hero]");
   if (!hero) return;
@@ -190,8 +193,13 @@ export function initHero(): void {
     const was = paused();
     if (on) pauseReasons.add(reason);
     else pauseReasons.delete(reason);
-    if (!running || was === paused()) return;
+    if (was === paused()) return;
     const el = backgrounds[active];
+    if (!running) {
+      // still in the intro: the opening film rolls from the preloader, so hold it too
+      if (isFilm(el) && !reduced) paused() ? el.pause() : el.play().catch(() => {});
+      return;
+    }
     if (paused()) {
       tween?.pause();
       if (isFilm(el)) el.pause();
@@ -202,6 +210,8 @@ export function initHero(): void {
   };
   document.addEventListener("visibilitychange", () => setPaused("hidden", document.hidden));
   new IntersectionObserver(([entry]) => setPaused("offscreen", !entry.isIntersecting)).observe(hero);
+  // The hero stays in the viewport inside the pinned film, so the film says when it's covered.
+  pauseHero = (on) => setPaused("offstage", on);
 
   // --- Intro, then start the clock ------------------------------------------
   onSiteReady(() => {

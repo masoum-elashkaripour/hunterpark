@@ -1,0 +1,447 @@
+/* ==========================================================================
+   Shared split-text pieces (components/motion/SplitText.tsx)
+   ========================================================================== */
+.split__word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Reveal mask per letter. It only needs to cut top and bottom (letters rise in from
+   below / lift out above), so the sides are opened well past the letter box: with tight
+   tracking the glyphs overhang their boxes and overflow: hidden shaved their edges off.
+   The bottom pad keeps descenders/commas inside it. */
+.split__mask {
+  display: inline-block;
+  vertical-align: top;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+  clip-path: inset(0 -0.4em 0 -0.4em);
+}
+
+.split__char {
+  display: inline-block;
+  transform-origin: 0% 100%;
+}
+
+/* Word reveal mask: cuts only along the bottom edge the word rises from. The bottom
+   padding keeps descenders inside it (given back so line spacing is unchanged), and the
+   sides/top are left wide open so no glyph is ever trimmed. */
+.split__wmask {
+  display: inline-block;
+  vertical-align: top;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+  clip-path: inset(-0.4em -0.4em 0 -0.4em);
+}
+
+.split__w {
+  display: inline-block;
+}
+
+/* ==========================================================================
+   Running chapter marker — "01 — INTRO" → "02 — STUDIO" (fixed, bottom-left)
+   ========================================================================== */
+.chapter-index {
+  position: fixed;
+  left: var(--hp-gutter);
+  bottom: calc(var(--hp-gutter) * 0.55);
+  z-index: 45;
+  height: 1.5em;
+  overflow: hidden; /* one row visible; the track rolls through the chapters */
+  font-family: var(--hp-font-secondary);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgb(245 245 240 / 0.62);
+  visibility: hidden; /* faded in after the preloader */
+  pointer-events: none;
+}
+
+.chapter-index__track {
+  display: flex;
+  flex-direction: column;
+}
+
+.chapter-index__row {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  height: 1.5em;
+  white-space: nowrap;
+}
+
+.chapter-index__num {
+  color: var(--hp-lime);
+  letter-spacing: 0.08em;
+}
+
+.chapter-index__rule {
+  width: 2.25em;
+  height: 1px;
+  background: currentColor;
+}
+
+/* Small screens: the bottom edge belongs to the reel — tuck the marker under the header */
+@media (max-width: 1023px) {
+  .chapter-index {
+    top: calc(var(--hp-header-h) + 0.6rem); /* just below the solid nav bar */
+    bottom: auto;
+    font-size: 0.625rem;
+  }
+}
+
+/* ==========================================================================
+   Chapter 02 — Studio
+   Plain flow by default (reduced motion / no JS); html.hp-motion stages it.
+   ========================================================================== */
+.studio {
+  position: relative;
+  background: var(--hp-night);
+}
+
+.studio__stage {
+  position: relative;
+  padding: calc(var(--hp-header-h) + 2rem) var(--hp-gutter) clamp(3rem, 8svh, 6rem);
+  overflow: hidden;
+}
+
+/* --- Lime line system --------------------------------------------------- */
+/* WHO WE ARE only: the pattern lives inside .studio__intro (which clips it) and, with
+   motion on, stays invisible until WHO WE ARE begins — so it can never show in the Hero,
+   in the HUNTERPARK transition, or anywhere else. It spans the frame edge to edge,
+   behind the story film and the type. */
+.studio-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+html.hp-motion .studio-lines {
+  visibility: hidden;
+}
+
+.studio-lines__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Drawn by default (reduced motion); with motion on, studio.ts sets the dash from each
+   shape's measured length. No pathLength / non-scaling-stroke: Safari mis-renders dashes
+   with those, leaving "hidden" lines visible as faint dotted strokes. ~1px at common sizes. */
+.studio-lines__svg [data-studio-line] {
+  fill: none;
+  stroke: var(--hp-lime);
+  stroke-width: 1.1;
+  opacity: 0.16;
+}
+
+/* Barely-there light, not neon: a wide low-alpha lime bloom */
+.studio-lines__glow {
+  position: absolute;
+  left: 20%;
+  top: 25%;
+  width: 70vmax;
+  height: 70vmax;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(238 255 65 / 0.07), rgb(238 255 65 / 0) 70%);
+}
+
+/* --- Story film (plain flow: a cropped still-frame block under the heading) --- */
+.studio__film {
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 4 / 5;
+  margin-top: clamp(1.75rem, 5svh, 3rem);
+  overflow: hidden;
+}
+
+.studio__film video,
+.whatwedo__anchor video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Keeps the lime heading legible where it crosses the film */
+.studio__film-shade {
+  position: absolute;
+  inset: 0;
+  background: rgb(13 13 13 / 0.38);
+}
+
+/* --- Who we are ----------------------------------------------------------- */
+.studio__intro {
+  position: relative;
+  z-index: 2;
+  overflow: hidden; /* keeps the WHO WE ARE pattern and glow inside this block */
+}
+
+/* Index above the heading — the chapter's anchor when there's no transition to show it */
+.studio__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  margin-bottom: clamp(1rem, 3svh, 1.75rem);
+  font-family: var(--hp-font-secondary);
+  font-weight: 500;
+  font-size: clamp(0.8125rem, 0.65rem + 0.4vw, 1rem);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+}
+
+.studio__eyebrow-num {
+  color: var(--hp-lime);
+  letter-spacing: 0.08em;
+}
+
+.studio__eyebrow::after {
+  content: "";
+  width: 3.5em;
+  height: 1px;
+  background: var(--hp-lime);
+  order: -1;
+}
+
+/* Heading + the HUNTERPARK wordmark it grows out of, stacked in one place */
+.studio__title {
+  position: relative;
+}
+
+.studio__name {
+  display: none; /* only part of the staged transition */
+}
+
+/* Oversized, one notch under the hero's HUNT/PARK */
+.studio__heading {
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: clamp(3rem, min(10.5vw, 17svh), 11rem);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+  transform-origin: 0% 100%;
+}
+
+/* The story hangs off the heading, indented to sit under its second word */
+.studio__story {
+  max-width: 24ch;
+  margin-top: clamp(1.75rem, 5svh, 4rem);
+  margin-left: clamp(0rem, 30vw, 30rem);
+  font-family: var(--hp-font-secondary);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 0.9rem + 2.3vw, 3.25rem);
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  color: var(--hp-off-white);
+}
+
+/* --- What we do ----------------------------------------------------------- */
+.whatwedo {
+  position: relative;
+  z-index: 3;
+  margin-top: clamp(4rem, 12svh, 8rem);
+}
+
+.whatwedo__anchor {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.whatwedo__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.1) 55%);
+  opacity: 0;
+}
+
+.whatwedo__heading {
+  position: relative;
+  z-index: 3;
+  margin-top: 1.5rem;
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: clamp(2.75rem, min(9vw, 15svh), 9.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+/* ==========================================================================
+   Staged composition (motion on): the homepage film — Chapters 01 and 02
+   stacked in one full-screen frame that scripts/film.ts pins and plays
+   ========================================================================== */
+html.hp-motion .film {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+}
+
+html.hp-motion .film > .hero,
+html.hp-motion .film > .studio,
+html.hp-motion .film > .caps {
+  position: absolute;
+  inset: 0;
+}
+
+/* Studio sits over the hero, transparent, so the hero's last frame shows through its first */
+html.hp-motion .studio {
+  z-index: 1;
+  background: transparent;
+  pointer-events: none; /* no controls of its own; the hero underneath stays interactive */
+}
+
+html.hp-motion .studio__stage {
+  height: 100svh;
+  padding: 0;
+}
+
+html.hp-motion .studio__intro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(var(--hp-header-h) + 1rem) var(--hp-gutter) 12svh;
+}
+
+/* The running marker already says "02 — Studio"; keep the eyebrow for assistive tech only */
+html.hp-motion .studio__eyebrow {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* The story film becomes a full-stage layer, seen through an animated window */
+html.hp-motion .studio__film {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: auto;
+  aspect-ratio: auto;
+  margin: 0;
+  clip-path: inset(50% 0% 50% 0%);
+}
+
+/* The story film is vertical: keep it at its own 9:16 at stage height (not stretched to the
+   stage width), centred; studio.ts slides it along with its window as the window moves */
+html.hp-motion .studio__film video {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 9 / 16;
+  translate: -50% 0;
+}
+
+html.hp-motion .studio__title,
+html.hp-motion .studio__story {
+  position: relative;
+  z-index: 1;
+}
+
+/* HUNTERPARK: same type as WHO WE ARE, on the same baseline — sized so the one
+   long word always fits the frame */
+html.hp-motion .studio__name {
+  display: block;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: min(clamp(3rem, min(10.5vw, 17svh), 11rem), 8.6vw);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* What We Do fills the stage; its film is a full-frame layer revealed through a mask */
+html.hp-motion .whatwedo {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  z-index: 3; /* its film sits in front of WHO WE ARE's text and pattern */
+  pointer-events: none;
+}
+
+html.hp-motion .whatwedo__anchor {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  clip-path: inset(78% 5% 4% 76%);
+  visibility: hidden;
+}
+
+/* The What We Do film (landscape) keeps its whole 16:9 frame — never pre-cropped by
+   object-fit — sized to cover the stage and centred. studio.ts / capabilities.ts scale it
+   around her face so every window it passes through (strip → fullscreen → capability
+   window) shows her, not an arbitrary slice. */
+html.hp-motion .whatwedo__anchor video {
+  --w: max(100vw, 177.78svh); /* cover the full-viewport stage */
+
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--w);
+  max-width: none; /* the global media reset would cap it at the viewport width (letterboxing it) */
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: fill;
+  translate: -50% -50%;
+}
+
+html.hp-motion .whatwedo__heading {
+  position: absolute;
+  left: calc(var(--hp-gutter) + 4%);
+  bottom: calc(5% + clamp(1.5rem, 5svh, 3.5rem));
+  z-index: 4;
+  margin: 0;
+}
+
+@media (max-width: 1023px) {
+  .studio__story {
+    margin-left: clamp(0rem, 14vw, 10rem);
+  }
+}
+
+/* Portrait screens: top-align the staged intro so the frame fills from the top, not the middle */
+@media (orientation: portrait) {
+  html.hp-motion .studio__intro {
+    justify-content: flex-start;
+    padding-top: calc(var(--hp-header-h) + 10svh);
+  }
+}
+
+@media (max-width: 767px) {
+  .studio__heading {
+    font-size: 17vw;
+  }
+
+  .studio__story {
+    max-width: none;
+    margin-left: 0;
+    font-size: clamp(1.5rem, 7.2vw, 2.25rem);
+  }
+
+  .whatwedo__heading {
+    font-size: 14vw;
+  }
+
+}

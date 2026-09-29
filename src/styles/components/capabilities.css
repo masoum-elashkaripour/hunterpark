@@ -1,0 +1,353 @@
+/* ==========================================================================
+   What We Do — capabilities (components/capabilities/Capabilities.tsx)
+   One full-screen composition: a full-stage media frame seen through an
+   asymmetric window, oversized capability titles overlapping it, one line of copy.
+   ========================================================================== */
+.caps {
+  /* The media window (desktop: tall frame, right; titles overlap its left edge).
+     Media is sized to this box, so every image is cropped for the window's real shape. */
+  --wt: 11%;
+  --wr: 5%;
+  --wb: 11%;
+  --wl: 52%;
+
+  position: relative;
+  background: var(--hp-night);
+}
+
+.caps__stage {
+  position: relative;
+  height: 100svh;
+  min-height: 34rem;
+  overflow: hidden;
+}
+
+/* --- Media frame: the window itself (grows full-bleed at the hand-off) ------ */
+.caps__frame {
+  position: absolute;
+  top: var(--wt);
+  right: var(--wr);
+  bottom: var(--wb);
+  left: var(--wl);
+  z-index: 0;
+  overflow: hidden;
+}
+
+.caps__media {
+  position: absolute;
+  inset: -2%; /* room for the pointer drift without exposing an edge */
+}
+
+.caps__layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.caps__layer.is-active {
+  visibility: visible;
+}
+
+.caps__layer-inner {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.caps__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A soft floor so the caption and titles read over the media */
+.caps__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(13 13 13 / 0.45), rgb(13 13 13 / 0) 40%);
+  pointer-events: none;
+}
+
+/* --- Capability titles ------------------------------------------------------ */
+.caps__list {
+  position: absolute;
+  left: var(--hp-gutter);
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.1rem, 0.6svh, 0.5rem);
+  translate: 0 -50%;
+}
+
+.caps__title {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(0.6rem, 1.2vw, 1.25rem);
+  text-align: left;
+  /* recede by default; the active title comes forward */
+  opacity: 0.26;
+  transition:
+    opacity 0.5s var(--hp-ease-out),
+    translate 0.6s var(--hp-ease-out);
+}
+
+.caps__title.is-active {
+  opacity: 1;
+  translate: 0.35em 0;
+}
+
+.caps__title:hover:not(.is-active),
+.caps__title:focus-visible:not(.is-active) {
+  opacity: 0.55;
+}
+
+.caps__index {
+  padding-top: 0.55em;
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--hp-off-white);
+}
+
+/* Reveal mask: cuts only along the bottom edge (sides/top open so no glyph is trimmed) */
+.caps__mask {
+  display: block;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+  clip-path: inset(-0.4em -0.4em 0 -0.4em);
+}
+
+.caps__label {
+  display: block;
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: clamp(1.9rem, min(4.2vw, 8.4svh), 5.25rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--hp-off-white);
+  transition:
+    color 0.45s var(--hp-ease-out),
+    letter-spacing 0.6s var(--hp-ease-out);
+}
+
+.caps__title.is-active .caps__label {
+  color: var(--hp-lime);
+}
+
+/* --- Caption: one line for the active capability -------------------------- */
+/* One line, bottom-right of the media: spans the window's inner width, set right. When the
+   longest line can't fit at full size, scripts/capabilities.ts eases --caps-line-scale down
+   (the same for every line, so the captions stay one consistent size). */
+.caps__caption {
+  --inset: clamp(0.9rem, 1.6vw, 1.5rem);
+
+  position: absolute;
+  left: calc(var(--wl) + var(--inset));
+  right: calc(var(--wr) + var(--inset));
+  bottom: calc(var(--wb) + clamp(1rem, 2.5svh, 1.75rem));
+  z-index: 2;
+  height: 1.45em;
+  font-size: calc(var(--hp-text-sm) * var(--caps-line-scale, 1));
+}
+
+.caps__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-family: var(--hp-font-secondary);
+  font-size: inherit;
+  line-height: 1.45;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--hp-off-white);
+  opacity: 0;
+  translate: 0 0.6em;
+  transition:
+    opacity 0.35s var(--hp-ease-out),
+    translate 0.5s var(--hp-ease-out);
+  pointer-events: none;
+}
+
+.caps__line.is-active {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* --- Media number: a folio inside the media's top-left corner, "01 —— 05" ---
+   Set in from the window's edges by one consistent inset; no container.
+   One row per capability, stacked in a mask; the scroll timeline rolls between them. */
+.caps__folio {
+  --inset: clamp(0.9rem, 1.6vw, 1.5rem);
+
+  position: absolute;
+  left: calc(var(--wl) + var(--inset));
+  top: calc(var(--wt) + var(--inset));
+  z-index: 2;
+  margin: 0;
+  text-shadow: 0 0 0.9em rgb(13 13 13 / 0.45); /* legible over light footage */
+  display: grid;
+  clip-path: inset(0 -0.5em 0 -0.5em); /* rolls vertically; sides open */
+  font-family: var(--hp-font-secondary);
+  font-weight: 500;
+  font-size: var(--hp-text-sm);
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.caps__folio-row {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  visibility: hidden;
+}
+
+.caps__folio-row.is-active {
+  visibility: visible;
+}
+
+.caps__folio-now {
+  color: var(--hp-off-white);
+}
+
+.caps__folio-rule {
+  width: 2.25em;
+  height: 1px;
+  background: rgb(245 245 240 / 0.6);
+  box-shadow: 0 0 0.6em rgb(13 13 13 / 0.35);
+}
+
+.caps__folio-total {
+  color: var(--hp-off-white);
+  opacity: 0.6;
+}
+
+/* --- Hand-off into Chapter 03 (only shown by the scroll timeline) ---------- */
+.caps__next {
+  position: absolute;
+  left: var(--hp-gutter);
+  bottom: calc(var(--hp-gutter) + 1.5rem);
+  z-index: 3;
+  display: none;
+  pointer-events: none;
+}
+
+html.hp-motion .caps__next {
+  display: block;
+  visibility: hidden;
+}
+
+.caps__next-title {
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: clamp(3rem, min(10.5vw, 17svh), 11rem);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+.caps__next-mask {
+  display: block;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+  clip-path: inset(-0.4em -0.4em 0 -0.4em);
+}
+
+.caps__next-mask > span {
+  display: block;
+}
+
+/* --- Inside the homepage film (motion on) ----------------------------------
+   Stacked over Chapter 02: transparent, so the WHO WE ARE film (which *is* the Film & Video
+   media) shows through the window; every value is driven by the scroll timeline, so no CSS
+   transition may add lag to it. */
+html.hp-motion .caps {
+  z-index: 2;
+  background: transparent;
+  pointer-events: none;
+}
+
+/* titles only take the pointer while the sequence is on screen (film.ts sets .is-live) */
+html.hp-motion .caps.is-live .caps__list {
+  pointer-events: auto;
+}
+
+html.hp-motion .caps [data-caps-shared] {
+  display: none;
+}
+
+html.hp-motion .caps__layer {
+  visibility: hidden;
+}
+
+html.hp-motion .caps__title,
+html.hp-motion .caps__label,
+html.hp-motion .caps__line {
+  transition: none;
+}
+
+/* emphasis (opacity, shift, colour) comes from the timeline, not the class */
+html.hp-motion .caps__title.is-active {
+  translate: none;
+}
+
+/* --- Responsive ------------------------------------------------------------ */
+@media (max-width: 1023px) {
+  .caps {
+    --wt: 10%;
+    --wr: 5%;
+    --wb: 34%;
+    --wl: 36%;
+  }
+
+  .caps__list {
+    top: auto;
+    bottom: calc(var(--hp-gutter) + 0.5rem);
+    translate: none;
+  }
+
+  .caps__caption {
+    bottom: calc(var(--wb) + 1rem);
+  }
+}
+
+/* Phones: frame on top, the list below — tap to explore */
+@media (max-width: 767px) {
+  .caps {
+    --wt: 13%; /* clear of the chapter marker under the nav */
+    --wr: 5%;
+    --wb: 45%;
+    --wl: 5%;
+  }
+
+  .caps__label {
+    font-size: clamp(1.35rem, 6.6vw, 2.1rem);
+  }
+
+  .caps__caption {
+    bottom: calc(var(--wb) + 0.9rem);
+  }
+
+  .caps__title.is-active {
+    translate: 0.2em 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caps__title,
+  .caps__label,
+  .caps__line {
+    transition-duration: 0.01ms;
+  }
+}

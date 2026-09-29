@@ -1,4 +1,3 @@
-@import "@fontsource-variable/instrument-sans";
 @import "./fonts.css";
 @import "./tokens.css";
 
@@ -20,7 +19,7 @@ body {
   min-height: 100svh;
   background: var(--hp-night);
   color: var(--hp-off-white);
-  font-family: var(--hp-font-primary);
+  font-family: var(--hp-font-secondary); /* functional text; display headings opt into Söhne */
   font-size: var(--hp-text-body);
   line-height: var(--hp-leading-snug);
   -webkit-font-smoothing: antialiased;
@@ -71,6 +70,10 @@ p {
 ::selection {
   background: var(--hp-lime);
   color: var(--hp-soft);
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .visually-hidden {
