@@ -72,14 +72,19 @@
 }
 
 .chapter-index__num {
-  color: var(--hp-lime);
+  color: var(--hp-off-white);
   letter-spacing: 0.08em;
 }
 
+/* The label and its rule carry the Violet Blue accent; the number is white */
 .chapter-index__rule {
   width: 2.25em;
   height: 1px;
-  background: currentColor;
+  background: var(--hp-violet);
+}
+
+.chapter-index__title {
+  color: var(--hp-violet);
 }
 
 /* Small screens: the bottom edge belongs to the reel — tuck the marker under the header */
@@ -194,7 +199,7 @@ html.hp-motion .studio-lines {
   font-size: clamp(0.8125rem, 0.65rem + 0.4vw, 1rem);
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--hp-off-white);
+  color: var(--hp-violet); /* the chapter label, as in the running marker */
 }
 
 .studio__eyebrow-num {
@@ -206,7 +211,7 @@ html.hp-motion .studio-lines {
   content: "";
   width: 3.5em;
   height: 1px;
-  background: var(--hp-lime);
+  background: var(--hp-violet);
   order: -1;
 }
 
@@ -289,7 +294,8 @@ html.hp-motion .film {
 
 html.hp-motion .film > .hero,
 html.hp-motion .film > .studio,
-html.hp-motion .film > .caps {
+html.hp-motion .film > .caps,
+html.hp-motion .film > .work {
   position: absolute;
   inset: 0;
 }

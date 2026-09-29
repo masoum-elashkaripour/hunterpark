@@ -268,6 +268,12 @@ html.hp-motion .caps__next {
   display: block;
 }
 
+/* WORK's letters leave one by one as the Work sequence takes over (scripts/work.ts) */
+.caps__next-letter {
+  display: inline-block;
+  will-change: transform;
+}
+
 /* --- Inside the homepage film (motion on) ----------------------------------
    Stacked over Chapter 02: transparent, so the WHO WE ARE film (which *is* the Film & Video
    media) shows through the window; every value is driven by the scroll timeline, so no CSS

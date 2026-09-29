@@ -4,7 +4,8 @@
  * shrinks into this composition as Film & Video, then scroll carries the section
  * through each capability in turn — each new medium taking over the window — and
  * finally opens the frame full-bleed as the hand-off into Chapter 03 — Work
- * (scripts/capabilities.ts). Titles jump to their capability when clicked.
+ * (scripts/capabilities.ts), whose letters then clear the way for the Work sequence
+ * (scripts/work.ts). Titles jump to their capability when clicked.
  */
 import Image from "next/image";
 import { capabilities } from "../../data/capabilities";
@@ -113,7 +114,15 @@ export default function Capabilities() {
         <div className="caps__next" data-caps-next>
           <p className="caps__next-title">
             <span className="caps__next-mask">
-              <span data-caps-next-title>Work</span>
+              {/* One span per letter: they leave the screen one by one as Chapter 03 opens (scripts/work.ts) */}
+              <span data-caps-next-title>
+                <span className="visually-hidden">Work</span>
+                {Array.from("Work").map((ch, i) => (
+                  <span className="caps__next-letter" data-caps-next-letter aria-hidden="true" key={i}>
+                    {ch}
+                  </span>
+                ))}
+              </span>
             </span>
           </p>
         </div>

@@ -1,0 +1,523 @@
+/* ==========================================================================
+   Chapter 03 — Work (components/work/Work.tsx)
+   Without motion: an editorial run of cards, each with its own shape and offset.
+   With motion: one full-screen 3D space the camera moves through (scripts/work.ts).
+   ========================================================================== */
+.work {
+  position: relative;
+  background: var(--hp-night);
+}
+
+.work__stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--hp-header-h) + 4rem) var(--hp-gutter) 8rem;
+}
+
+.work__heading {
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: clamp(3rem, min(10.5vw, 17svh), 11rem);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+/* The blurred backdrop belongs to the 3D sequence only */
+.work__backdrop {
+  display: none;
+}
+
+/* The large rolling title belongs to the 3D sequence; the static layout names projects on their cards */
+.work__marquee {
+  display: none;
+}
+
+/* --- Cards: static flow ---------------------------------------------------- */
+.work__space {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(3rem, 8vw, 7rem) var(--hp-gutter);
+  margin-top: clamp(3rem, 8vw, 7rem);
+}
+
+.work__card {
+  width: calc(min(100%, 22rem + 14vw) * var(--scale, 1) * sqrt(var(--aspect, 1)) * 0.62);
+  max-width: 100%;
+}
+
+.work__card:nth-child(even) {
+  margin-top: clamp(2rem, 9vw, 9rem);
+}
+
+.work__article {
+  position: relative;
+}
+
+.work__visual {
+  position: relative;
+  aspect-ratio: var(--aspect, 1);
+  overflow: hidden;
+  background: var(--hp-soft);
+}
+
+.work__media {
+  position: absolute;
+  inset: -2%; /* room for the parallax drift without exposing an edge */
+}
+
+.work__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.work__dim {
+  position: absolute;
+  inset: 0;
+  background: var(--hp-night);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- Captions: one small line of type per card, placed by its treatment ---- */
+.work__caption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75em;
+  padding-top: 0.9rem;
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-xs);
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--hp-off-white);
+}
+
+.work__caption-num {
+  font-variant-numeric: tabular-nums;
+  color: var(--hp-lime);
+}
+
+.work__caption-title {
+  font: inherit;
+  font-weight: 600;
+}
+
+.work__caption-meta {
+  color: var(--hp-gray);
+}
+
+/* Caption over the image, bottom-left */
+.work__card--inside .work__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2.5rem 1rem 0.9rem;
+  background: linear-gradient(to top, rgb(13 13 13 / 0.55), rgb(13 13 13 / 0));
+}
+
+/* Caption above the image */
+.work__card--above .work__caption {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  padding: 0 0 0.75rem;
+}
+
+/* Caption set down the card's right edge */
+.work__card--side .work__caption {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  padding: 0 0 0 0.85rem;
+  writing-mode: vertical-rl;
+}
+
+/* Caption below, set right */
+.work__card--below .work__caption {
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   The depth sequence (motion on) — the last beat of the homepage film.
+   Stacked over What We Do; every value is driven by the scroll timeline.
+   ========================================================================== */
+html.hp-motion .work {
+  z-index: 3;
+  background: transparent;
+  pointer-events: none;
+}
+
+html.hp-motion .work__stage {
+  height: 100svh;
+  padding: 0;
+  overflow: hidden;
+}
+
+html.hp-motion .work__heading {
+  /* WORK is already on screen — the hand-off title What We Do ends on */
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* The active project's media, filling the frame behind the space: blurred into atmosphere,
+   under the hero overlay so the section stays dark. Each layer is drawn at a quarter of the
+   frame and scaled up — the blur then costs a fraction of a full-size one, even on film. */
+html.hp-motion .work__backdrop {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0; /* scripts/work.ts brings it in once project 01 has landed */
+}
+
+html.hp-motion .work__backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10; /* over every layer (scripts/work.ts stacks them by project) */
+  background: var(--hp-hero-overlay);
+}
+
+.work__backdrop-layer {
+  position: absolute;
+  inset: -14%; /* the blur softens its own edges: keep them outside the frame */
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.work__backdrop-media {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 25%;
+  height: 25%;
+  transform: scale(4);
+  transform-origin: 0 0;
+}
+
+/* The blur: blur(18px) saturate(1.1) at this quarter size (×4 once scaled up). scripts/work.ts
+   draws it once into the canvas — a small finished bitmap the compositor only has to scale,
+   so the backdrop can't stutter, tile or checkerboard as it moves. The CSS filter on the
+   source still is only the fallback until then (or where a canvas can't filter). */
+.work__backdrop-media > [data-work-backdrop-source],
+.work__backdrop-layer.is-css-blur .work__backdrop-canvas {
+  filter: blur(18px) saturate(1.1);
+}
+
+.work__backdrop-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+}
+
+.work__backdrop-layer.is-drawn .work__backdrop-canvas {
+  visibility: visible;
+}
+
+.work__backdrop-layer.is-drawn [data-work-backdrop-source] {
+  visibility: hidden;
+}
+
+/* The foreground project's title across the top, rolled in its mask as the camera moves */
+html.hp-motion .work__marquee {
+  display: block;
+  position: absolute;
+  left: var(--hp-gutter);
+  right: var(--hp-gutter);
+  top: calc(var(--hp-header-h) + 3.5svh);
+  z-index: 2; /* over the space: a project passing the camera has faded by the time it reaches it */
+  text-align: center;
+  pointer-events: none;
+}
+
+.work__titles,
+.work__metas {
+  display: grid;
+  clip-path: inset(0 -1em 0 -1em); /* rolls vertically; sides open */
+}
+
+.work__title,
+.work__meta {
+  grid-area: 1 / 1;
+  will-change: transform;
+}
+
+.work__title {
+  padding-bottom: 0.06em;
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: clamp(2.4rem, min(9.4vw, 15svh), 10.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--hp-off-white);
+}
+
+.work__metas {
+  margin-top: clamp(0.6rem, 1.6svh, 1.1rem);
+}
+
+.work__meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.6em;
+  font-family: var(--hp-font-secondary);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(245 245 240 / 0.62);
+}
+
+.work__meta-num {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  color: var(--hp-lime);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.work__meta-rule {
+  width: 2.25em;
+  height: 1px;
+  background: rgb(245 245 240 / 0.5);
+}
+
+/* Cards: absolutely placed in one perspective space; size set per viewport, depth per frame (scripts/work.ts) */
+html.hp-motion .work__space {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  margin: 0;
+  perspective: 1000px; /* scripts/work.ts sets the distance and moves the origin (the camera) */
+}
+
+html.hp-motion .work__card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  visibility: hidden;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+html.hp-motion .work__visual {
+  aspect-ratio: auto;
+  width: 100%;
+  height: 100%;
+}
+
+html.hp-motion .work__article {
+  width: 100%;
+  height: 100%;
+}
+
+html.hp-motion .work__media {
+  will-change: transform;
+}
+
+/* Project 01's own film stays unused: the capability window's film is carried in instead */
+html.hp-motion [data-work-own] {
+  display: none;
+}
+
+html.hp-motion .work__caption {
+  will-change: opacity;
+}
+
+html.hp-motion .work__card--below .work__caption {
+  position: absolute;
+  top: 100%;
+  right: 0;
+}
+
+/* --- The closing call to action --------------------------------------------
+   Without motion: its own full-height block after the projects, over the finale still,
+   blurred. With motion: staged over the space (below) and revealed by scripts/work.ts. */
+.work__card--finale {
+  display: none; /* the finale card only exists inside the 3D sequence */
+}
+
+.work__cta {
+  position: relative;
+  order: 1; /* after the projects (in the markup it sits under the 3D space, for the staging) */
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  min-height: 100svh;
+  margin: clamp(4rem, 10vw, 8rem) calc(var(--hp-gutter) * -1) -8rem;
+  padding: 6rem var(--hp-gutter);
+  overflow: hidden;
+  text-align: center;
+}
+
+.work__cta-bg {
+  position: absolute;
+  inset: -12%;
+  filter: blur(48px) saturate(1.1);
+}
+
+.work__cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--hp-hero-overlay);
+}
+
+.work__cta-title {
+  position: relative;
+  z-index: 2;
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: clamp(2.4rem, min(7.4vw, 15svh), 9.5rem); /* MAKE SOMETHING on one line */
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+}
+
+.work__cta-line {
+  display: block;
+  white-space: nowrap;
+}
+
+.work__cta-line--key {
+  color: var(--hp-lime);
+}
+
+.work__cta-word,
+.work__cta-char {
+  display: inline-block;
+}
+
+.work__cta-action {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(2rem, 6svh, 3.75rem);
+}
+
+/* Staged (motion on): under the 3D space, so the headline waits behind the finale card */
+html.hp-motion .work__cta {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0 var(--hp-gutter);
+  overflow: visible;
+  perspective: 900px; /* the headline comes forward out of depth */
+  pointer-events: none;
+}
+
+/* the frame's backdrop (the finale's own layer) is the background here */
+html.hp-motion .work__cta::before,
+html.hp-motion .work__cta-bg {
+  display: none;
+}
+
+html.hp-motion .work__cta-title,
+html.hp-motion .work__cta-line {
+  transform-style: preserve-3d;
+}
+
+html.hp-motion .work__cta-word,
+html.hp-motion .work__cta-char {
+  will-change: transform, opacity;
+}
+
+html.hp-motion .work__card--finale {
+  display: block;
+}
+
+/* the link only takes the pointer once it has arrived (scripts/work.ts sets .is-live) */
+html.hp-motion .work__cta.is-live .work__cta-link {
+  pointer-events: auto;
+}
+
+/* Phones: one word to a line, set larger */
+@media (max-width: 599px) {
+  .work__cta-title {
+    font-size: clamp(2.4rem, 12.5vw, 4rem);
+  }
+
+  .work__cta-word {
+    display: block;
+  }
+}
+
+/* The header folds its CTA to an arrow on phones; this one has the room to keep its label */
+@media (max-width: 599px) {
+  .work__cta-link .header-cta__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .work__cta-link .header-cta__arrow {
+    border-left: 1px solid var(--hp-lime);
+  }
+}
+
+/* --- Responsive ------------------------------------------------------------ */
+@media (max-width: 767px) {
+  .work__card,
+  .work__card:nth-child(even) {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .work__card--side .work__caption {
+    position: static;
+    padding: 0.9rem 0 0;
+    writing-mode: horizontal-tb;
+  }
+
+  html.hp-motion .work__card--side .work__caption {
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+
+  .work__meta {
+    gap: 1.1em;
+    letter-spacing: 0.18em;
+  }
+
+  /* in the 3D sequence a card's caption keeps to its number and title — the meta sits under the big title */
+  html.hp-motion .work__caption-meta {
+    display: none;
+  }
+
+  /* the meta line is too long for a phone: keep the folio and the discipline */
+  .work__meta > span:nth-child(2) {
+    display: none;
+  }
+}
