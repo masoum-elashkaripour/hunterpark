@@ -3,18 +3,19 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { heroToStudioTimeline } from "./hero-to-studio";
 import { studioTimeline } from "./studio";
 import { CAPS_MOTION, capabilitiesTimeline, markActive, setCapabilityJump } from "./capabilities";
+import { workTimeline } from "./work";
 import { pauseHero } from "./hero";
 import { lenis } from "./smooth-scroll";
 
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * The homepage "film": Chapter 01, Chapter 02 (Who we are) and What We Do stacked in
+ * The homepage "film": Chapter 01, Chapter 02 (Who we are), What We Do and Chapter 03 (Work) stacked in
  * one pinned stage and played as a single scrubbed timeline, so each beat's last frame
  * is literally the next one's first. Beat lengths are in viewport heights.
  */
 export const FILM = {
-  beats: { heroToStudio: 1.5, studio: 3.0, capabilities: 5.6 },
+  beats: { heroToStudio: 1.5, studio: 3.0, capabilities: 5.6, work: 14 },
   // Coupled directly to scroll (Lenis already smooths the scroll itself): motion stops the
   // moment scrolling stops and reverses exactly — no catch-up lag after the user.
   scrub: true,
@@ -29,13 +30,17 @@ export function initFilm(): void {
   const heroBeat = heroToStudioTimeline();
   const studioBeat = studioTimeline();
   const capsBeat = capabilitiesTimeline();
+  // Work continues from What We Do's last frame, so it only plays after it
+  const workBeat = capsBeat ? workTimeline() : null;
   if (!heroBeat || !studioBeat) return;
 
   const b = FILM.beats;
   const capsLen = capsBeat ? b.capabilities : 0;
-  const total = b.heroToStudio + b.studio + capsLen;
+  const workLen = workBeat ? b.work : 0;
+  const total = b.heroToStudio + b.studio + capsLen + workLen;
   const studioAt = b.heroToStudio;
   const capsAt = studioAt + b.studio;
+  const workAt = capsAt + capsLen;
   const storyVideo = film.querySelector<HTMLVideoElement>("[data-studio-film-video]");
   const doVideo = film.querySelector<HTMLVideoElement>("[data-whatwedo-video]");
   const capVideos = Array.from(film.querySelectorAll<HTMLVideoElement>("[data-caps-video]")).filter(
@@ -76,8 +81,11 @@ export function initFilm(): void {
     });
   }
 
+  if (workBeat) master.add(workBeat.timeline.duration(workLen), workAt);
+
   // Films only load/decode when they're about to be seen, and only play while on screen.
   let loaded = false;
+  let workLoaded = false;
   let lastActive = -1;
   function syncMedia(t: number) {
     if (!loaded && t > b.heroToStudio * 0.3) {
@@ -89,6 +97,13 @@ export function initFilm(): void {
         }
       });
     }
+    if (workBeat && !workLoaded && t > capsAt + capsLen * 0.5) {
+      workLoaded = true;
+      workBeat.videos.forEach((v) => {
+        v.preload = "auto";
+        v.load();
+      });
+    }
     pauseHero(t > studioAt + 0.1);
     toggle(storyVideo, t > studioAt - 0.05 && t < studioAt + b.studio * 0.8);
 
@@ -96,7 +111,9 @@ export function initFilm(): void {
     const capsP = capsBeat ? (t - capsAt) / capsLen : -1;
     const active = capsBeat && capsP >= 0 ? capsBeat.activeAt(capsP) : -1;
     toggle(doVideo, t > studioAt + b.studio * 0.28 && (active <= 0 || capsP < (capsBeat?.at[1] ?? 1)));
+    // (the last capability's film is carried on into Work as project 01, so it keeps playing)
     capVideos.forEach((v, k) => toggle(v, capVideoIndex[k] === active));
+    workBeat?.videos.forEach((v) => toggle(v, t > workAt + workLen * 0.2));
 
     caps?.classList.toggle("is-live", active >= 0 && capsP < CAPS_MOTION.handoff.start);
     if (caps && active !== lastActive) {
