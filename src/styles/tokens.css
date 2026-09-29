@@ -1,7 +1,9 @@
 /*
  * HunterPark design tokens — source of truth: Figma "HUNTERPARK" design system.
- * Primary typeface: Söhne Breit (titles + main text, see fonts.css).
- * Secondary typeface: Instrument Sans (small supporting text: indexes, meta, captions).
+ * Primary typeface: Söhne Breit — display only: main titles, headlines, chapter titles,
+ *   large editorial statements and display numerals (see fonts.css).
+ * Secondary typeface: Instrument Sans — everything functional: body and supporting copy,
+ *   descriptions, navigation/UI, labels, metadata. It is the page default.
  */
 :root {
   /* Color */

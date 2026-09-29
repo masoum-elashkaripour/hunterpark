@@ -24,6 +24,25 @@ function layoutFor(width: number): Layout {
   return { count: 19, cardWidth: 12.5, spreadX: 0.4, spreadY: 0.36, finalWidth: 25 };
 }
 
+/** One collage photograph, as serialised by the Preloader component (next/image props). */
+export interface PreloaderCard {
+  src: string;
+  srcSet?: string;
+  sizes?: string;
+  ratio: number;
+}
+
+function makeCard(data: PreloaderCard): HTMLImageElement {
+  const img = document.createElement("img");
+  img.className = "preloader__card";
+  img.alt = "";
+  img.decoding = "async";
+  if (data.sizes) img.sizes = data.sizes;
+  if (data.srcSet) img.srcset = data.srcSet;
+  img.src = data.src;
+  return img;
+}
+
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
 function imageSettled(img: HTMLImageElement): Promise<void> {
@@ -48,7 +67,7 @@ function mediaSettled(el: HTMLImageElement | HTMLVideoElement): Promise<void> {
 export function runPreloader(): void {
   const root = document.querySelector<HTMLElement>("[data-preloader]");
   if (!root || getComputedStyle(root).display === "none") {
-    root?.remove();
+    if (root) root.hidden = true;
     markSiteReady();
     return;
   }
@@ -68,7 +87,7 @@ export function runPreloader(): void {
   const shade = root.querySelector<HTMLElement>("[data-shade]")!;
   const logo = root.querySelector<HTMLImageElement>("[data-logo]")!;
   const count = root.querySelector<HTMLElement>("[data-count]")!;
-  const template = root.querySelector<HTMLTemplateElement>("[data-cards]")!;
+  const cardData = JSON.parse(root.querySelector("[data-cards]")?.textContent || "[]") as PreloaderCard[];
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -83,10 +102,10 @@ export function runPreloader(): void {
   }
 
   // --- Build a random collage from the shared collection ---------------------
-  const candidates = gsap.utils.shuffle(Array.from(template.content.querySelectorAll<HTMLImageElement>("img")));
-  const cards = candidates.slice(0, layout.count).map((source, i) => {
-    const card = source.cloneNode(true) as HTMLImageElement; // cloning out of the template starts the fetch
-    const ratio = Number(card.dataset.ratio) || 1.5;
+  const candidates = gsap.utils.shuffle([...cardData]);
+  const cards = candidates.slice(0, layout.count).map((data, i) => {
+    const card = makeCard(data); // creating the <img> starts the fetch
+    const ratio = data.ratio || 1.5;
     const width = (layout.cardWidth * rand(0.8, 1.25) * vw) / 100;
     const height = width / ratio;
     // Golden-angle scatter: organic, but never clumped or grid-like
@@ -192,7 +211,7 @@ export function runPreloader(): void {
   function handOff() {
     returnHeroImage(); // same element, same position, already decoded — no swap
     document.documentElement.dataset.logoLanded = "";
-    root!.remove();
+    root!.hidden = true; // hidden, not removed: React owns this node
     unlockScroll();
     markSiteReady();
   }
@@ -210,7 +229,7 @@ export function runPreloader(): void {
         duration: 0.5,
         ease: "none",
         onComplete: () => {
-          root!.remove();
+          root!.hidden = true; // hidden, not removed: React owns this node
           unlockScroll();
           markSiteReady();
         },

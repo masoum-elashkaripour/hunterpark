@@ -1,0 +1,89 @@
+.preloader {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: var(--hp-z-preloader);
+  background: var(--hp-night); /* Night Black — the design system's background */
+  overflow: hidden;
+}
+
+/* Only shown when JS is running and this is the first view of the session. */
+html.js:not(.skip-preloader) .preloader {
+  display: block;
+}
+
+.preloader__stack {
+  position: absolute;
+  inset: 0;
+}
+
+/* Cards are positioned from the viewport centre; JS sets size, offset and rotation */
+.preloader__stack .preloader__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  object-fit: cover;
+  opacity: 0;
+  box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 0.45);
+  will-change: transform, opacity;
+}
+
+/* A full-viewport frame, scaled down to card size — so opening it is a pure transform */
+.preloader__final {
+  position: absolute;
+  inset: 0;
+  overflow: hidden; /* the hero slide inside rests slightly over-scaled for its drift/parallax */
+  opacity: 0;
+  transform-origin: 50% 50%;
+  box-shadow: 0 2rem 5rem rgb(0 0 0 / 0.55);
+  will-change: transform;
+}
+
+/* Matches the hero's overlay exactly; fades in as the frame opens */
+.preloader__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--hp-hero-overlay);
+  opacity: 0;
+}
+
+.preloader__logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: clamp(17rem, 58vw, 62rem);
+  height: auto;
+  margin: 0;
+  translate: -50% -50%; /* centring lives on `translate`, so GSAP owns `transform` freely */
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.preloader__count {
+  position: absolute;
+  right: var(--hp-gutter);
+  bottom: calc(var(--hp-gutter) * 0.6);
+  z-index: 2;
+  font-family: var(--hp-font-primary);
+  font-weight: 700;
+  font-size: clamp(4rem, 2rem + 8vw, 11rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--hp-off-white);
+}
+
+.preloader__unit {
+  font-size: 0.38em;
+  vertical-align: top;
+  margin-left: 0.08em;
+  color: var(--hp-lime);
+}
+
+@media (max-width: 767px) {
+  .preloader__logo {
+    width: 82vw;
+  }
+}

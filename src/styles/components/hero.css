@@ -1,0 +1,576 @@
+.hero {
+  /* Project strip geometry: one open card (2:1) + folded slivers, fixed total width */
+  --reel-h: clamp(5rem, min(3.4rem + 3.6vw, 12svh), 8.25rem); /* width- and height-aware so short screens keep clear of the title */
+  --card-w: calc(var(--reel-h) * 2);
+  --sliver: calc(var(--reel-h) * 0.36);
+  --peek: calc(var(--reel-h) * 0.62);
+  --reel-gap: 6px;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* --- Background --------------------------------------------------------- */
+.hero__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--hp-night);
+}
+
+/*
+ * Background motion is split across three independent transform properties,
+ * so they compose instead of overriding one another:
+ *   scale     — the zoom-out as a slide arrives (transition)
+ *   translate — a slow continuous drift while a still is on screen (keyframes)
+ *   transform — pointer parallax, fed by --hero-px / --hero-py (scripts/hero-parallax.ts)
+ * Slides rest at 1.08, not 1, so drift + parallax never expose an edge.
+ */
+.hero__bg {
+  --rest-scale: 1.08;
+
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  scale: 1.32;
+  transform: translate3d(var(--hero-px, 0px), var(--hero-py, 0px), 0);
+  transition:
+    opacity 1.1s var(--hp-ease-in-out),
+    scale 3.6s cubic-bezier(0.22, 0.61, 0.36, 1); /* ease-out, but gentle enough that the zoom reads for ~3s */
+}
+
+.hero__bg.is-active {
+  z-index: 1;
+  opacity: 1;
+  scale: var(--rest-scale);
+}
+
+/* The outgoing slide holds its framing underneath while the new one zooms out over it */
+.hero__bg.is-leaving {
+  opacity: 1;
+  scale: var(--rest-scale);
+  transition: none;
+}
+
+/* Stills keep drifting once revealed — starting from rest, so there's no jump.
+   Same animation name on .is-leaving, so the drift carries on (not restarts) under the fade. */
+img.hero__bg.is-active,
+img.hero__bg.is-leaving {
+  animation: hero-drift 16s ease-in-out infinite alternate;
+}
+
+/* Alternate slides drift the other way, so consecutive stills don't feel repeated */
+img.hero__bg:nth-child(even) {
+  --drift-x: -1;
+}
+
+@keyframes hero-drift {
+  0% {
+    translate: 0 0;
+  }
+  50% {
+    translate: calc(1.6% * var(--drift-x, 1)) -0.9%;
+  }
+  100% {
+    translate: calc(-1.1% * var(--drift-x, 1)) 0.8%;
+  }
+}
+
+/* Image → 50% black → text & UI. Sits above every slide, so it holds through transitions. */
+.hero__backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--hp-hero-overlay);
+}
+
+/* --- Foreground --------------------------------------------------------- */
+.hero__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 2rem;
+  padding: calc(var(--hp-header-h) + 2rem) var(--hp-gutter) var(--hp-gutter);
+}
+
+/* Caption for the photo row — the design system's label style (Söhne Leicht, caps, lime) */
+.hero__caption {
+  font-family: var(--hp-font-secondary);
+  font-weight: 300;
+  font-size: clamp(0.75rem, 0.65rem + 0.3vw, 0.9375rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+.hero__caption::before {
+  content: "";
+  display: inline-block;
+  width: 2.5em;
+  height: 1px;
+  margin-right: 0.9em;
+  vertical-align: 0.3em;
+  background: currentColor;
+}
+
+/* --- Title: editorial scale contrast ---------------------------------------
+ * Keywords in Söhne Breit Extrafett, oversized and lime; lead-ins in Leicht Kursiv,
+ * small and tucked against them. Row 1 hangs its lead-in from the cap line, row 2
+ * sits it on the baseline, and row 2 steps right — a diagonal read, not a stack.
+ * Centred in the hero, independent of the reel below. */
+.hero__title {
+  --big: clamp(3.4rem, min(13.5vw, 21svh), 14.5rem);
+  --small: max(0.8125rem, calc(var(--big) * 0.135));
+
+  /* Centred with inset + auto margins (not translate) so the tilt can own `transform` */
+  position: absolute;
+  inset: 0;
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--hp-font-primary);
+  white-space: nowrap;
+  transform-style: preserve-3d; /* lets the lead-ins sit on their own depth plane when tilted */
+}
+
+.hero__row {
+  transform-style: preserve-3d;
+  display: flex;
+  gap: calc(var(--big) * 0.12);
+}
+
+.hero__row--1 {
+  align-items: flex-start;
+}
+
+.hero__row--2 {
+  align-items: baseline;
+  margin-top: calc(var(--big) * -0.02);
+  padding-left: calc(var(--big) * 1.15);
+}
+
+.hero__mask {
+  display: block;
+  overflow: hidden;
+}
+
+.hero__mask > span {
+  display: block;
+}
+
+/* Lead-ins: Söhne Breit Buch — the cut the files name "Test Söhne Breit" */
+.hero__small {
+  font-size: var(--small);
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: var(--hp-off-white);
+  transform: translateZ(calc(var(--big) * 0.15)); /* shallow depth plane: parallax under tilt, ~2% at rest */
+}
+
+/* The trial Söhne cut has no apostrophe; the fallback glyph needs pulling into the word */
+.hero__apos {
+  margin-inline: -0.03em -0.01em;
+}
+
+/* Hang the first lead-in off the keyword's cap height */
+.hero__row--1 .hero__small {
+  padding-top: calc(var(--big) * 0.1);
+}
+
+.hero__big {
+  font-size: var(--big);
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+  padding-bottom: 0.04em; /* room for the comma's tail inside the reveal mask */
+}
+
+/* Shutter line (the violet accent) — invisible (scaleX 0) until the Chapter 02 transition draws it */
+.hero__shutter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  z-index: 0;
+  height: 1px;
+  background: var(--hp-violet);
+  transform: scaleX(0);
+  pointer-events: none;
+}
+
+.hero__reel {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.875rem;
+}
+
+.hero__reel-head {
+  align-self: stretch; /* spans the thumbnail row: caption left, counter right */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+}
+
+/* Folio: large light numeral in Söhne Breit, total tucked top-right in Instrument Sans,
+   one lime stroke between them */
+.hero__counter {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  line-height: 1;
+}
+
+.hero__counter-now {
+  display: block;
+  overflow: hidden; /* mask for the number roll */
+  font-family: var(--hp-font-primary);
+  font-weight: 300;
+  font-size: clamp(1.75rem, 1.1rem + 1.3vw, 2.625rem);
+  line-height: 0.82;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--hp-off-white);
+}
+
+.hero__counter-now > span {
+  display: block;
+}
+
+.hero__counter-total {
+  font-family: var(--hp-font-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--hp-gray);
+}
+
+.hero__counter-slash {
+  margin-right: 0.3em;
+  color: var(--hp-lime);
+}
+
+/* Fixed-width strip: the open card takes whatever the slivers leave, so hovering
+   a sliver open borrows from the card and nothing around the strip shifts */
+.hero__thumbs {
+  display: flex;
+  gap: var(--reel-gap);
+  width: calc(var(--card-w) + (var(--count) - 1) * (var(--sliver) + var(--reel-gap)));
+}
+
+.hero__thumb-item {
+  flex: 0 0 var(--sliver);
+  min-width: 0;
+  transition:
+    flex-grow 0.8s var(--hp-ease-out),
+    flex-basis 0.8s var(--hp-ease-out);
+}
+
+.hero__thumb-item:has(.is-active) {
+  flex: 1 1 0;
+}
+
+.hero__thumb-item:not(:has(.is-active)):hover,
+.hero__thumb-item:not(:has(.is-active)):focus-within {
+  flex-basis: var(--peek);
+}
+
+.hero__thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: var(--reel-h);
+  overflow: hidden;
+  border-radius: 0; /* default: sharp, like the type */
+  transition: border-radius 0.5s var(--hp-ease-out);
+}
+
+/* Selected: rounded + lime border — the design system's sample-row treatment */
+.hero__thumb.is-active {
+  border-radius: 0.5rem;
+}
+
+/* Border drawn above the image so the still can't paint over it */
+.hero__thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 3px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: border-color 0.4s var(--hp-ease-out);
+}
+
+.hero__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.7;
+  transform: scale(1.04);
+  transition:
+    opacity 0.5s var(--hp-ease-out),
+    transform 0.8s var(--hp-ease-out);
+}
+
+.hero__thumb:hover img,
+.hero__thumb:focus-visible img {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Marks the film thumbnail */
+.hero__film {
+  position: absolute;
+  left: 0.4rem;
+  bottom: 0.45rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--hp-lime);
+  color: var(--hp-soft);
+  padding-left: 1px;
+}
+
+/* Active still — lime border, per the design system's sample row */
+.hero__thumb.is-active::after {
+  border-color: var(--hp-lime);
+}
+
+.hero__thumb.is-active img {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Timer: a lime hairline fills across the active thumbnail — driven by hero.ts
+   (the still interval, or a film's playback position) */
+.hero__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  height: 3px;
+  background: var(--hp-lime);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+
+/* --- View Project -------------------------------------------------------- */
+.view-project {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  height: 2.5rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+}
+
+.view-project:focus-visible {
+  outline-offset: 6px;
+}
+
+/* Label rolls up to a lime copy */
+.view-project__roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.view-project__roll > span,
+.view-project__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+
+.view-project__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+  color: var(--hp-lime);
+}
+
+/* Hairline: a short lime stub at rest; on hover the line is drawn from it straight into
+   the arrow cell (no gap — the line and the cell meet) */
+.view-project__line {
+  position: relative;
+  flex: 1;
+  align-self: stretch;
+  margin-right: -0.9rem; /* cancel the flex gap so the line touches the cell */
+}
+
+.view-project__line::before,
+.view-project__line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform-origin: left center;
+}
+
+.view-project__line::before {
+  background: var(--hp-lime);
+  transform: scaleX(0.22);
+}
+
+.view-project__line::after {
+  background: var(--hp-lime);
+  transform: scaleX(0);
+  transition: transform 0.5s var(--hp-ease-out);
+}
+
+/* Arrow cell — lime-ruled at rest; when the line arrives it floods lime from the left,
+   the direction the line travels */
+.view-project__arrow {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  overflow: hidden;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition: color 0.3s var(--hp-ease-out) 0.12s;
+}
+
+.view-project__arrow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--hp-lime);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.45s var(--hp-ease-out) 0.12s; /* starts as the line reaches the cell */
+}
+
+/* Hover — on the bar itself, or on the open project card above it */
+.view-project:hover .view-project__roll > span,
+.view-project:hover .view-project__roll::after,
+.view-project:focus-visible .view-project__roll > span,
+.view-project:focus-visible .view-project__roll::after,
+.hero__reel:has(.hero__thumb.is-active:hover) .view-project__roll > span,
+.hero__reel:has(.hero__thumb.is-active:hover) .view-project__roll::after {
+  transform: translateY(-100%);
+}
+
+.view-project:hover .view-project__line::after,
+.view-project:focus-visible .view-project__line::after,
+.hero__reel:has(.hero__thumb.is-active:hover) .view-project__line::after {
+  transform: scaleX(1);
+}
+
+.view-project:hover .view-project__arrow,
+.view-project:focus-visible .view-project__arrow,
+.hero__reel:has(.hero__thumb.is-active:hover) .view-project__arrow {
+  color: var(--hp-soft);
+}
+
+.view-project:hover .view-project__arrow::before,
+.view-project:focus-visible .view-project__arrow::before,
+.hero__reel:has(.hero__thumb.is-active:hover) .view-project__arrow::before {
+  clip-path: inset(0 0 0 0);
+}
+
+.view-project:not(:hover, :focus-visible) .view-project__arrow,
+.view-project:not(:hover, :focus-visible) .view-project__arrow::before {
+  transition-delay: 0s;
+}
+
+/* Before the preloader hands off, text + reel wait off-stage (JS only) */
+html.js:not([data-site-ready]) .hero__mask > span {
+  transform: translateY(110%);
+}
+
+html.js:not([data-site-ready]) .hero__thumb-item,
+html.js:not([data-site-ready]) .hero__reel-head,
+html.js:not([data-site-ready]) .view-project {
+  opacity: 0;
+}
+
+/* Tablet and below: the reel moves to the left edge */
+@media (max-width: 1023px) {
+  .hero__content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .hero__reel {
+    grid-column: 1;
+    align-items: flex-start;
+    justify-self: start; /* caption row stays as wide as the photos, not the page */
+  }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    --reel-h: 6rem;
+    --card-w: calc(var(--reel-h) * 1.7);
+    --sliver: calc(var(--reel-h) * 0.3);
+    --peek: calc(var(--reel-h) * 0.5);
+  }
+
+  .hero__title {
+    bottom: 8%; /* centres at 46%: the optical middle of the space above the reel */
+  }
+
+  .hero__row--2 {
+    padding-left: calc(var(--big) * 0.55);
+  }
+
+  .hero__content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__bg {
+    scale: 1;
+    transform: none;
+    animation: none !important;
+  }
+
+  .hero__bg,
+  .hero__thumb,
+  .hero__thumb img,
+  .hero__thumb-item,
+  .view-project__roll > span,
+  .view-project__roll::after,
+  .view-project__line::after,
+  .view-project__arrow,
+  .view-project__arrow::before {
+    transition-duration: 0.01ms;
+  }
+}

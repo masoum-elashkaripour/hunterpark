@@ -1,9 +1,6 @@
 import { gsap } from "gsap";
 import { onSiteReady, prefersReducedMotion } from "./lifecycle";
-import { onScroll } from "./smooth-scroll";
 
-const SCROLLED_AT = 24; // px before the header switches to its compact strip
-const HIDE_AFTER = 160; // px before scrolling down tucks the header away
 
 export function initHeader(): void {
   const header = document.querySelector<HTMLElement>("[data-header]");
@@ -39,17 +36,8 @@ export function initHeader(): void {
       .fromTo(cta, { opacity: 0, x: 12 }, { opacity: 1, x: 0, duration: 1 }, 0.6);
   });
 
-  // --- Scroll: compact strip, hide on the way down, return on the way up ---
+  // The bar itself is static: no scroll states (see header.css).
   let menuOpen = false;
-  onScroll((y, direction) => {
-    header.classList.toggle("is-scrolled", y > SCROLLED_AT);
-    if (menuOpen) return;
-    if (direction === 1 && y > HIDE_AFTER) header.classList.add("is-hidden");
-    else if (direction === -1 || y <= HIDE_AFTER) header.classList.remove("is-hidden");
-  });
-
-  // Keyboard users tabbing into a tucked-away header should always see it.
-  header.addEventListener("focusin", () => header.classList.remove("is-hidden"));
 
   // --- Expanded menu ---------------------------------------------------------
   // A short list that drops from the trigger. Items don't navigate yet; the
@@ -63,9 +51,7 @@ export function initHeader(): void {
     menuOpen = open;
     toggle.setAttribute("aria-expanded", String(open));
     srLabel.textContent = open ? "Close menu" : "Open menu";
-    header.classList.toggle("is-menu-open", open);
     menu.inert = !open;
-    if (open) header.classList.remove("is-hidden");
   };
 
   function openMenu() {
