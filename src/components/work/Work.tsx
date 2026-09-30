@@ -153,6 +153,24 @@ export default function Work() {
                     {p.discipline} — {p.year}
                   </p>
                 </div>
+                {/* The invitation into the project: the same, in the same place, on every card
+                    (not the finale — it is the call to action itself) */}
+                {p !== finale && (
+                  <a className="work__more" href={`/work/${p.id}/`} data-work-more>
+                    <span className="work__more-label">
+                      <span className="work__more-roll" data-text="View Project Details">
+                        <span>View Project Details</span>
+                      </span>
+                      <span className="visually-hidden"> — {p.title}</span>
+                      <span className="work__more-line" aria-hidden="true" />
+                    </span>
+                    <span className="work__more-arrow" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M4 12L12 4M5.5 4H12v6.5" />
+                      </svg>
+                    </span>
+                  </a>
+                )}
               </article>
             </li>
           ))}

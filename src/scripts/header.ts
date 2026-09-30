@@ -41,12 +41,22 @@ export function initHeader(): void {
   let menuOpen = false;
 
   // --- Expanded menu ---------------------------------------------------------
-  // A short list that drops from the trigger. Items don't navigate yet; the
-  // page stays live underneath (no scroll lock), so outside clicks just close it.
+  // A short list off a lime rule. In the hero it drops from the trigger; past the hero it runs
+  // sideways from it in one row, social cells included. Either way it has no background and
+  // the page stays live and in place underneath. Items don't navigate yet; outside clicks close.
   const rule = menu.querySelector<HTMLElement>("[data-menu-rule]");
   const items = menu.querySelectorAll<HTMLElement>("[data-menu-item]");
   const social = menu.querySelectorAll<HTMLElement>("[data-menu-social]");
   let timeline: gsap.core.Timeline | null = null;
+  let row = false; // this opening runs sideways (past the hero)
+
+  // The hero keeps the original drop-down; everywhere after it the menu runs sideways in a row.
+  // With motion on, the hero is the film's first stretch of scroll; without, its own section.
+  const inHero = () => {
+    if (document.documentElement.classList.contains("hp-motion")) return window.scrollY < window.innerHeight * 0.35;
+    const hero = document.querySelector<HTMLElement>("[data-hero]");
+    return !hero || hero.getBoundingClientRect().bottom > window.innerHeight * 0.5;
+  };
 
   const setOpenState = (open: boolean) => {
     menuOpen = open;
@@ -55,21 +65,50 @@ export function initHeader(): void {
     menu.inert = !open;
   };
 
+  /** Sets the menu's shape for this opening: the hero's drop-down, or the sideways row. */
+  function layOut(sideways: boolean) {
+    const bar = header!;
+    const panel = menu!;
+    const trigger = toggle!;
+    row = sideways;
+    bar.classList.toggle("is-menu-row", sideways);
+    bar.classList.remove("is-menu-below");
+    delete document.documentElement.dataset.menuBelow;
+    gsap.set([rule, ...items, ...social], { clearProps: "transform" });
+    if (!sideways) {
+      panel.style.removeProperty("--menu-row-left");
+      return;
+    }
+    // The row starts just past the trigger, on the bar…
+    const inner = trigger.parentElement!.getBoundingClientRect();
+    panel.style.setProperty("--menu-row-left", `${trigger.getBoundingClientRect().right - inner.left + 8}px`);
+    // …unless it would reach the centred logo: then it runs along the line under the bar
+    const logoBox = logo.getBoundingClientRect();
+    if (panel.getBoundingClientRect().right > logoBox.left - 24) {
+      bar.classList.add("is-menu-below");
+      document.documentElement.dataset.menuBelow = "";
+    }
+  }
+
   function openMenu() {
     setOpenState(true);
     timeline?.kill();
+    layOut(!inHero());
+    // The rule draws down (hero) or across (past it); the items follow in its direction
+    const draw = row ? "scaleX" : "scaleY";
+    const shift = row ? "x" : "y";
     if (reduced) {
       gsap.set(menu, { visibility: "visible" });
-      gsap.set(rule, { scaleY: 1 });
-      gsap.set([...items, ...social], { opacity: 1, y: 0 });
+      gsap.set(rule, { [draw]: 1 });
+      gsap.set([...items, ...social], { opacity: 1, x: 0, y: 0 });
       return;
     }
     timeline = gsap
       .timeline({ defaults: { ease: "expo.out" } })
       .set(menu, { visibility: "visible" })
-      .fromTo(rule, { scaleY: 0 }, { scaleY: 1, duration: 0.7, ease: "expo.inOut" }, 0)
-      .fromTo(items, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.07 }, 0.12)
-      .fromTo(social, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.05 }, 0.38);
+      .fromTo(rule, { [draw]: 0 }, { [draw]: 1, duration: 0.7, ease: "expo.inOut" }, 0)
+      .fromTo(items, { opacity: 0, [shift]: row ? -12 : 14 }, { opacity: 1, [shift]: 0, duration: 0.7, stagger: 0.07 }, 0.12)
+      .fromTo(social, { opacity: 0, [shift]: row ? -10 : 10 }, { opacity: 1, [shift]: 0, duration: 0.6, stagger: 0.05 }, 0.38);
   }
 
   function closeMenu({ restoreFocus = true } = {}) {
@@ -77,16 +116,22 @@ export function initHeader(): void {
     setOpenState(false);
     if (restoreFocus) toggle!.focus();
     timeline?.kill();
-    const done = () => gsap.set(menu, { visibility: "hidden" });
+    const done = () => {
+      gsap.set(menu, { visibility: "hidden" });
+      delete document.documentElement.dataset.menuBelow; // the chapter marker returns
+    };
     if (reduced) {
       done();
       return;
     }
+    // Folds back the way it came: down the rule (hero), or back along it to the trigger
+    const draw = row ? "scaleX" : "scaleY";
+    const shift = row ? "x" : "y";
     timeline = gsap
       .timeline({ defaults: { ease: "expo.in" }, onComplete: done })
-      .to(social, { opacity: 0, y: -6, duration: 0.25, stagger: { each: 0.03, from: "end" } }, 0)
-      .to(items, { opacity: 0, y: -8, duration: 0.3, stagger: { each: 0.04, from: "end" } }, 0.05)
-      .to(rule, { scaleY: 0, duration: 0.45, ease: "expo.inOut" }, 0.1);
+      .to(social, { opacity: 0, [shift]: -6, duration: 0.25, stagger: { each: 0.03, from: "end" } }, 0)
+      .to(items, { opacity: 0, [shift]: -8, duration: 0.3, stagger: { each: 0.04, from: "end" } }, 0.05)
+      .to(rule, { [draw]: 0, duration: 0.45, ease: "expo.inOut" }, 0.1);
   }
 
   toggle.addEventListener("click", () => (menuOpen ? closeMenu() : openMenu()));

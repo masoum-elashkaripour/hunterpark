@@ -8,10 +8,12 @@ gsap.registerPlugin(ScrollTrigger);
 /**
  * One Lenis instance for the whole site, driven by GSAP's ticker so
  * ScrollTrigger and smooth scroll stay in lockstep. Disabled for reduced motion.
+ * Tuned for a fluid, unhurried glide: a softer follow (lerp) and a little less travel per
+ * wheel notch, so a flick never lurches the film forward — still responsive to every input.
  */
 export const lenis: Lenis | null = prefersReducedMotion()
   ? null
-  : new Lenis({ lerp: 0.1, wheelMultiplier: 1 });
+  : new Lenis({ lerp: 0.07, wheelMultiplier: 0.85, touchMultiplier: 1.1 });
 
 if (lenis) {
   lenis.on("scroll", ScrollTrigger.update);

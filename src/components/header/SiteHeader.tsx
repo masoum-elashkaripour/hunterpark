@@ -79,7 +79,8 @@ export default function SiteHeader() {
           </span>
         </button>
 
-        {/* Expanded menu: hangs from the trigger, left-aligned, off a lime rule */}
+        {/* Expanded menu, off a lime rule: in the hero it hangs down from the trigger; past the
+            hero it runs sideways from it, in one row (scripts/header.ts) */}
         <div id="site-menu" className="menu-panel" data-menu inert>
           <span className="menu-panel__rule" aria-hidden="true" data-menu-rule></span>
           <ul className="menu-panel__list" aria-label="Menu">

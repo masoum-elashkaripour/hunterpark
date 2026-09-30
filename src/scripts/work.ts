@@ -23,26 +23,26 @@ export const WORK_MOTION = {
   // Letters in word order (W, O, R, K). -1 leaves by the left edge, 1 by the right.
   // Only W — the first letter — goes left: any other letter leaving left would drag across
   // the letters still standing, and lime over lime merges into one shape.
-  // (Shares of a 14-screen beat — film.ts. Each project step is ~1.2 screens of scroll.)
-  letters: { start: 0, each: 0.088, stagger: 0.0305, dirs: [-1, 1, 1, 1], ease: "power2.in" },
-  morph: { start: 0.02, end: 0.149, ease: "power3.inOut" },
-  arrive: { start: 0.149, end: 0.231 }, // the projects behind come into view from deeper still
-  titleIn: { start: 0.163, end: 0.224 },
+  // (Shares of a 15.5-screen beat — film.ts. Each project step is ~1.45 screens of scroll.)
+  letters: { start: 0, each: 0.0795, stagger: 0.02755, dirs: [-1, 1, 1, 1], ease: "power2.in" },
+  morph: { start: 0.018, end: 0.1346, ease: "power3.inOut" },
+  arrive: { start: 0.1346, end: 0.2086 }, // the projects behind come into view from deeper still
+  titleIn: { start: 0.1472, end: 0.2023 },
   // The camera's journey, one project per equal share of scroll — ending at the finale.
   // `ease` shapes each step: 0 = constant speed, higher = the camera slows (never stops)
-  // as a project is in front.
-  travel: { start: 0.2375, end: 0.752, ease: 0.5 },
+  // as a project is in front. Kept gentle, so no step rushes through its middle.
+  travel: { start: 0.2145, end: 0.7758, ease: 0.3 },
   // The finale: it arrives like a project, then opens out to fill the frame, comes into its
   // blurred self (the call to action's background), and the headline comes forward out of
   // depth — MAKE SOMETHING word by word, then TOGETHER. letter by letter.
   finale: {
-    titleOut: [0.752, 0.79], // its "Your Project" title rolls away as it starts to open
-    expand: [0.752, 0.83], // the card opens out to the full frame
-    dissolve: [0.8, 0.875], // …and its sharp image gives way to the blurred backdrop
+    titleOut: [0.7758, 0.8103], // its "Your Project" title rolls away as it starts to open
+    expand: [0.7758, 0.8465], // the card opens out to the full frame
+    dissolve: [0.8194, 0.8871], // …and its sharp image gives way to the blurred backdrop
     grow: 0.28, // as it dissolves it keeps growing, to land exactly on the backdrop's framing
-    words: { start: 0.805, each: 0.075, stagger: 0.025, from: -1600 }, // depth (px) they come from
-    chars: { start: 0.845, each: 0.065, stagger: 0.008, from: -2600 },
-    action: [0.94, 0.975],
+    words: { start: 0.8239, each: 0.0677, stagger: 0.0226, from: -1600 }, // depth (px) they come from
+    chars: { start: 0.86, each: 0.0587, stagger: 0.00723, from: -2600 },
+    action: [0.9458, 0.9774],
   },
   space: {
     perspective: 0.9, // × the viewport's longer side — the camera's focal distance
@@ -53,24 +53,20 @@ export const WORK_MOTION = {
     haze: 0.7, // how much the far projects sink into the night background
     sway: { x: 0.018, y: 0.01 }, // the camera's drift as it travels (× viewport)
   },
-  // Each project's place in the space (× viewport), alternating sides so the next one is seen
-  // waiting in the distance beside the current one rather than hidden behind it. The camera
-  // pans to line up with each project as it travels, so the foreground project always sits
-  // centred — and the one passing the camera slides out past its own edge of the frame.
-  offsets: [
-    [0, 0],
-    [0.34, -0.07],
-    [-0.33, 0.05],
-    [0.34, -0.06],
-    [-0.34, 0.06],
-    [0.33, -0.05],
-  ],
+  // Each project's place in the space (× viewport), set by its index: even projects on the
+  // camera's centre line, odd ones one step to the right. So the next project always waits in
+  // the distance beside the current one, every step pans the same distance (the same pace
+  // for every transition), and — because a project passing the camera slides out opposite to
+  // the camera's pan — the exits strictly alternate: 01 left, 02 right, 03 left, 04 right…
+  // (The finale, the 7th, arrives centred.)
+  offsets: Array.from({ length: 7 }, (_, k) => (k % 2 ? [0.34, -0.06] : [0, 0])) as Array<[number, number]>,
   spread: { phone: 1.45 }, // wider apart on narrow screens, where the cards fill more of the width
   turn: 22, // cards turn slightly toward the camera's axis: degrees per unit of offset
   parallax: 1.5, // media drift inside a card as it travels, % of its height
   // The blurred backdrop: the incoming project's takes over across this share of each step,
   // and each backdrop grows slightly as the camera moves toward (and past) its project.
-  backdrop: { in: [0.183, 0.251], fade: [0.25, 0.75], depth: 0.08 }, // in: after WORK's last letter has left
+  // (fade spans most of each step, so every backdrop changes over as gently as the next)
+  backdrop: { in: [0.1653, 0.2267], fade: [0.15, 0.85], depth: 0.08 }, // in: after WORK's last letter has left
   /** The capability whose film becomes project 01 (its film is carried, not copied). */
   carries: "production",
 };
@@ -118,6 +114,7 @@ export function workTimeline(): WorkBeat | null {
   const visuals = cards.map((c) => c.querySelector<HTMLElement>("[data-work-media]")!);
   const dims = cards.map((c) => c.querySelector<HTMLElement>("[data-work-dim]"));
   const captions = cards.map((c) => c.querySelector<HTMLElement>("[data-work-caption]"));
+  const mores = cards.map((c) => c.querySelector<HTMLElement>("[data-work-more]"));
   const titles = Array.from(root.querySelectorAll<HTMLElement>("[data-work-title]"));
   const metas = Array.from(root.querySelectorAll<HTMLElement>("[data-work-meta]"));
   const letters = Array.from(caps.querySelectorAll<HTMLElement>("[data-caps-next-letter]"));
@@ -326,6 +323,13 @@ export function workTimeline(): WorkBeat | null {
       if (captions[k]) {
         const near = 1 - clamp(Math.abs(z) / (0.3 * D));
         captions[k]!.style.opacity = String(near * (k === 0 ? titleIn : 1) * (k === finaleK ? 1 - opening : 1));
+      }
+      // View Project Details: with the caption, and clickable only while its project is in front
+      const more = mores[k];
+      if (more) {
+        const shownMore = (1 - clamp(Math.abs(z) / (0.3 * D))) * (k === 0 ? titleIn : 1);
+        more.style.opacity = String(shownMore);
+        more.style.pointerEvents = shown && shownMore > 0.6 ? "auto" : "none";
       }
     });
 
