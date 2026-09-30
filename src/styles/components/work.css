@@ -147,6 +147,112 @@
   justify-content: flex-end;
 }
 
+/* --- View Project Details: every project's invitation ------------------------
+   Under the image, left-aligned, the same on every card. The site's link language: the
+   label rolls up to a fresh copy, a lime hairline is drawn out under it, and the lime-ruled
+   arrow cell floods lime as its arrow swings to point the way in. */
+.work__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  font-family: var(--hp-font-secondary);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--hp-off-white);
+}
+
+.work__more-label {
+  position: relative;
+  padding-bottom: 0.35rem;
+}
+
+.work__more-roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  line-height: 1.25;
+}
+
+.work__more-roll > span,
+.work__more-roll::after {
+  display: block;
+  transition: transform 0.45s var(--hp-ease-out);
+}
+
+.work__more-roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+  color: var(--hp-lime);
+}
+
+/* a lime stub at rest, drawn the full width on hover */
+.work__more-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--hp-lime);
+  transform-origin: left center;
+  transform: scaleX(0.22);
+  transition: transform 0.45s var(--hp-ease-out);
+}
+
+.work__more-arrow {
+  display: grid;
+  place-items: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    background-color 0.35s var(--hp-ease-out),
+    color 0.35s var(--hp-ease-out),
+    transform 0.45s var(--hp-ease-out);
+}
+
+.work__more-arrow svg {
+  transition: transform 0.45s var(--hp-ease-out);
+}
+
+.work__more:hover .work__more-roll > span,
+.work__more:hover .work__more-roll::after,
+.work__more:focus-visible .work__more-roll > span,
+.work__more:focus-visible .work__more-roll::after {
+  transform: translateY(-100%);
+}
+
+.work__more:hover .work__more-line,
+.work__more:focus-visible .work__more-line {
+  transform: scaleX(1);
+}
+
+.work__more:hover .work__more-arrow,
+.work__more:focus-visible .work__more-arrow {
+  background: var(--hp-lime);
+  color: var(--hp-soft);
+  transform: translateX(0.2rem);
+}
+
+.work__more:hover .work__more-arrow svg,
+.work__more:focus-visible .work__more-arrow svg {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work__more-roll > span,
+  .work__more-roll::after,
+  .work__more-line,
+  .work__more-arrow,
+  .work__more-arrow svg {
+    transition-duration: 0.01ms;
+  }
+}
+
 /* ==========================================================================
    The depth sequence (motion on) — the last beat of the homepage film.
    Stacked over What We Do; every value is driven by the scroll timeline.
@@ -350,6 +456,17 @@ html.hp-motion .work__caption {
   will-change: opacity;
 }
 
+/* Under the image, left, on every card — shown (and clickable) while its project is in front
+   (scripts/work.ts) */
+html.hp-motion .work__more {
+  position: absolute;
+  top: calc(100% + 0.9rem);
+  left: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 html.hp-motion .work__card--below .work__caption {
   position: absolute;
   top: 100%;
@@ -509,6 +626,13 @@ html.hp-motion .work__cta.is-live .work__cta-link {
   .work__meta {
     gap: 1.1em;
     letter-spacing: 0.18em;
+  }
+
+  /* a card captioned below (or at its side, which drops below here) keeps that line to
+     itself: the invitation goes one line lower */
+  html.hp-motion .work__card--below .work__more,
+  html.hp-motion .work__card--side .work__more {
+    top: calc(100% + 2.6rem);
   }
 
   /* in the 3D sequence a card's caption keeps to its number and title — the meta sits under the big title */

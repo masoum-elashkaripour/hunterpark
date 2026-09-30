@@ -16,7 +16,7 @@ gsap.registerPlugin(ScrollTrigger);
  * is literally the next one's first. Beat lengths are in viewport heights.
  */
 export const FILM = {
-  beats: { heroToStudio: 1.5, studio: 3.0, capabilities: 5.6, work: 14, footer: 4.5 },
+  beats: { heroToStudio: 1.5, studio: 3.0, capabilities: 5.6, work: 15.5, footer: 4.5 },
   // Coupled directly to scroll (Lenis already smooths the scroll itself): motion stops the
   // moment scrolling stops and reverses exactly — no catch-up lag after the user.
   scrub: true,

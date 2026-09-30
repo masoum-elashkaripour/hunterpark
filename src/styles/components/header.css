@@ -356,6 +356,82 @@
   gap: 0.5rem;
 }
 
+/* --- Past the hero: the same menu, run sideways in one row --------------------
+   A compact extension of the bar itself, not the hero menu turned on its side: it opens
+   from the trigger across the bar at the bar's own scale — the trigger's type size, a short
+   lime rule, tight gaps, small social cells set off by a hairline divider. No background:
+   the page stays fully visible and in place. scripts/header.ts sets the row's left edge
+   (just past the trigger) and, where the row would reach the centred logo, drops it to the
+   line directly under the bar instead (.is-menu-below). */
+.site-header.is-menu-row .menu-panel {
+  top: 0;
+  left: var(--menu-row-left, calc(var(--hp-gutter) + 6.5rem));
+  height: var(--hp-header-h);
+  flex-direction: row;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0 0 0 calc(1.25rem + 0.75rem); /* the rule, then a gap */
+}
+
+.site-header.is-menu-row .menu-panel__rule {
+  top: 50%;
+  bottom: auto;
+  width: 1.25rem;
+  height: 1px;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+.site-header.is-menu-row .menu-panel__list {
+  flex-direction: row;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+/* the trigger's own type: body size, medium, no display tracking */
+.site-header.is-menu-row .menu-panel__item {
+  font-size: var(--hp-text-body);
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.site-header.is-menu-row .menu-panel__item:hover .menu-panel__dash,
+.site-header.is-menu-row .menu-panel__item:focus-visible .menu-panel__dash {
+  width: 0.6em;
+  height: 1px;
+  margin-right: 0.35em;
+}
+
+/* Social: small cells after a hairline divider — "items | social" */
+.site-header.is-menu-row .menu-panel__social {
+  align-items: center;
+  gap: 0.375rem;
+  padding-left: 1.25rem;
+  border-left: 1px solid color-mix(in srgb, var(--hp-off-white) 22%, transparent);
+}
+
+.site-header.is-menu-row .menu-panel__icon {
+  width: 1.875rem;
+  height: 1.875rem;
+}
+
+.site-header.is-menu-row .menu-panel__icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.site-header.is-menu-row.is-menu-below .menu-panel {
+  top: calc(var(--hp-header-h) - 0.75rem);
+  left: var(--hp-gutter);
+  height: 2.25rem;
+}
+
+/* the running chapter marker sits just under the bar on small screens: it steps aside while
+   the row is there */
+html[data-menu-below] .chapter-index {
+  visibility: hidden !important;
+}
+
 /* Square, sharp icon cells — same lime-ruled language as the Contact CTA */
 .menu-panel__icon {
   display: grid;
