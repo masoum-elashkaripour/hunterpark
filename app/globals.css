@@ -1,26 +1,1913 @@
 @import "tailwindcss";
 
+/* Söhne Breit — primary typeface, straight from the Hunterpark repo
+   (src/styles/fonts.css). These are Klim TRIAL cuts: they only cover
+   A-Z a-z 0-9 and , - . Ö ö — every other glyph silently falls back to
+   Instrument Sans. Swap in the licensed files under the same names. */
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-250.woff2") format("woff2");
+  font-weight: 250;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-250-italic.woff2") format("woff2");
+  font-weight: 250;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-300.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-300-italic.woff2") format("woff2");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-400-italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-500-italic.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-600-italic.woff2") format("woff2");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-700-italic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-800.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-800-italic.woff2") format("woff2");
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-900.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-900-italic.woff2") format("woff2");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---------------------------------------------------------------------------
+   Hunterpark design system.
+
+   Synced from src/styles/tokens.css in the Hunterpark repo (Astro), which
+   names the Figma "HUNTERPARK" board as its source of truth. Names and values
+   are identical so this page drops into the main repo without a re-theme.
+   --------------------------------------------------------------------------- */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Palette — copied from src/styles/tokens.css in the Hunterpark repo, which
+     names Figma as its source of truth. (The design-system PDF swatches this
+     one as #151515; the repo and the live build both say #0d0d0d.) */
+  --hp-night: #0d0d0d;
+  --hp-dark: #292929;
+  --hp-gray: #a6a6a6;
+  --hp-off-white: #f5f5f0;
+  --hp-lime: #eeff41;
+  --hp-violet: #4c4fee;
+  --hp-soft: #000;
+  --hp-overlay: #0006;
+  --hp-hero-overlay: #00000080;
+
+  /* Type families. Söhne Breit is bundled (trial cuts, see above); Instrument
+     Sans backs it up and covers the glyphs the trial does not. */
+  --hp-font-primary:
+    "Söhne Breit", "Instrument Sans Variable", "Instrument Sans", system-ui,
+    sans-serif;
+  --hp-font-secondary:
+    "Instrument Sans Variable", "Instrument Sans", system-ui, sans-serif;
+
+  /* Type scale */
+  --hp-text-h1: clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);
+  --hp-text-h2: clamp(1.875rem, 1.3rem + 2.3vw, 2.8125rem);
+  --hp-text-h3: clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);
+  --hp-text-h4: clamp(1.25rem, 1.05rem + 0.8vw, 1.5625rem);
+  --hp-text-h5: 1.25rem;
+  --hp-text-h6: 1.125rem;
+  --hp-text-body: 1rem;
+  --hp-text-sm: 0.875rem;
+  --hp-text-xs: 0.75rem;
+  --hp-leading-tight: 1.16;
+  --hp-leading-snug: 1.2;
+
+  /* Layout + motion */
+  /**
+   * The radius every control on this site shares — buttons, the filter pill,
+   * "See more", "Contact Us".
+   *
+   * Zero, and that is a decision rather than an oversight: the only
+   * `border-radius` in this entire stylesheet is the 50% on the glow blob.
+   * Nothing here is rounded, so a rounded pill would read as a control
+   * borrowed from another site. Named anyway, so it is one value to change
+   * rather than three to find.
+   */
+  --hp-radius-control: 0px;
+
+  /**
+   * How long a tile takes to become a film.
+   *
+   * Named because two things have to agree on it: the morph itself, and the
+   * delay before the project page's type starts arriving — the type must not
+   * begin until the film has essentially landed, or the two compete. See
+   * `Reveal` and `app/work/[slug]/page.tsx`.
+   */
+  --hp-morph-ms: 900ms;
+
+  /**
+   * The ONE gap in the work index. Columns and rows, every container, every
+   * breakpoint — `column-gap` and `row-gap` are never set apart.
+   *
+   * There used to be four containers carrying four different values, which at
+   * desktop resolved to three: 40px between groups, 24px between columns, and
+   * 20px inside the stacked pair. That last one was the tell — the right-hand
+   * column's internal gap did not match the gap to the column beside it, so
+   * the two cards in it sat closer together than they sat to their neighbour.
+   *
+   * Fluid rather than stepped, which is the same idiom `--hp-gutter` above
+   * uses: 24px on a phone, 32px from about 1440 up, and no breakpoint at which
+   * the two axes could drift apart because there is only ever one number.
+   *
+   * Opened up from 20/24. The composition is dense — a feature beside a stacked
+   * pair, four groups deep — and at 24px the cards read as one mass rather than
+   * as separate films. Both axes move together by construction: there is still
+   * only the one value, so widening it cannot put them out of step.
+   */
+  --hp-grid-gap: clamp(1.5rem, 1.2rem + 0.9vw, 2rem);
+
+  --hp-gutter: clamp(1.25rem, 3.76vw, 4.0625rem);
+  --hp-header-h: clamp(4rem, 3.2rem + 2vw, 5.5rem);
+  --hp-ease-out: cubic-bezier(0.19, 1, 0.22, 1);
+  --hp-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --hp-z-menu: 40;
+  --hp-z-header: 50;
+  --hp-z-preloader: 100;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-night: var(--hp-night);
+  --color-dark: var(--hp-dark);
+  --color-gray: var(--hp-gray);
+  --color-off-white: var(--hp-off-white);
+  --color-lime: var(--hp-lime);
+  --color-violet: var(--hp-violet);
+
+  --font-display: var(--hp-font-primary);
+  --font-sans: var(--hp-font-secondary);
+
+  --text-h1: var(--hp-text-h1);
+  --text-h2: var(--hp-text-h2);
+  --text-h3: var(--hp-text-h3);
+  --text-h4: var(--hp-text-h4);
+  --text-h5: var(--hp-text-h5);
+  --text-h6: var(--hp-text-h6);
+
+  --ease-hp-out: var(--hp-ease-out);
+  --ease-hp-in-out: var(--hp-ease-in-out);
+
+  --spacing-gutter: var(--hp-gutter);
+  --spacing-grid: var(--hp-grid-gap);
+  --spacing-header: var(--hp-header-h);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  /* `clip` contains horizontal overflow without creating a scroll container,
+     which would break `position: sticky` on the filter rail. */
+  overflow-x: clip;
+
+  /**
+   * The scrollbar — and every other piece of browser furniture.
+   *
+   * The reference styles no scrollbar at all; it just declares the page dark
+   * and lets the browser draw its own to match. That is why its bar is a dark
+   * track with a pale thumb while this one was still the default light bar
+   * against a black page.
+   *
+   * It does more than the scrollbar: form controls, spell-check underlines and
+   * the like all follow it. Straight from the source's `global.css`, along with
+   * the background and text-size-adjust that sit beside it there.
+   */
+  color-scheme: dark;
+  background: var(--hp-night);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--hp-night);
+  color: var(--hp-off-white);
+  /* Söhne carries titles *and* main text; Instrument Sans is reserved for the
+     small supporting bits (indexes, meta, captions) — see the repo's
+     tokens.css. This was the other way round before. */
+  font-family: var(--hp-font-primary);
+  line-height: var(--hp-leading-snug);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display type in this system is set tight and optically flush-left. */
+@utility display-tight {
+  font-family: var(--hp-font-primary);
+  line-height: var(--hp-leading-tight);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+/* ---------------------------------------------------------------------------
+   Type lockup lifted from the live build (hunterpark.vercel.app).
+
+   Its display headings — `.hero__big`, `.studio__heading`, `.whatwedo__heading`
+   — are all the same recipe: the primary face at weight 900, in LIME rather
+   than off-white, set very tight (-0.045em) on a sub-1 line height. The small
+   line under the title (`.hero__small`) stays off-white at weight 400, and the
+   eyebrow (`.hero__caption`) is the secondary face in lime at weight 300.
+   --------------------------------------------------------------------------- */
+
+@utility hp-display {
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 0.88;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+  text-wrap: balance;
+}
+
+/* Overview tiles read as an index, not as 31 competing hero titles: the same
+   cut and tight tracking, but off-white and in sentence case. Lime is kept for
+   the one film the carousel is actually on. */
+@utility hp-tile-title {
+  font-family: var(--hp-font-primary);
+  /* Lighter than the display cut: at index size, 900 turned the grid into a
+     wall of black slabs. */
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+  color: var(--hp-off-white);
+}
+
+@utility hp-sub {
+  font-family: var(--hp-font-primary);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  color: var(--hp-off-white);
+}
+
+@utility hp-eyebrow {
+  font-family: var(--hp-font-secondary);
+  font-weight: 300;
+  font-size: clamp(0.75rem, 0.65rem + 0.3vw, 0.9375rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+@utility label-xs {
+  /* Supporting text — the secondary face, per the design system. */
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Site header.
+
+   Ported from the live build (hunterpark.vercel.app) — class names, timings
+   and transforms are kept identical so this diffs cleanly against the real
+   component on merge. Written as plain CSS rather than utilities because the
+   roll-ups rely on `content: attr(data-text)` and clip-path transitions.
+   --------------------------------------------------------------------------- */
+
+.site-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: var(--hp-z-header);
+  color: var(--hp-off-white);
+  /* Transparent, and it stays transparent once the page has scrolled. The
+     live build sets `background-color: #0000` here and carries no scrolled
+     state at all — the header is meant to float over the work rather than
+     ride on a bar. A dark panel behind it was added here and is not theirs. */
+  background-color: transparent;
+}
+
+.site-header__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: var(--hp-header-h);
+  padding-inline: var(--hp-gutter);
+}
+.site-header__inner > * {
+  grid-row: 1;
+}
+
+.site-header__logo {
+  display: block;
+  grid-column: 2;
+  justify-self: center;
+  width: clamp(8.25rem, 6.25rem + 5.75vw, 11.5rem);
+}
+.site-header__logo img {
+  width: 100%;
+  height: auto;
+}
+/* The intro, from `src/scripts/header.ts`: the wordmark wipes in from the left
+   while the trigger and the two right-hand controls drift in from their own
+   edges. A CSS animation rather than JS — there is no preloader on this page to
+   hand off from, so it simply runs once on load. */
+@keyframes hp-header-wipe {
+  from {
+    clip-path: inset(0% 100% 0% 0%);
+  }
+  to {
+    clip-path: inset(0% 0% 0% 0%);
+  }
+}
+@keyframes hp-header-in-left {
+  from {
+    opacity: 0;
+    translate: -12px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes hp-header-in-right {
+  from {
+    opacity: 0;
+    translate: 12px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+.site-header__logo {
+  animation: hp-header-wipe 1.4s var(--hp-ease-in-out) 0.15s both;
+}
+.menu-toggle {
+  animation: hp-header-in-left 1s var(--hp-ease-out) 0.5s both;
+}
+.sound-toggle,
+.header-cta {
+  animation: hp-header-in-right 1s var(--hp-ease-out) 0.6s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header__logo,
+  .menu-toggle,
+  .sound-toggle,
+  .header-cta {
+    animation: none;
+  }
+}
+
+/* Set by the footer while its own wordmark is flying up to this position.
+   The two are the same mark as far as the reader is concerned, so only one of
+   them may be on screen at a time. Visibility as well as opacity: a logo at
+   zero opacity is still a link, and tabbing to an invisible one is worse than
+   not having it. */
+/* A CUT, not a cross-fade. The source swaps `visibility` on this and
+   `autoAlpha` on the footer's mark at the same instant, so one wordmark
+   becomes the other with nothing in between. Fading this out over 0.45s left a
+   hole where neither was on screen — the logo went dark at the header and the
+   other one turned up further down, which read as two marks rather than one
+   moving. */
+html[data-logo-handoff] .site-header__logo {
+  visibility: hidden;
+}
+
+/* CTA: a lime-ruled ticket; lime floods in from the left on hover. */
+.header-cta {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  grid-column: 3;
+  justify-self: end;
+  height: 2.75rem;
+  border: 1px solid var(--hp-lime);
+  border-radius: var(--hp-radius-control);
+  color: var(--hp-off-white);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: color 0.45s var(--hp-ease-out);
+}
+.header-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--hp-lime);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.6s var(--hp-ease-out);
+}
+.header-cta:hover,
+.header-cta:focus-visible {
+  color: var(--hp-soft);
+}
+.header-cta:hover::before,
+.header-cta:focus-visible::before {
+  clip-path: inset(0);
+}
+.header-cta__label {
+  display: flex;
+  align-items: center;
+  padding-inline: 1.15rem 1.05rem;
+}
+.header-cta__roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.header-cta__roll > span,
+.header-cta__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.header-cta__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+}
+.header-cta:hover .header-cta__roll > span,
+.header-cta:hover .header-cta__roll::after,
+.header-cta:focus-visible .header-cta__roll > span,
+.header-cta:focus-visible .header-cta__roll::after {
+  transform: translateY(-100%);
+}
+.header-cta__arrow {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  align-self: stretch;
+  border-left: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    color 0.45s var(--hp-ease-out),
+    border-color 0.45s var(--hp-ease-out);
+}
+.header-cta__arrow svg {
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.header-cta:hover .header-cta__arrow,
+.header-cta:focus-visible .header-cta__arrow {
+  border-color: var(--hp-soft);
+  color: var(--hp-soft);
+}
+.header-cta:hover .header-cta__arrow svg,
+.header-cta:focus-visible .header-cta__arrow svg {
+  transform: rotate(45deg);
+}
+
+/* Menu trigger: the word swaps and the two rules fold into a cross. */
+.menu-toggle {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 0.75rem;
+  grid-column: 1;
+  justify-self: start;
+  min-height: 2.75rem;
+  font-size: var(--hp-text-body);
+  font-weight: 500;
+}
+.menu-toggle__label {
+  display: grid;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.menu-toggle__word {
+  grid-area: 1 / 1;
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.menu-toggle__word:last-child {
+  transform: translateY(100%);
+}
+.menu-toggle[aria-expanded="true"] .menu-toggle__word:first-child {
+  transform: translateY(-100%);
+}
+.menu-toggle[aria-expanded="true"] .menu-toggle__word:last-child {
+  transform: none;
+}
+.menu-toggle__icon {
+  position: relative;
+  display: block;
+  width: 1.75rem;
+  height: 0.625rem;
+}
+.menu-toggle__icon span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--hp-lime);
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.menu-toggle__icon span:first-child {
+  top: 0;
+}
+.menu-toggle__icon span:last-child {
+  bottom: 0;
+  transform-origin: 0;
+  transform: scaleX(0.6);
+}
+.menu-toggle:hover .menu-toggle__icon span:last-child {
+  transform: scaleX(1);
+}
+.menu-toggle[aria-expanded="true"] .menu-toggle__icon span:first-child {
+  transform: translateY(4px) rotate(35deg) scaleX(0.75);
+}
+.menu-toggle[aria-expanded="true"] .menu-toggle__icon span:last-child {
+  transform-origin: 50%;
+  transform: translateY(-4px) rotate(-35deg) scaleX(0.75);
+}
+
+/* Expanded menu: hangs from the trigger, left-aligned, off a lime rule. */
+.menu-panel {
+  position: absolute;
+  top: calc(var(--hp-header-h) - 0.25rem);
+  left: var(--hp-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3svh, 2.25rem);
+  padding: 0.5rem 0 0.5rem clamp(1.1rem, 1.6vw, 1.5rem);
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.4s var(--hp-ease-out),
+    visibility 0s linear 0.4s;
+}
+.menu-panel.is-open {
+  visibility: visible;
+  opacity: 1;
+  transition:
+    opacity 0.4s var(--hp-ease-out),
+    visibility 0s;
+}
+.menu-panel__rule {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 1px;
+  background: var(--hp-lime);
+  transform-origin: top;
+  transform: scaleY(0);
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.menu-panel.is-open .menu-panel__rule {
+  transform: scaleY(1);
+}
+.menu-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 0.7svh, 0.5rem);
+}
+.menu-panel__item {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  font-size: clamp(1.125rem, 0.95rem + 0.55vw, 1.5rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.menu-panel__dash {
+  display: block;
+  width: 0;
+  height: 2px;
+  margin-right: 0;
+  background: var(--hp-lime);
+  transition:
+    width 0.5s var(--hp-ease-out),
+    margin-right 0.5s var(--hp-ease-out);
+}
+.menu-panel__item:hover .menu-panel__dash,
+.menu-panel__item:focus-visible .menu-panel__dash {
+  width: 0.75em;
+  margin-right: 0.3em;
+}
+.menu-panel__roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.05em;
+}
+.menu-panel__roll > span,
+.menu-panel__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.menu-panel__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+  color: var(--hp-lime);
+}
+.menu-panel__item:hover .menu-panel__roll > span,
+.menu-panel__item:hover .menu-panel__roll::after,
+.menu-panel__item:focus-visible .menu-panel__roll > span,
+.menu-panel__item:focus-visible .menu-panel__roll::after {
+  transform: translateY(-100%);
+}
+.menu-panel__social {
+  display: flex;
+  gap: 0.5rem;
+}
+.menu-panel__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 35%, transparent);
+  color: var(--hp-off-white);
+  transition:
+    color 0.35s var(--hp-ease-out),
+    border-color 0.35s var(--hp-ease-out),
+    background-color 0.35s var(--hp-ease-out);
+}
+.menu-panel__icon:hover,
+.menu-panel__icon:focus-visible {
+  border-color: var(--hp-lime);
+  background-color: var(--hp-lime);
+  color: var(--hp-soft);
+}
+
+/* ---------------------------------------------------------------------------
+   Overview tiles — the /work page's zoomed-out index and, through the shared
+   class, the cards on /work-2 and the film on a project page.
+   --------------------------------------------------------------------------- */
+
+.work-tile__frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--hp-dark);
+  /* Two layers so the card sits ON the page rather than in it: a tight contact
+     shadow anchors its bottom edge, a wide soft one carries the lift. Black on
+     a #0d0d0d ground only reads if it is this diffuse. */
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.5),
+    0 18px 40px -8px rgb(0 0 0 / 0.65);
+  transition:
+    box-shadow 0.45s var(--hp-ease-out),
+    transform 0.45s var(--hp-ease-out);
+}
+/* Hovering floats it a little higher and lengthens the cast. */
+.work-tile:hover .work-tile__frame,
+.work-tile:focus-visible .work-tile__frame {
+  transform: translateY(-4px);
+  box-shadow:
+    0 4px 10px rgb(0 0 0 / 0.5),
+    0 28px 56px -10px rgb(0 0 0 / 0.7);
+}
+.work-tile__frame img {
+  transition:
+    transform 0.6s var(--hp-ease-out),
+    opacity 0.4s var(--hp-ease-out);
+  opacity: 0.72;
+}
+.work-tile:hover .work-tile__frame img,
+.work-tile:focus-visible .work-tile__frame img {
+  transform: scale(1.06);
+  opacity: 1;
+}
+.work-tile[aria-current="true"] .work-tile__frame img {
+  opacity: 1;
+}
+
+/* No rule on hover, and none on the card the carousel was parked on.
+   The tiles were inconsistent about it — a frame only took the lime outline
+   once its film had loaded, so some cards had it and their neighbours did not,
+   which read as a bug rather than as a state. Hovering PLAYS the film, and a
+   moving picture among still ones is a stronger signal than any border. The
+   lift and the still brightening to full opacity carry the rest.
+
+   Focus still needs a visible ring — that outline was doing double duty as the
+   focus indicator, so the tile takes one of its own now that it is gone. */
+.work-tile:focus-visible {
+  outline: 2px solid var(--hp-lime);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Split-text reveal — the live site's own `.split__*` geometry. Each glyph is
+   clipped by its mask and swings up from under it.
+   --------------------------------------------------------------------------- */
+
+.split__word {
+  display: inline-block;
+  white-space: nowrap;
+}
+.split__mask {
+  display: inline-block;
+  vertical-align: top;
+  /* Slack on the sides lets an italic or a round overshoot the box without
+     being shaved; the bottom stays hard so the glyph is hidden before it
+     rises. */
+  clip-path: inset(0 -0.4em);
+  margin-bottom: -0.06em;
+  padding-bottom: 0.06em;
+}
+.split__char {
+  display: inline-block;
+  transform-origin: 0 100%;
+}
+
+/* Word masks — the hero's treatment. Open at the top and sides so ascenders
+   and overshoot are never shaved, hard at the bottom so the word is properly
+   hidden before it rises. Values are the live site's own. */
+.split__wmask {
+  display: inline-block;
+  vertical-align: top;
+  clip-path: inset(-0.4em -0.4em 0);
+  margin-bottom: -0.14em;
+  padding-bottom: 0.14em;
+}
+.split__w {
+  display: inline-block;
+}
+
+/* --- "View project" ------------------------------------------------------- */
+
+.view-project {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-xs);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+  transition: color 0.35s var(--hp-ease-out);
+}
+.view-project:hover,
+.view-project:focus-visible {
+  color: var(--hp-lime);
+}
+/* The label rolls: the copy on show rides up out of the box and its duplicate
+   arrives from below already lime. Same mechanism as `.header-cta__roll` and
+   `.footer__roll` — one `::after` carrying `data-text`, both halves moved by a
+   single translate, so there is nothing to keep in sync. */
+.view-project__roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.view-project__roll > span,
+.view-project__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.view-project__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+  color: var(--hp-lime);
+}
+.view-project:hover .view-project__roll > span,
+.view-project:hover .view-project__roll::after,
+.view-project:focus-visible .view-project__roll > span,
+.view-project:focus-visible .view-project__roll::after {
+  transform: translateY(-100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .view-project__roll > span,
+  .view-project__roll::after {
+    transition-duration: 0.01ms;
+  }
+}
+.view-project__arrow {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    background-color 0.35s var(--hp-ease-out),
+    color 0.35s var(--hp-ease-out);
+}
+.view-project:hover .view-project__arrow,
+.view-project:focus-visible .view-project__arrow {
+  background-color: var(--hp-lime);
+  color: var(--hp-soft);
+}
+/* The glyph is drawn pointing up-right; 45° swings it round to straight right,
+   exactly as the header's Contact CTA does. */
+.view-project__arrow svg {
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.view-project:hover .view-project__arrow svg,
+.view-project:focus-visible .view-project__arrow svg {
+  transform: rotate(45deg);
+}
+
+/* ---------------------------------------------------------------------------
+   The index's control: filters that become "See more".
+
+   It used to be two things in two places — a filter bar pinned under the
+   header, and a button at the foot of the grid. They are one object now,
+   floating just above the bottom of the window for the whole of the index and
+   turning into the button as the grid runs out.
+
+   THE SLOT. `position: sticky` travels only as far as its containing block
+   allows, so the control sits inside `.work-index-wrap`, which wraps the grid
+   and nothing else. Bounded to the index branch instead, it would go on
+   floating over the closing lockup and the entire footer.
+
+   `bottom` rather than `top`: a control the reader is meant to reach for
+   belongs within reach, and the foot of the window is where the thumb is.
+   --------------------------------------------------------------------------- */
+
+.work-index-wrap {
+  position: relative;
+  /* The breathing room below the control lives HERE, not on the control.
+     See `.work-control` — it was inside the sticky box, and a sticky box's
+     `bottom` anchors its MARGIN edge, so the padding sat between the plate and
+     the foot of the window and the 24px was really 64–96. */
+  padding-bottom: clamp(2.5rem, 7svh, 4.5rem);
+}
+
+.work-control {
+  position: sticky;
+  /* 24px from the foot of the window. A control the reader is meant to reach
+     for belongs within reach, and this is close enough to the edge to read as
+     a floating bar rather than as content. */
+  bottom: 24px;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  /* No padding on the bottom edge. `bottom: 24px` positions this box's margin
+     edge, so anything below the plate inside the box is added to the 24 — the
+     plate was sitting 64 to 96px up. The trailing space belongs to the wrapper
+     instead, where it is flow spacing rather than an offset. */
+  padding: clamp(1.5rem, 5svh, 3rem) var(--hp-gutter) 0;
+  /* Only the controls are targets. The row spans the page, and a full-width
+     band across the foot of the window swallowing clicks is exactly the bug
+     the old bar had at the top. */
+  pointer-events: none;
+}
+
+/* The two controls share one centre: the plate draws in towards it, and the
+   button opens out of it. */
+.work-control__stack {
+  position: relative;
+  display: grid;
+  place-items: center;
+  max-width: 100%;
+}
+
+/**
+ * The filter plate.
+ *
+ * The rule is a real `border` on the frame, not an inset shadow. It was a
+ * shadow, and an inset shadow paints INSIDE the padding box — so with a border
+ * sitting outside it the line appeared to float within the box rather than to
+ * edge it. One border, on the edge, is what it looks like.
+ */
+.work-control__plate {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  height: 3rem;
+  max-width: 100%;
+  padding-inline: 0.25rem;
+  border: 1px solid #ffffff1f;
+  border-radius: var(--hp-radius-control);
+  background-color: #0d0d0dd9;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.work-control__more-slot {
+  grid-area: 1 / 1;
+}
+
+/* The house ticket: lime rule, rolling label, and NO arrow — this button adds
+   to the page you are already on rather than taking you somewhere. */
+.work-control__more {
+  display: inline-flex;
+  align-items: center;
+  height: 2.75rem;
+  padding-inline: clamp(1.25rem, 2.5vw, 2rem);
+  border: 1px solid var(--hp-lime);
+  border-radius: var(--hp-radius-control);
+  cursor: pointer;
+  font-family: var(--hp-font-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--hp-off-white);
+  background-color: #0d0d0dd9;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: color 0.45s var(--hp-ease-out);
+}
+.work-control__more:disabled {
+  cursor: default;
+}
+.work-control__more:hover:not(:disabled) {
+  color: var(--hp-lime);
+}
+
+/* ---------------------------------------------------------------------------
+   Work filters, inside the plate.
+
+   No surface of their own — the plate is the surface — and the accent is spent
+   on one thing only: the live filter.
+   --------------------------------------------------------------------------- */
+
+.case-filters {
+  display: inline-flex;
+  align-items: center;
+  /* 6px — inside the 4–8 the row wants, and tight enough that the pill reads
+     as belonging to the row rather than floating in it. */
+  gap: 0.375rem;
+  max-width: 100%;
+}
+
+.case-filter {
+  /* Grid rather than flex, so the label and the width-reserving copy below can
+     share one cell. */
+  display: inline-grid;
+  place-items: center;
+  /* 40px, the touch-target floor. */
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--hp-radius-control);
+  background-color: transparent;
+  cursor: pointer;
+  font-family: var(--hp-font-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  /* rgba(255,255,255,0.7) — 7.22:1 over the plate at its worst backdrop. */
+  color: #ffffffb3;
+  transition:
+    color 0.2s var(--hp-ease-out),
+    background-color 0.2s var(--hp-ease-out);
+}
+
+/**
+ * The row must not reflow when the selection moves.
+ *
+ * Inactive is 500 and active is 600, so the live item is a couple of pixels
+ * wider than it was a moment ago — and every item after it shifts. A hidden
+ * copy of the label at the heavier weight, stacked in the same grid cell,
+ * makes every button as wide as its own widest state from the start. Nothing
+ * moves; `visibility: hidden` keeps it out of the accessibility tree.
+ */
+.case-filter::after {
+  content: attr(data-label);
+  grid-area: 1 / 1;
+  visibility: hidden;
+  font-weight: 600;
+}
+.case-filter > span {
+  grid-area: 1 / 1;
+}
+
+/**
+ * Hover brightens the QUIET ones, and only those.
+ *
+ * Without the `:not([aria-pressed])` this rule also caught the live filter —
+ * and it won, because `:hover:not(:disabled)` is three pseudo-classes against
+ * the two of `.case-filter[aria-pressed="true"]`. So pointing at the selected
+ * item painted white type onto the lime pill: 1.1:1, and unreadable.
+ *
+ * The live one needs no hover state. It is already at full strength, and
+ * anything added to it can only take contrast away.
+ */
+.case-filter:not([aria-pressed="true"]):hover:not(:disabled) {
+  color: #fff;
+}
+
+/**
+ * The focus ring flips with the ground it lands on — same trap, same cause.
+ *
+ * A lime ring inset into a lime pill is not a ring at all; on the live filter
+ * it has to be the night. 17.6:1 either way.
+ */
+.case-filter:focus-visible {
+  outline: 2px solid var(--hp-lime);
+  outline-offset: -2px;
+}
+.case-filter[aria-pressed="true"]:focus-visible {
+  outline-color: var(--hp-night);
+}
+
+.case-filter:active {
+  opacity: 0.85;
+}
+
+/* The live one, and the only place the accent is spent in this row. */
+.case-filter[aria-pressed="true"] {
+  background-color: var(--hp-lime);
+  color: var(--hp-night);
+  font-weight: 600;
+}
+
+@media (max-width: 767px) {
+  /* The row scrolls rather than wrapping: five items on a narrow screen either
+     break to a second line or get clipped, and neither is a control. The mask
+     softens both ends so a half-visible item reads as "there is more". */
+  .case-filters {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    mask-image: linear-gradient(
+      to right,
+      #0000 0,
+      #000 1rem,
+      #000 calc(100% - 1rem),
+      #0000 100%
+    );
+  }
+  .case-filter {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-filter {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Opening a film.
+
+   The browser's own View Transitions used to do this — `<ViewTransition
+   share="morph">` paired on the tile and the project hero. Both sides are gone
+   now; see `components/launch.tsx` for why. The short version: the reel is a
+   WebGL canvas, so half the films on this site have no element to morph, and a
+   transition the browser owns gives you nothing to inspect when it declines to
+   run.
+
+   What is left here is the header, which still sits out the navigation — it is
+   the one fixed reference point on the page, and letting it ride would read as
+   the whole viewport moving rather than the content.
+   --------------------------------------------------------------------------- */
+
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none; /* stops old and new headers flashing over each other */
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* The launch layer: a still of the film being opened, growing from the card to
+   the screen and then down onto the project page's own frame.
+
+   Under the header (50) rather than over it, so the picture passes beneath the
+   bar exactly as the closing transition's does. It NEVER takes the pointer —
+   a stuck launch layer must be something the reader can scroll behind, not
+   something that locks the page. */
+.work-launch {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  will-change: opacity;
+}
+.work-launch__window {
+  position: absolute;
+  inset: 0;
+  will-change: clip-path;
+}
+.work-launch__media {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The morph is motion like any other: hand these users a plain cut. */
+  .rail-button,
+  .work-tile__frame,
+  .work-tile__frame img {
+    transition-duration: 0.01ms;
+  }
+  .work-tile:hover .work-tile__frame img,
+  .work-tile:focus-visible .work-tile__frame img,
+  .work-tile:hover .work-tile__frame,
+  .work-tile:focus-visible .work-tile__frame {
+    transform: none;
+  }
+}
+
+/* Phones: the CTA folds down to its arrow cell so it clears the centred logo
+   (the label stays in the accessibility tree). */
+@media (max-width: 599px) {
+  .header-cta__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .header-cta__arrow {
+    border-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header,
+  .menu-toggle__word,
+  .menu-toggle__icon span,
+  .header-cta,
+  .header-cta::before,
+  .header-cta__roll > span,
+  .header-cta__roll::after,
+  .header-cta__arrow svg,
+  .menu-panel__rule,
+  .menu-panel__dash,
+  .menu-panel__roll > span,
+  .menu-panel__roll::after {
+    transition-duration: 0.01ms;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+::selection {
+  background: var(--hp-lime);
+  color: var(--hp-night);
+}
+
+:focus-visible {
+  outline: 2px solid var(--hp-lime);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Header actions + sound toggle.
+
+   Lifted verbatim from the live build's stylesheet. The two right-hand
+   controls share one flush-right grid cell; the equaliser stands its bars up
+   when sound is on, which is the whole of the affordance.
+   --------------------------------------------------------------------------- */
+
+.site-header__actions {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.sound-toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    background-color 0.45s var(--hp-ease-out),
+    color 0.45s var(--hp-ease-out);
+}
+.sound-toggle:hover,
+.sound-toggle:focus-visible {
+  background: var(--hp-lime);
+  color: var(--hp-soft);
+}
+.sound-toggle__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+.sound-toggle__bars span {
+  width: 2px;
+  height: 2px;
+  background: currentColor;
+  transition: height 0.45s var(--hp-ease-out);
+}
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:first-child {
+  height: 7px;
+}
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(2) {
+  height: 13px;
+}
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(3) {
+  height: 9px;
+}
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(4) {
+  height: 14px;
+}
+
+/* ---------------------------------------------------------------------------
+   Footer — ported from the live build (hunterpark.vercel.app).
+
+   Every value here is its own: the twelve-column grid, the named areas, both
+   breakpoints, the roll-up links and the oversized wordmark.
+
+   Its `html.hp-motion .footer` rules are deliberately NOT copied. Those take
+   the footer out of flow and make it one chapter of the home page's pinned
+   scroll film; here it is an ordinary footer at the end of a document.
+   --------------------------------------------------------------------------- */
+
+/**
+ * The footer is a scroll FILM, not a block at the end of the page.
+ *
+ * `.footer` is two screens tall and its stage is pinned to the viewport for the
+ * first of them, which buys one screen of scrolling to play the hand-over in.
+ * Everything the reference does depends on this: the work behind can fade out
+ * under a footer that is already covering it, and the header's wordmark sits
+ * INSIDE the pinned box, so the footer's own mark can fly up to meet it without
+ * being clipped by the stage's overflow — which is exactly what was cutting the
+ * logo off before.
+ */
+.footer {
+  position: relative;
+  /* Well above the work, so the wordmark can fly up through it to reach the
+     header's slot. The source's own `z-index: 4` works there because its
+     footer is a chapter of a pinned film; here it has to clear the index it is
+     arriving over. */
+  z-index: 30;
+  /* 4.5 screens — the beat length `film.ts` gives this chapter in the source
+     repo. Every fraction in `site-footer.tsx` is a share of it, so shortening
+     this compresses the whole choreography rather than just ending it early. */
+  height: 450svh;
+  background: transparent;
+}
+/* NOT `overflow: hidden`. The wordmark flies up out of this box to reach the
+   header's slot, and clipping here is what made it vanish for a stretch and
+   then reappear from under the header line — it was only visible once the
+   stage had pinned far enough up to contain the header. The clip belongs to
+   the drafted plates, which is the only thing that needs it. */
+.footer__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+/* The footer takes the pointer the moment it owns the frame — as the night
+   finishes rising, not at the very end of the scroll — so its links and hovers
+   work as soon as they can be seen.
+
+   On `.footer` itself, as the source has it, NOT on the stage inside it. That
+   distinction is the whole point: `.footer` is a 450svh box at `z-index: 30`,
+   and the closing lockup is pinned underneath it for most of that. Making only
+   the stage transparent to the pointer left the wrapper still swallowing every
+   hover meant for the "Start a Project" link below. */
+.footer {
+  pointer-events: none;
+}
+.footer.is-live {
+  pointer-events: auto;
+}
+/* Starts clear and is faded in by the scroll, so the work is still visible
+   through the footer while it is arriving. `.footer` itself is transparent for
+   the same reason — this is the only thing that paints the ground. */
+.footer__ground {
+  position: absolute;
+  inset: 0;
+  background: var(--hp-night);
+}
+.footer__grid {
+  position: relative;
+  display: grid;
+  height: 100svh;
+  min-height: 100svh;
+  padding: calc(var(--hp-header-h) + clamp(1.5rem, 5svh, 3.5rem))
+    var(--hp-gutter) clamp(1rem, 3svh, 2.25rem);
+  grid-template-rows: auto auto 1fr auto auto;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(1rem, 2vw, 2rem);
+}
+.footer__grid > * {
+  position: relative;
+  z-index: 1;
+}
+
+.footer__pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* The line plates run past the frame on purpose; this is where they stop. */
+  overflow: hidden;
+}
+.footer__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  overflow: visible;
+}
+.footer__lines--tall {
+  display: none;
+}
+.footer__lines [data-footer-line] {
+  fill: none;
+  stroke: var(--hp-lime);
+  stroke-width: 1.1px;
+  opacity: 0.16;
+}
+.footer__lines--tall [data-footer-line] {
+  stroke-width: 0.9px;
+}
+.footer__lines [data-footer-line="cross"] {
+  opacity: 0.4;
+}
+.footer__glow {
+  position: absolute;
+  top: 50%;
+  left: 29%;
+  width: 60vmax;
+  height: 60vmax;
+  margin: -30vmax 0 0 -30vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #eeff410f, #eeff4100 70%);
+}
+
+.footer__statement {
+  grid-area: 1 / 1 / span 2 / span 6;
+  align-self: start;
+  max-width: 17em;
+  font-family: var(--hp-font-primary);
+  font-size: clamp(1.5rem, 0.95rem + 1.9vw, 2.75rem);
+  font-weight: 400;
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  color: var(--hp-off-white);
+}
+.footer__statement [data-em] {
+  color: var(--hp-lime);
+}
+
+.footer__group {
+  align-self: start;
+}
+.footer__group--index {
+  grid-area: 1 / 8 / auto / span 2;
+}
+.footer__group--social {
+  grid-area: 1 / 10 / auto / span 3;
+  margin-top: clamp(2.5rem, 8svh, 5.5rem);
+}
+.footer__label {
+  margin-bottom: 1rem;
+  font-family: var(--hp-font-secondary);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hp-gray);
+}
+.footer__group li + li {
+  margin-top: 0.45rem;
+}
+.footer__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--hp-font-secondary);
+  font-size: clamp(1rem, 0.9rem + 0.35vw, 1.25rem);
+  font-weight: 500;
+  color: var(--hp-off-white);
+  transition: color 0.45s var(--hp-ease-out);
+}
+.footer__link svg,
+.footer__link:hover,
+.footer__link:focus-visible {
+  color: var(--hp-lime);
+}
+/* The label rolls up and its duplicate rolls in from below. */
+.footer__roll {
+  position: relative;
+  display: block;
+  line-height: 1.25;
+  overflow: hidden;
+}
+.footer__roll > span,
+.footer__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.footer__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+}
+.footer__link:hover .footer__roll > span,
+.footer__link:hover .footer__roll::after,
+.footer__link:focus-visible .footer__roll > span,
+.footer__link:focus-visible .footer__roll::after {
+  transform: translateY(-100%);
+}
+
+.footer__contact {
+  grid-area: 2 / 8 / auto / span 5;
+  align-self: start;
+  margin-top: clamp(2rem, 7svh, 4.5rem);
+}
+.footer__say {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  font-family: var(--hp-font-primary);
+  font-size: clamp(2rem, 0.9rem + 3.6vw, 4.75rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+  transition: color 0.45s var(--hp-ease-out);
+}
+.footer__say-arrow {
+  display: grid;
+  place-items: center;
+  width: 0.62em;
+  height: 0.62em;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    background-color 0.45s var(--hp-ease-out),
+    color 0.45s var(--hp-ease-out);
+}
+.footer__say-arrow svg {
+  width: 38%;
+  height: 38%;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.footer__say:hover,
+.footer__say:focus-visible {
+  color: var(--hp-lime);
+}
+.footer__say:hover .footer__say-arrow,
+.footer__say:focus-visible .footer__say-arrow {
+  background: var(--hp-lime);
+  color: var(--hp-soft);
+}
+.footer__say:hover .footer__say-arrow svg,
+.footer__say:focus-visible .footer__say-arrow svg {
+  transform: rotate(45deg);
+}
+
+.footer__tagline {
+  grid-area: 4 / 1 / auto / span 5;
+  align-self: end;
+  margin-bottom: clamp(0.9rem, 2.5svh, 1.5rem);
+  font-family: var(--hp-font-secondary);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.8;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hp-gray);
+}
+.footer__tagline span {
+  display: block;
+}
+
+.footer__base {
+  grid-area: 4 / 7 / auto / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-self: end;
+  align-items: baseline;
+  justify-content: space-between;
+  row-gap: 0.9rem;
+  margin-bottom: clamp(0.9rem, 2.5svh, 1.5rem);
+}
+.footer__rule {
+  flex: 0 0 100%;
+  height: 1px;
+  background: var(--hp-dark);
+  /* Drawn from the left — see the scaleX reveal in site-footer.tsx. */
+  transform-origin: 0;
+}
+.footer__small {
+  font-family: var(--hp-font-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--hp-gray);
+}
+.footer__top {
+  transition: color 0.45s var(--hp-ease-out);
+}
+.footer__top:hover,
+.footer__top:focus-visible {
+  color: var(--hp-lime);
+}
+
+.footer__mark {
+  grid-area: 5 / 1 / auto / -1;
+  width: min(100%, 196.16svh);
+}
+.footer__mark img {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 1023px) {
+  .footer__statement {
+    grid-column: 1 / span 7;
+  }
+  .footer__group--index {
+    grid-column: 9 / span 2;
+  }
+  .footer__group--social {
+    grid-column: 11 / span 2;
+  }
+  .footer__contact {
+    grid-area: 3 / 1 / auto / -1;
+    margin-top: clamp(1.5rem, 5svh, 3rem);
+  }
+  .footer__tagline {
+    grid-column: 1 / span 6;
+  }
+}
+
+@media (max-width: 767px) {
+  /* The wide plate's arcs are laid out for a landscape box; the tall one
+     carries the same motif redrawn for a phone. */
+  .footer__lines--wide {
+    display: none;
+  }
+  .footer__lines--tall {
+    display: block;
+  }
+  .footer__grid {
+    grid-template-rows: auto auto auto 1fr auto auto auto;
+    grid-template-columns: 1fr 1fr;
+  }
+  .footer__statement {
+    grid-area: 1 / 1 / auto / -1;
+    margin-bottom: clamp(1.5rem, 5svh, 2.5rem);
+  }
+  .footer__group--index {
+    grid-area: 2 / 1;
+  }
+  .footer__group--social {
+    grid-area: 2 / 2;
+    margin-top: 0;
+  }
+  .footer__contact {
+    grid-row: 3;
+  }
+  .footer__tagline {
+    grid-area: 5 / 1 / auto / -1;
+  }
+  .footer__base {
+    grid-area: 6 / 1 / auto / -1;
+  }
+  .footer__base .footer__rule {
+    display: none;
+  }
+  .footer__mark {
+    grid-row: 7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer__link,
+  .footer__roll > span,
+  .footer__roll::after,
+  .footer__say,
+  .footer__say-arrow,
+  .footer__say-arrow svg,
+  .footer__top,
+  .sound-toggle,
+  .sound-toggle__bars span {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Closing call to action — from `work.css` in the source repo.
+
+   The STATIC variant of those rules, not the `html.hp-motion` one: that staging
+   absolutely positions the lockup inside a pinned 3D space so it can wait in
+   depth behind the finale card, and this page has no such space.
+   --------------------------------------------------------------------------- */
+
+/* Pinned, so it is still on screen while it parts. Its beat is the first
+   quarter of the FOOTER's, and by then an ordinary section would be long gone
+   above — the reference keeps it on screen by stacking it in the pinned film,
+   and this is the same effect with one sticky box. The footer's own stage
+   carries `z-index: 4` and slides up over it. */
+.work__cta {
+  position: sticky;
+  top: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  height: 100svh;
+  padding: 6rem var(--hp-gutter);
+  overflow: hidden;
+  text-align: center;
+  /* Explicit, because it now has something to be above. The closing film sits
+     at 1 and the footer at 30; the lockup goes between them. Left to `auto`
+     the film painted over the type. */
+  z-index: 2;
+}
+/* Deliberately empty. No picture, no wash, no haze — the page's own night is
+   the ground here, and every attempt to put something else behind this lockup
+   has been wrong. The rule stays only so the class has a home if that changes. */
+/* Above both wash layers, and explicitly interactive: everything else in this
+   section is decoration and must not be able to intercept a pointer. */
+.work__cta-title,
+.work__cta-action {
+  pointer-events: auto;
+}
+.work__cta-title {
+  position: relative;
+  z-index: 3;
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  /* MAKE SOMETHING on one line. */
+  font-size: clamp(2.4rem, min(7.4vw, 15svh), 9.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+}
+.work__cta-line {
+  display: block;
+  white-space: nowrap;
+}
+.work__cta-line--key {
+  color: var(--hp-lime);
+}
+.work__cta-word,
+.work__cta-char {
+  display: inline-block;
+}
+.work__cta-action {
+  position: relative;
+  z-index: 3;
+  margin-top: clamp(2rem, 6svh, 3.75rem);
+}
+
+@media (max-width: 767px) {
+  /**
+   * The closing lockup, brought in off the edges.
+   *
+   * `.work__cta-line` is `white-space: nowrap` — "The Next One." is a phrase
+   * and must not break mid-way — so the type size alone decides whether it
+   * fits. At 12.5vw it did not: thirteen characters of a wide display face at
+   * 47px on a 375px screen come to more than the gutter leaves, and the
+   * section's `overflow: hidden` simply clipped the ends. It read as the words
+   * running off both sides.
+   *
+   * 9.5vw leaves about 24px clear each side at 375, and still clears at 320.
+   */
+  .work__cta-title {
+    font-size: clamp(1.9rem, 9.5vw, 3.25rem);
+  }
+  .work__cta-word {
+    display: block;
+  }
+  .work__cta-link .header-cta__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+  .work__cta-link .header-cta__arrow {
+    border-left: 1px solid var(--hp-lime);
+  }
+}
+
+/* No scrim over the top edge. The header carries no background of its own —
+   that is the reference's own rule — and a gradient standing in for one was
+   the same idea by another name. Work now passes under the bar unsoftened,
+   which is what the reference does. */
+
+/* ---------------------------------------------------------------------------
+   Closing transition — the last film, taken to fullscreen.
+
+   There is no wash behind this lockup any more. The gold and the scrim that
+   used to stand in for a background are both gone: the index's final card
+   becomes the background, pushed in to fill the screen and then pulled out of
+   focus. Stacking, from the back: the clip, the dark glass over it, the type.
+
+   The DOCK is the trick that makes it viewport-locked without `position:
+   fixed`. A fixed layer is measured against the nearest transformed ancestor
+   rather than the window, and this page has framer-motion wrappers above it
+   that carry a transform while they are animating — one of which would have
+   sized this to the whole index. A zero-height `sticky` box pinned at the top
+   of the scroller has no such failure mode, takes no space in the flow, and
+   gives its absolutely positioned child a viewport-sized box to fill.
+
+   `dvw`/`dvh` rather than `vw`/`vh`: the arithmetic in `WorkFinale` is done in
+   `window.innerWidth`/`innerHeight`, and the dynamic units are the pair that
+   agree with those while a mobile URL bar is coming and going. The large-
+   viewport units do not, and the window would land a band short of the screen.
+   --------------------------------------------------------------------------- */
+
+.work__finale-dock {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 0;
+}
+
+.work__finale {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  pointer-events: none;
+  /* Promoted once. Both the window and the picture inside it change every
+     frame of the push, and a layer that is re-promoted per frame is the whole
+     cost of doing this in the first place. */
+  will-change: opacity;
+}
+
+.work__finale-window,
+.work__finale-glass {
+  position: absolute;
+  inset: 0;
+}
+
+/* The FLIP's window. `clip-path` rather than width/height so the picture
+   inside never relayouts — only the visible rectangle changes, which the
+   compositor can do on its own. */
+.work__finale-window {
+  will-change: clip-path;
+}
+
+/* The transform carrier. Both the still and the clip ride it, so they cannot
+   drift apart, and the focus pull resolves over one layer instead of two. */
+.work__finale-media {
+  position: absolute;
+  inset: 0;
+  will-change: transform, filter;
+}
+
+.work__finale-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/**
+ * The glass.
+ *
+ * A flat dark plate and a soft vignette, and deliberately NOT `backdrop-filter`
+ * — which is what a glass layer would normally be. A backdrop filter re-samples
+ * everything beneath it every time that changes, and beneath this is a playing
+ * film: it would re-blur the whole screen sixty times a second for a result
+ * indistinguishable from folding the same blur into the picture's own filter
+ * chain, which is where it now lives. Same look, one pass instead of two.
+ */
+.work__finale-glass {
+  will-change: opacity;
+  background:
+    radial-gradient(125% 95% at 50% 45%, #00000000 0%, #00000052 100%),
+    #0000002e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No push to scrub, so the picture simply is the background. */
+  .work__finale-media {
+    transform: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Small screens — what the audit turned up.
+
+   The type scale itself needed nothing: every step is already a fluid `clamp`
+   with a sane floor (h1 36px, body 16px, sm 14px, xs 12px), so nothing on a
+   phone is set below what it should be. Two things were genuinely wrong, and
+   both are targets rather than sizes.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  /**
+   * The reel's call to action.
+   *
+   * `.view-project` is the one control on the hero, and its arrow cell is
+   * 2.25rem — 36px, under both platforms' minimum (44 on iOS, 48 on Android).
+   * The link has no height of its own either, so the cell WAS the target. On a
+   * phone this is the control a reader actually reaches for, and it was the
+   * smallest one on the page.
+   */
+  .view-project {
+    min-height: 2.75rem;
+  }
+  .view-project__arrow {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  /* 0.6875rem is 11px — below the floor everything else on this site respects,
+     and it is body copy rather than a label. */
+  .footer__tagline {
+    font-size: var(--hp-text-xs);
+  }
 }
