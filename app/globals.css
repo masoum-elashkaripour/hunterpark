@@ -1552,6 +1552,13 @@ html[data-logo-handoff] .site-header__logo {
   top: 0;
   height: 100svh;
 }
+/* The still footer (`SiteFooter still`): one screen, no pinned film. */
+.footer--still {
+  height: auto;
+}
+.footer--still .footer__stage {
+  position: relative;
+}
 /* The footer takes the pointer the moment it owns the frame — as the night
    finishes rising, not at the very end of the scroll — so its links and hovers
    work as soon as they can be seen.
@@ -3403,60 +3410,46 @@ html[data-logo-handoff] .site-header__logo {
     clamp(1.5rem, 4svh, 2.5rem);
 }
 
-.contact-hero__scatter {
+/* --- the globe (see `ContactHero`) --- */
+
+/* The stage the pictures are projected onto — the whole opening. */
+.contact-globe {
   position: absolute;
   inset: 0;
-  pointer-events: none;
   z-index: 0;
+  pointer-events: none;
 }
-.contact-hero__card {
+/* One print. Its place and size come from the projection, per frame, as a
+   `transform`; the `translate` here only centres it on that point (the two
+   compose, so the script never has to know the print's own size). */
+.contact-globe__tile {
   position: absolute;
-  display: block;
-  width: calc(var(--w) * var(--card-scale, 1));
+  left: 50%;
+  top: 50%;
+  width: clamp(64px, 7.2vw, 138px);
   translate: -50% -50%;
   opacity: 0;
-  /* Long and soft: a gentle expo-out with no overshoot, so each card drifts in
-     and settles rather than arriving. */
-  animation: hp-card-in 1.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.45);
 }
-/* Height from the picture's own ratio — never cropped to a box. */
-.contact-hero__card img {
-  width: 100%;
-  height: auto;
+/* The print picked to fill the screen steps out while its copy grows. */
+.contact-globe__tile[data-picked] {
+  visibility: hidden;
+}
+.contact-globe__tile img {
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/**
- * The card's arrival, measured off the reference preloader: scale 1 at opacity
- * 0, overshooting to 1.085 as it becomes visible, settling to 1. The rotation
- * is composed into every keyframe — a transform in a keyframe REPLACES the
- * element's own, so a card with `rotate()` in its style would un-tilt itself
- * for the length of the move.
- */
-/* SOFTER than the reference's pop (1 → 1.085 → 1): the card rises a little,
-   grows from just under size and comes into focus as it fades up, with the
-   fade finishing before the movement does so it never looks half-there. */
-@keyframes hp-card-in {
-  from {
-    opacity: 0;
-    filter: blur(10px);
-    transform: translateY(1.75rem) rotate(var(--rot)) scale(0.94);
-  }
-  60% {
-    opacity: 1;
-    filter: blur(0);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0) rotate(var(--rot)) scale(1);
-  }
-}
-
-/* Centred in the frame, over the scatter. */
+/* Centred in the frame, over the globe — with a soft pool of night behind
+   the words, so a picture passing close never takes their contrast. */
 .contact-hero__content {
   position: relative;
   z-index: 1;
+  isolation: isolate;
   display: grid;
   justify-items: center;
   text-align: center;
@@ -3467,27 +3460,36 @@ html[data-logo-handoff] .site-header__logo {
   font-size: clamp(2.4rem, min(7.4vw, 15svh), 9.5rem);
   display: grid;
 }
-.contact-hero__title > span {
+/* The title's mask — it rises out of it on load (see `ContactHero`). */
+.contact-hero__mask {
   display: block;
-  animation: hp-hero-rise 1s var(--hp-ease-out) both;
+  overflow: hidden;
+  padding-block: 0.04em;
+}
+/* The words' arrival, slower than the shared 1s, as on /news. Reduced motion
+   still switches it off (see `.hero-rise`, `.hero-mask-rise`). */
+.contact-hero__rise {
+  animation-duration: 1.8s;
+}
+.contact-hero__content .hp-eyebrow .contact-hero__rise,
+.contact-hero__standfirst .contact-hero__rise {
+  display: inline-block;
 }
 .contact-hero__standfirst {
   max-width: 40ch;
 }
 
-/* The reference enlarges its cards on a narrow screen rather than letting them
-   scale with the viewport — 13-16% of the width at 1680, 24-38% at 390. */
-@media (max-width: 700px) {
-  .contact-hero__card {
-    --card-scale: 1.8;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .contact-hero__card {
-    animation: none;
-    opacity: 0.22;
-    transform: rotate(var(--rot));
-  }
+.contact-hero__content::before {
+  content: "";
+  position: absolute;
+  inset: -18% -22%;
+  z-index: -1;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--hp-night) 78%, transparent),
+    transparent
+  );
+  pointer-events: none;
 }
 
 /* --- the three ways --- */
@@ -3768,6 +3770,12 @@ html[data-logo-handoff] .site-header__logo {
 .contact-reveal {
   position: relative;
   z-index: 1;
+  /* Over the hero from the first frame — see `ContactReveal`'s timeline. */
+  margin-top: -100svh;
+  /* …so the SECTION must let the pointer through to the hero, not only its
+     stage: it lay over "Send a brief" and swallowed every click and hover. The
+     panel takes the pointer back once it is shown. */
+  pointer-events: none;
   /* Set from `SCREENS` in `ContactReveal`, which owns the timeline. */
   height: var(--reveal-h, 460svh);
   background: transparent;
@@ -3777,21 +3785,24 @@ html[data-logo-handoff] .site-header__logo {
 .contact-reveal__blur {
   position: absolute;
   inset: 0;
-  filter: blur(28px);
-  transform: scale(1.12);
-}
-/* The footer, pulled up over the reveal's tail — see `FOOTER_OVERLAP`. Its
-   box is transparent until the footer is live, so it must not take the
-   pointer from the form underneath it; `.footer.is-live` takes it back. */
-.contact-footer {
-  margin-top: calc(var(--overlap, 0svh) * -1);
-  pointer-events: none;
+  /* The file is blurred already; scaled past the frame so its soft edge never
+     shows inside it. */
+  transform: scale(1.06);
 }
 .contact-reveal__stage {
   position: sticky;
   top: 0;
   height: 100svh;
   overflow: hidden;
+  /* It lies over the hero now; only the panel, once shown, takes the pointer. */
+  pointer-events: none;
+}
+.contact-reveal__anchor {
+  position: absolute;
+  left: 0;
+  top: var(--anchor-top, 0);
+  width: 1px;
+  height: 1px;
 }
 /* Its box — left, top, width, height, tilt — is set from the scroll in
    `ContactReveal`: it starts as the hero card and grows to the frame. */
@@ -3805,8 +3816,63 @@ html[data-logo-handoff] .site-header__logo {
   position: absolute;
   inset: 0;
 }
+/* The growing picture's layers: the globe's thumbnail, its large copy over
+   it once loaded, and the blurred copy over both (see `ContactReveal`). */
 .contact-reveal__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+}
+/* The night shade the picture takes on as it grows (see `shade`) — darker at
+   the foot, where the panel's lower half and the footer will be. */
+.contact-reveal__shade {
+  position: absolute;
+  inset: 0;
+  /* A real gradient, not a flat dim: the picture's colour kept in a soft
+     pool up and right of centre, falling to night toward every edge and
+     most of all at the foot. */
+  background:
+    radial-gradient(
+      120% 95% at 62% 32%,
+      color-mix(in srgb, var(--hp-night) 18%, transparent) 0%,
+      color-mix(in srgb, var(--hp-night) 55%, transparent) 55%,
+      color-mix(in srgb, var(--hp-night) 92%, transparent) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 40%,
+      color-mix(in srgb, var(--hp-night) 85%, transparent) 100%
+    );
+}
+/* The blurred layer carries the same shade into the full frame. */
+.contact-reveal__blur::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* A real gradient, not a flat dim: the picture's colour kept in a soft
+     pool up and right of centre, falling to night toward every edge and
+     most of all at the foot. */
+  background:
+    radial-gradient(
+      120% 95% at 62% 32%,
+      color-mix(in srgb, var(--hp-night) 18%, transparent) 0%,
+      color-mix(in srgb, var(--hp-night) 55%, transparent) 55%,
+      color-mix(in srgb, var(--hp-night) 92%, transparent) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 40%,
+      color-mix(in srgb, var(--hp-night) 85%, transparent) 100%
+    );
+}
+.contact-reveal__large {
+  opacity: 0;
+  transition: opacity 0.5s var(--hp-ease-out);
+}
+.contact-reveal__large[data-ready] {
+  opacity: 1;
 }
 /* A light wash only — the panel's two boxes carry their own grounds now, so
    the photograph can stay a photograph around them. */
@@ -3816,6 +3882,60 @@ html[data-logo-handoff] .site-header__logo {
   background: color-mix(in srgb, var(--hp-night) 28%, transparent);
 }
 
+/* The fade into the footer — see `footFade`. Under the panel, so only the
+   picture darkens, never the form. */
+.contact-reveal__foot {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 30%,
+    color-mix(in srgb, var(--hp-night) 70%, transparent) 70%,
+    var(--hp-night) 100%
+  );
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-reveal__foot {
+    opacity: 1;
+  }
+}
+/* The exit's night — the whole picture fading under the rising footer. */
+.contact-reveal__dark {
+  position: absolute;
+  inset: 0;
+  background: var(--hp-night);
+  opacity: 0;
+  pointer-events: none;
+}
+/* The footer, pulled up over the section's exit and stacked above it. */
+.contact-footer-rise {
+  position: relative;
+  z-index: 30;
+  margin-top: calc(var(--overlap, 0svh) * -1);
+}
+/* Its leading edge is a fade, not a line: the night it brings rises out of
+   the picture rather than sliding over it. */
+.contact-footer-rise::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 38svh;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--hp-night) 70%, transparent) 60%,
+    var(--hp-night)
+  );
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-footer-rise {
+    margin-top: 0;
+  }
+}
 .contact-reveal__panel {
   position: absolute;
   inset: 0;
@@ -3837,56 +3957,52 @@ html[data-logo-handoff] .site-header__logo {
     align-items: stretch;
   }
 }
-/* The information on frosted glass: the picture behind it, blurred and
-   darkened just enough for white type. */
+/* The information on a tinted panel — no glass blur of its own: the picture
+   behind it is already blurred (it softens as it grows), so the panel only
+   darkens it enough for white type. */
+/* A column that FILLS its box: heading, facts and map spread over the full
+   height (the form beside it sets it), with a generous floor between them —
+   no pool of empty panel under the map. */
 .contact-reveal__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(1.75rem, 4svh, 2.75rem);
   padding: clamp(1.25rem, 2.6vw, 2.75rem);
-  background: color-mix(in srgb, var(--hp-night) 34%, transparent);
-  -webkit-backdrop-filter: blur(22px) saturate(1.1);
-  backdrop-filter: blur(22px) saturate(1.1);
+  background: color-mix(in srgb, var(--hp-night) 40%, transparent);
   border: 1px solid color-mix(in srgb, var(--hp-off-white) 14%, transparent);
 }
-/* The form on solid white, dark type — legibility first. */
+/* The form in the site's own theme: night ground, off-white type, hairline
+   rules turning lime on focus, the lime ticket — the same box as the info
+   column beside it, a shade more solid so the fields read first. */
 .contact-reveal__form {
   padding: clamp(1.25rem, 2.6vw, 2.75rem);
-  background: var(--hp-off-white);
-  color: var(--hp-night);
+  background: color-mix(in srgb, var(--hp-night) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 14%, transparent);
+  color: var(--hp-off-white);
 }
 .contact-reveal__form .contact-reveal__label,
 .contact-reveal__form .contact-field__label,
 .contact-reveal__form .contact-form__status {
-  color: color-mix(in srgb, var(--hp-night) 62%, transparent);
+  color: color-mix(in srgb, var(--hp-off-white) 55%, transparent);
 }
 .contact-reveal__form .contact-field input,
 .contact-reveal__form .contact-field textarea {
-  color: var(--hp-night);
+  color: var(--hp-off-white);
 }
 .contact-reveal__form .contact-field textarea {
   height: 5.5rem;
 }
 /* The form's title: the chapter-title treatment of `.contact-reveal__line`,
-   a step smaller, in ink, with clear air before the first field. */
+   a step smaller, in the house lime, with clear air before the first field. */
 .contact-reveal__form-head {
   font-size: clamp(1.4rem, 2.2vw, 2.4rem);
   letter-spacing: -0.03em;
   line-height: 1;
-  color: var(--hp-night);
+  color: var(--hp-lime);
   margin-bottom: clamp(1.25rem, 3svh, 2rem);
 }
-.contact-reveal__form .contact-field input:focus-visible,
-.contact-reveal__form .contact-field textarea:focus-visible {
-  border-bottom-color: var(--hp-night);
-}
-/* The action in ink on white; it still fills with the lime on hover. */
-.contact-reveal__form .contact-action {
-  border-color: var(--hp-night);
-  color: var(--hp-night);
-}
-.contact-reveal__form .contact-action:hover,
-.contact-reveal__form .contact-action:focus-visible {
-  border-color: var(--hp-lime);
-  color: var(--hp-night);
-}
+
 /* The chapter-title treatment, as `.caps-section__head` carries it. */
 .contact-reveal__line {
   font-size: clamp(1.6rem, 3vw, 3.5rem);
@@ -3896,8 +4012,7 @@ html[data-logo-handoff] .site-header__logo {
 }
 .contact-reveal__facts {
   display: grid;
-  gap: clamp(1rem, 3vw, 2.5rem);
-  margin-top: clamp(1.25rem, 3svh, 2rem);
+  gap: clamp(1.5rem, 4svh, 2.75rem) clamp(1rem, 3vw, 2.5rem);
 }
 @media (min-width: 560px) {
   .contact-reveal__facts {
@@ -3907,6 +4022,42 @@ html[data-logo-handoff] .site-header__logo {
 .contact-reveal__label {
   color: color-mix(in srgb, var(--hp-off-white) 55%, transparent);
   margin-bottom: 0.6rem;
+}
+/* A fact: the icon box, then the label over the value. */
+.contact-reveal__fact {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: start;
+}
+.contact-reveal__fact .contact-reveal__label {
+  margin-bottom: 0.35rem;
+}
+/* The ticket's lime frame, small; the icon takes the lime from it. */
+.contact-reveal__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  background: color-mix(in srgb, var(--hp-lime) 8%, transparent);
+  transition:
+    background-color 0.45s var(--hp-ease-out),
+    color 0.45s var(--hp-ease-out);
+}
+.contact-reveal__fact:hover .contact-reveal__icon {
+  background: var(--hp-lime);
+  color: var(--hp-night);
+}
+.contact-reveal__social a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.contact-reveal__social-icon {
+  color: var(--hp-lime);
+  flex: none;
 }
 .contact-reveal__mail,
 .contact-reveal__social a {
@@ -3932,7 +4083,7 @@ html[data-logo-handoff] .site-header__logo {
 
 /* The map plate — see `ContactReveal` for why it is a slot and not a map. */
 .contact-reveal__map {
-  margin-top: clamp(1.25rem, 3svh, 2rem);
+  margin-top: 0;
 }
 .contact-reveal__plate {
   display: grid;
@@ -3958,7 +4109,7 @@ html[data-logo-handoff] .site-header__logo {
    than they do on black. Nothing else about it changes. */
 .contact-reveal__form .contact-field input,
 .contact-reveal__form .contact-field textarea {
-  border-bottom-color: color-mix(in srgb, var(--hp-night) 30%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--hp-off-white) 32%, transparent);
 }
 .contact-reveal__form .contact-form {
   gap: clamp(0.7rem, 1.6svh, 1.1rem);
@@ -3967,12 +4118,17 @@ html[data-logo-handoff] .site-header__logo {
 @media (prefers-reduced-motion: reduce) {
   .contact-reveal {
     height: auto;
+    margin-top: 0;
+  }
+  .contact-reveal,
+  .contact-reveal__stage {
+    pointer-events: auto;
+  }
+  .contact-reveal__anchor {
+    top: 0;
   }
   /* No scrubbed hand-over here: the footer is static and opaque, so it follows
      the reveal instead of overlapping it. */
-  .contact-footer {
-    margin-top: 0;
-  }
   .contact-reveal__blur {
     display: none;
   }
@@ -3985,5 +4141,86 @@ html[data-logo-handoff] .site-header__logo {
     position: relative;
     opacity: 1;
     transform: none;
+  }
+}
+
+/* --- the stand-in map (see `ContactMap`) --- */
+.contact-map {
+  position: relative;
+  overflow: hidden;
+  height: clamp(10rem, 23svh, 14.5rem);
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 22%, transparent);
+  border-radius: var(--hp-radius-control);
+  background: color-mix(in srgb, var(--hp-night) 70%, transparent);
+}
+.contact-map__plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.contact-map__water {
+  fill: color-mix(in srgb, var(--hp-off-white) 7%, transparent);
+}
+.contact-map__park {
+  fill: color-mix(in srgb, var(--hp-lime) 10%, transparent);
+  stroke: color-mix(in srgb, var(--hp-lime) 35%, transparent);
+  stroke-width: 1;
+}
+.contact-map__streets path {
+  stroke: color-mix(in srgb, var(--hp-off-white) 14%, transparent);
+  stroke-width: 1;
+  fill: none;
+}
+.contact-map__roads path {
+  stroke: color-mix(in srgb, var(--hp-off-white) 32%, transparent);
+  stroke-width: 2;
+  fill: none;
+}
+.contact-map__pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--hp-lime);
+  /* The pin's point on the centre, not its middle. */
+  translate: -50% -85%;
+  filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.5));
+}
+.contact-map__pin svg {
+  position: relative;
+}
+.contact-map__pulse {
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hp-lime);
+  animation: contact-map-pulse 2.4s var(--hp-ease-out) infinite;
+}
+@keyframes contact-map-pulse {
+  from {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+}
+.contact-map__note {
+  position: absolute;
+  left: 0.85rem;
+  bottom: 0.7rem;
+  color: color-mix(in srgb, var(--hp-off-white) 60%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-map__pulse {
+    animation: none;
+    opacity: 0.5;
   }
 }

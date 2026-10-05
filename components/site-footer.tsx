@@ -255,9 +255,16 @@ const Arrow = () => (
 
 export function SiteFooter({
   progress,
+  still = false,
 }: {
   /** The film's 0→1, owned by the page so the work can fade on the same value. */
   progress: MotionValue<number>;
+  /**
+   * A plain footer: one screen, in its finished state, no film and no wordmark
+   * hand-off from the header. Pass a progress that never moves with it — the
+   * parts then render with no scrub styles at all (see `driven`).
+   */
+  still?: boolean;
 }) {
   const reduced = useReducedMotion();
 
@@ -485,7 +492,9 @@ export function SiteFooter({
    */
 
   return (
-    <footer className={`footer${live || reduced ? " is-live" : ""}`}>
+    <footer
+      className={`footer${live || reduced || still ? " is-live" : ""}${still ? " footer--still" : ""}`}
+    >
       <div className="footer__stage" ref={stageRef}>
         <m.div
           className="footer__ground"
