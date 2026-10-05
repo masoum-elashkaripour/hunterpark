@@ -1,9 +1,9 @@
-import Hero from "../components/hero/Hero";
-import Studio from "../components/studio/Studio";
-import ChapterIndicator from "../components/chapter/ChapterIndicator";
-import Capabilities from "../components/capabilities/Capabilities";
-import Work from "../components/work/Work";
-import SiteFooter from "../components/footer/SiteFooter";
+import Hero from "../../components/hero/Hero";
+import Studio from "../../components/studio/Studio";
+import ChapterIndicator from "../../components/chapter/ChapterIndicator";
+import Capabilities from "../../components/capabilities/Capabilities";
+import Work from "../../components/work/Work";
+import SiteFooter from "../../components/footer/SiteFooter";
 
 export default function HomePage() {
   return (

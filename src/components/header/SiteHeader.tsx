@@ -2,7 +2,7 @@
  * Site header — transparent over media, the wordmark does the talking.
  * Menu trigger (left) · centred wordmark · sound toggle + Contact Us CTA (right), at every size.
  * The trigger expands a short editorial list directly beneath it — Works, About,
- * News and the social icons. Menu entries don't route anywhere yet.
+ * Contact (the site's pages, from data/navigation) and the social icons.
  * The wordmark is where the preloader's logo lands.
  * Persistent and transparent on every section — it never changes with scroll.
  * Behaviour (menu only): scripts/header.ts.
@@ -50,7 +50,7 @@ export default function SiteHeader() {
           </button>
 
           {/* CTA: a lime-ruled ticket; lime floods in from the left on hover */}
-          <a href="/contact/" className="header-cta" data-header-cta>
+          <a href="/contact" className="header-cta" data-header-cta>
             <span className="header-cta__label">
               <span className="header-cta__roll" data-text="Contact Us">
                 <span>Contact Us</span>
@@ -86,12 +86,12 @@ export default function SiteHeader() {
           <ul className="menu-panel__list" aria-label="Menu">
             {primaryNav.map((item) => (
               <li className="menu-panel__row" key={item.label}>
-                <button type="button" className="menu-panel__item" data-menu-item>
+                <a href={item.href} className="menu-panel__item" data-menu-item>
                   <span className="menu-panel__dash" aria-hidden="true" />
                   <span className="menu-panel__roll" data-text={item.label}>
                     <span>{item.label}</span>
                   </span>
-                </button>
+                </a>
               </li>
             ))}
           </ul>

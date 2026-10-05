@@ -1,0 +1,3989 @@
+@import "tailwindcss";
+
+/* Söhne Breit — primary typeface, straight from the Hunterpark repo
+   (src/styles/fonts.css). These are Klim TRIAL cuts: they only cover
+   A-Z a-z 0-9 and , - . Ö ö — every other glyph silently falls back to
+   Instrument Sans. Swap in the licensed files under the same names. */
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-250.woff2") format("woff2");
+  font-weight: 250;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-250-italic.woff2") format("woff2");
+  font-weight: 250;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-300.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-300-italic.woff2") format("woff2");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-400-italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-500-italic.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-600-italic.woff2") format("woff2");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-700-italic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-800.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-800-italic.woff2") format("woff2");
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-900.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Söhne Breit";
+  src: url("/fonts/soehne-breit-900-italic.woff2") format("woff2");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---------------------------------------------------------------------------
+   Hunterpark design system.
+
+   Synced from src/styles/tokens.css in the Hunterpark repo (Astro), which
+   names the Figma "HUNTERPARK" board as its source of truth. Names and values
+   are identical so this page drops into the main repo without a re-theme.
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* Palette — copied from src/styles/tokens.css in the Hunterpark repo, which
+     names Figma as its source of truth. (The design-system PDF swatches this
+     one as #151515; the repo and the live build both say #0d0d0d.) */
+  --hp-night: #0d0d0d;
+  --hp-dark: #292929;
+  --hp-gray: #a6a6a6;
+  --hp-off-white: #f5f5f0;
+  --hp-lime: #eeff41;
+  --hp-violet: #4c4fee;
+  --hp-soft: #000;
+  --hp-overlay: #0006;
+  --hp-hero-overlay: #00000080;
+
+  /* Type families. Söhne Breit is bundled (trial cuts, see above); Instrument
+     Sans backs it up and covers the glyphs the trial does not. */
+  --hp-font-primary:
+    "Söhne Breit", "Instrument Sans Variable", "Instrument Sans", system-ui,
+    sans-serif;
+  --hp-font-secondary:
+    "Instrument Sans Variable", "Instrument Sans", system-ui, sans-serif;
+
+  /* Type scale */
+  --hp-text-h1: clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);
+  --hp-text-h2: clamp(1.875rem, 1.3rem + 2.3vw, 2.8125rem);
+  --hp-text-h3: clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);
+  --hp-text-h4: clamp(1.25rem, 1.05rem + 0.8vw, 1.5625rem);
+  --hp-text-h5: 1.25rem;
+  --hp-text-h6: 1.125rem;
+  --hp-text-body: 1rem;
+  /**
+   * The page's RUNNING PROSE size — the one every paragraph is set in.
+   *
+   * There were three of them before this: the hero's standfirst at `h5`, the
+   * studio's paragraphs at a clamp of their own, and the staircase's lines at
+   * `body`. Three sizes for one voice, so a reader going down the page watched
+   * the same kind of sentence get smaller twice. This is the only one now —
+   * see `@utility hp-copy`, which is what they all use.
+   */
+  --hp-text-copy: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --hp-text-sm: 0.875rem;
+  --hp-text-xs: 0.75rem;
+  --hp-leading-tight: 1.16;
+  --hp-leading-snug: 1.2;
+
+  /* Layout + motion */
+  /**
+   * The radius every control on this site shares — buttons, the filter pill,
+   * "See more", "Contact Us".
+   *
+   * Zero, and that is a decision rather than an oversight: the only
+   * `border-radius` in this entire stylesheet is the 50% on the glow blob.
+   * Nothing here is rounded, so a rounded pill would read as a control
+   * borrowed from another site. Named anyway, so it is one value to change
+   * rather than three to find.
+   */
+  --hp-radius-control: 0px;
+
+  /**
+   * How long a tile takes to become a film.
+   *
+   * Named because two things have to agree on it: the morph itself, and the
+   * delay before the project page's type starts arriving — the type must not
+   * begin until the film has essentially landed, or the two compete. See
+   * `Reveal` and `app/work/[slug]/page.tsx`.
+   */
+  --hp-morph-ms: 900ms;
+
+  /**
+   * The ONE gap in the work index. Columns and rows, every container, every
+   * breakpoint — `column-gap` and `row-gap` are never set apart.
+   *
+   * There used to be four containers carrying four different values, which at
+   * desktop resolved to three: 40px between groups, 24px between columns, and
+   * 20px inside the stacked pair. That last one was the tell — the right-hand
+   * column's internal gap did not match the gap to the column beside it, so
+   * the two cards in it sat closer together than they sat to their neighbour.
+   *
+   * Fluid rather than stepped, which is the same idiom `--hp-gutter` above
+   * uses: 24px on a phone, 32px from about 1440 up, and no breakpoint at which
+   * the two axes could drift apart because there is only ever one number.
+   *
+   * Opened up from 20/24. The composition is dense — a feature beside a stacked
+   * pair, four groups deep — and at 24px the cards read as one mass rather than
+   * as separate films. Both axes move together by construction: there is still
+   * only the one value, so widening it cannot put them out of step.
+   */
+  --hp-grid-gap: clamp(1.5rem, 1.2rem + 0.9vw, 2rem);
+
+  --hp-gutter: clamp(1.25rem, 3.76vw, 4.0625rem);
+  --hp-header-h: clamp(4rem, 3.2rem + 2vw, 5.5rem);
+  --hp-ease-out: cubic-bezier(0.19, 1, 0.22, 1);
+  --hp-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --hp-z-menu: 40;
+  --hp-z-header: 50;
+  --hp-z-preloader: 100;
+}
+
+@theme inline {
+  --color-night: var(--hp-night);
+  --color-dark: var(--hp-dark);
+  --color-gray: var(--hp-gray);
+  --color-off-white: var(--hp-off-white);
+  --color-lime: var(--hp-lime);
+  --color-violet: var(--hp-violet);
+
+  --font-display: var(--hp-font-primary);
+  --font-sans: var(--hp-font-secondary);
+
+  --text-h1: var(--hp-text-h1);
+  --text-h2: var(--hp-text-h2);
+  --text-h3: var(--hp-text-h3);
+  --text-h4: var(--hp-text-h4);
+  --text-h5: var(--hp-text-h5);
+  --text-h6: var(--hp-text-h6);
+
+  --ease-hp-out: var(--hp-ease-out);
+  --ease-hp-in-out: var(--hp-ease-in-out);
+
+  --spacing-gutter: var(--hp-gutter);
+  --spacing-grid: var(--hp-grid-gap);
+  --spacing-header: var(--hp-header-h);
+}
+
+html {
+  /* `clip` contains horizontal overflow without creating a scroll container,
+     which would break `position: sticky` on the filter rail. */
+  overflow-x: clip;
+
+  /**
+   * The scrollbar — and every other piece of browser furniture.
+   *
+   * The reference styles no scrollbar at all; it just declares the page dark
+   * and lets the browser draw its own to match. That is why its bar is a dark
+   * track with a pale thumb while this one was still the default light bar
+   * against a black page.
+   *
+   * It does more than the scrollbar: form controls, spell-check underlines and
+   * the like all follow it. Straight from the source's `global.css`, along with
+   * the background and text-size-adjust that sit beside it there.
+   */
+  color-scheme: dark;
+  background: var(--hp-night);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  /**
+   * NO BACKGROUND HERE, and that is load-bearing.
+   *
+   * `html` above already paints the page's night. A background on the root
+   * normally propagates to the canvas and the body is then drawn without one —
+   * but only when the root has none of its own. With both declared, the body's
+   * is painted as ordinary block-level content, which in the paint order comes
+   * AFTER negative-z-index children of the root. That buried `.about-film`,
+   * the fixed layer the hero's reel lives on, under an opaque black rectangle:
+   * the hero rendered as its lockup on nothing.
+   *
+   * One declaration, on the root, and the colour is identical.
+   */
+  color: var(--hp-off-white);
+  /* Söhne carries titles *and* main text; Instrument Sans is reserved for the
+     small supporting bits (indexes, meta, captions) — see the repo's
+     tokens.css. This was the other way round before. */
+  font-family: var(--hp-font-primary);
+  line-height: var(--hp-leading-snug);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display type in this system is set tight and optically flush-left. */
+@utility display-tight {
+  font-family: var(--hp-font-primary);
+  line-height: var(--hp-leading-tight);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+/* ---------------------------------------------------------------------------
+   Type lockup lifted from the live build (hunterpark.vercel.app).
+
+   Its display headings — `.hero__big`, `.studio__heading`, `.whatwedo__heading`
+   — are all the same recipe: the primary face at weight 900, in LIME rather
+   than off-white, set very tight (-0.045em) on a sub-1 line height. The small
+   line under the title (`.hero__small`) stays off-white at weight 400, and the
+   eyebrow (`.hero__caption`) is the secondary face in lime at weight 300.
+   --------------------------------------------------------------------------- */
+
+@utility hp-display {
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 0.88;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+  text-wrap: balance;
+}
+
+/* Overview tiles read as an index, not as 31 competing hero titles: the same
+   cut and tight tracking, but off-white and in sentence case. Lime is kept for
+   the one film the carousel is actually on. */
+@utility hp-tile-title {
+  font-family: var(--hp-font-primary);
+  /* Lighter than the display cut: at index size, 900 turned the grid into a
+     wall of black slabs. */
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+  color: var(--hp-off-white);
+}
+
+@utility hp-sub {
+  font-family: var(--hp-font-primary);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  color: var(--hp-off-white);
+}
+
+/**
+ * Running prose. One size, one measure, one colour, everywhere on the page.
+ *
+ * Deliberately a utility rather than three component rules that happen to
+ * agree: agreement drifts, a shared declaration cannot.
+ */
+@utility hp-copy {
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-copy);
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--hp-off-white) 72%, transparent);
+}
+
+@utility hp-eyebrow {
+  font-family: var(--hp-font-secondary);
+  font-weight: 300;
+  font-size: clamp(0.75rem, 0.65rem + 0.3vw, 0.9375rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+@utility label-xs {
+  /* Supporting text — the secondary face, per the design system. */
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Site header.
+
+   Ported from the live build (hunterpark.vercel.app) — class names, timings
+   and transforms are kept identical so this diffs cleanly against the real
+   component on merge. Written as plain CSS rather than utilities because the
+   roll-ups rely on `content: attr(data-text)` and clip-path transitions.
+   --------------------------------------------------------------------------- */
+
+.site-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: var(--hp-z-header);
+  color: var(--hp-off-white);
+  /* Transparent, and it stays transparent once the page has scrolled. The
+     live build sets `background-color: #0000` here and carries no scrolled
+     state at all — the header is meant to float over the work rather than
+     ride on a bar. A dark panel behind it was added here and is not theirs. */
+  background-color: transparent;
+}
+
+.site-header__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: var(--hp-header-h);
+  padding-inline: var(--hp-gutter);
+}
+.site-header__inner > * {
+  grid-row: 1;
+}
+
+.site-header__logo {
+  display: block;
+  grid-column: 2;
+  justify-self: center;
+  width: clamp(8.25rem, 6.25rem + 5.75vw, 11.5rem);
+}
+.site-header__logo img {
+  width: 100%;
+  height: auto;
+}
+/* The intro, from `src/scripts/header.ts`: the wordmark wipes in from the left
+   while the trigger and the two right-hand controls drift in from their own
+   edges. A CSS animation rather than JS — there is no preloader on this page to
+   hand off from, so it simply runs once on load. */
+@keyframes hp-header-wipe {
+  from {
+    clip-path: inset(0% 100% 0% 0%);
+  }
+  to {
+    clip-path: inset(0% 0% 0% 0%);
+  }
+}
+@keyframes hp-header-in-left {
+  from {
+    opacity: 0;
+    translate: -12px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+/**
+ * THE HERO'S ARRIVAL, in CSS rather than in JavaScript.
+ *
+ * It was `animate()` on MotionValues, which cannot run until Motion hydrates —
+ * and the state it animates FROM is what the server ships. So on a slow
+ * connection the hero was a video with nothing on it: the eyebrow, the title,
+ * the standfirst and the reel index all sat at `opacity: 0` in the HTML,
+ * waiting on a bundle that was queued behind three video files. The header came
+ * up at once the whole time, because the header's entrance has always been a
+ * CSS animation. This is the header's mechanism, given to the hero.
+ *
+ * A CSS animation runs at first paint. There is no frame in which the hero is
+ * blank, with or without JavaScript, fast connection or slow.
+ *
+ * It has to be its own element, separate from the one carrying the scroll-bound
+ * exit: Motion writes `transform` from a MotionValue and an animation writing
+ * the same property would simply lose. Outer element leaves, inner arrives.
+ */
+@keyframes hp-hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/**
+ * NO `display` HERE, and that is the whole point of the rule.
+ *
+ * It carried `display: block` and that quietly won against the `flex` on the
+ * reel index — same specificity, later in the sheet — so the three bars and
+ * their label stopped being a flex row and `gap-3` had nothing to space. The
+ * dashes ran together at the bottom of the hero.
+ *
+ * An animation class has no business deciding how its host lays out its
+ * children. Each host keeps its own display; the only one that needed help was
+ * the eyebrow, whose span has to be inline-block for a transform to take, and
+ * it says so itself at the call site.
+ */
+.hero-rise {
+  animation: hp-hero-rise 1s var(--hp-ease-out) both;
+}
+
+/* The lockup's own line, rising out of its mask — same idea, no opacity,
+   because the glyphs inside it carry their own. */
+@keyframes hp-hero-mask {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: none;
+  }
+}
+.hero-mask-rise {
+  display: block;
+  animation: hp-hero-mask 1s var(--hp-ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-mask-rise {
+    animation: none;
+  }
+}
+
+@keyframes hp-header-in-right {
+  from {
+    opacity: 0;
+    translate: 12px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+.site-header__logo {
+  animation: hp-header-wipe 1.4s var(--hp-ease-in-out) 0.15s both;
+}
+.menu-toggle {
+  animation: hp-header-in-left 1s var(--hp-ease-out) 0.5s both;
+}
+.sound-toggle {
+  animation: hp-header-in-right 1s var(--hp-ease-out) 0.6s both;
+}
+
+/**
+ * THE BAR'S ENTRANCE, scoped to the bar.
+ *
+ * This used to sit on `.header-cta` itself, which meant every button wearing
+ * that class — the hero's, the closing lockup's — inherited the header's
+ * slide-in AND its 0.6s delay, with `both` holding them invisible until it
+ * fired. The hero's lockup had its own carefully staggered arrival and then sat
+ * there with a hole in it for six tenths of a second, waiting on a rule that
+ * belongs to the navigation.
+ *
+ * The grid placement below goes with it for the same reason: `grid-column: 3`
+ * is a fact about the header's three-column bar, not about what a button is.
+ */
+.site-header__inner > .header-cta {
+  animation: hp-header-in-right 1s var(--hp-ease-out) 0.6s both;
+  grid-column: 3;
+  justify-self: end;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header__logo,
+  .menu-toggle,
+  .sound-toggle,
+  .header-cta {
+    animation: none;
+  }
+}
+
+/* Set by the footer while its own wordmark is flying up to this position.
+   The two are the same mark as far as the reader is concerned, so only one of
+   them may be on screen at a time. Visibility as well as opacity: a logo at
+   zero opacity is still a link, and tabbing to an invisible one is worse than
+   not having it. */
+/* A CUT, not a cross-fade. The source swaps `visibility` on this and
+   `autoAlpha` on the footer's mark at the same instant, so one wordmark
+   becomes the other with nothing in between. Fading this out over 0.45s left a
+   hole where neither was on screen — the logo went dark at the header and the
+   other one turned up further down, which read as two marks rather than one
+   moving. */
+html[data-logo-handoff] .site-header__logo {
+  visibility: hidden;
+}
+
+/* CTA: a lime-ruled ticket; lime floods in from the left on hover. */
+.header-cta {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  height: 2.75rem;
+  /* `stretch` + `overflow: hidden` is how the arrow cell gets the ticket's full
+     height and how the lime `::before` is kept inside the rule as it floods in.
+     Ours had `center` and no clip, with `align-self` on the arrow making up for
+     it — the same picture by a longer route. Theirs, now. */
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--hp-lime);
+  border-radius: var(--hp-radius-control);
+  color: var(--hp-off-white);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: color 0.45s var(--hp-ease-out);
+}
+.header-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--hp-lime);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.6s var(--hp-ease-out);
+}
+.header-cta:hover,
+.header-cta:focus-visible {
+  color: var(--hp-soft);
+}
+.header-cta:hover::before,
+.header-cta:focus-visible::before {
+  clip-path: inset(0);
+}
+.header-cta__label {
+  display: flex;
+  align-items: center;
+  padding-inline: 1.15rem 1.05rem;
+}
+.header-cta__roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.header-cta__roll > span,
+.header-cta__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.header-cta__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+}
+.header-cta:hover .header-cta__roll > span,
+.header-cta:hover .header-cta__roll::after,
+.header-cta:focus-visible .header-cta__roll > span,
+.header-cta:focus-visible .header-cta__roll::after {
+  transform: translateY(-100%);
+}
+.header-cta__arrow {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  border-left: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    color 0.45s var(--hp-ease-out),
+    border-color 0.45s var(--hp-ease-out);
+}
+.header-cta__arrow svg {
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.header-cta:hover .header-cta__arrow,
+.header-cta:focus-visible .header-cta__arrow {
+  border-color: var(--hp-soft);
+  color: var(--hp-soft);
+}
+.header-cta:hover .header-cta__arrow svg,
+.header-cta:focus-visible .header-cta__arrow svg {
+  transform: rotate(45deg);
+}
+
+/* Menu trigger: the word swaps and the two rules fold into a cross. */
+.menu-toggle {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 0.75rem;
+  grid-column: 1;
+  justify-self: start;
+  min-height: 2.75rem;
+  font-size: var(--hp-text-body);
+  font-weight: 500;
+}
+.menu-toggle__label {
+  display: grid;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.menu-toggle__word {
+  grid-area: 1 / 1;
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.menu-toggle__word:last-child {
+  transform: translateY(100%);
+}
+.menu-toggle[aria-expanded="true"] .menu-toggle__word:first-child {
+  transform: translateY(-100%);
+}
+.menu-toggle[aria-expanded="true"] .menu-toggle__word:last-child {
+  transform: none;
+}
+.menu-toggle__icon {
+  position: relative;
+  display: block;
+  width: 1.75rem;
+  height: 0.625rem;
+}
+.menu-toggle__icon span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--hp-lime);
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.menu-toggle__icon span:first-child {
+  top: 0;
+}
+.menu-toggle__icon span:last-child {
+  bottom: 0;
+  transform-origin: 0;
+  transform: scaleX(0.6);
+}
+.menu-toggle:hover .menu-toggle__icon span:last-child {
+  transform: scaleX(1);
+}
+.menu-toggle[aria-expanded="true"] .menu-toggle__icon span:first-child {
+  transform: translateY(4px) rotate(35deg) scaleX(0.75);
+}
+.menu-toggle[aria-expanded="true"] .menu-toggle__icon span:last-child {
+  transform-origin: 50%;
+  transform: translateY(-4px) rotate(-35deg) scaleX(0.75);
+}
+
+/* Expanded menu: hangs from the trigger, left-aligned, off a lime rule. */
+.menu-panel {
+  position: absolute;
+  top: calc(var(--hp-header-h) - 0.25rem);
+  left: var(--hp-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3svh, 2.25rem);
+  padding: 0.5rem 0 0.5rem clamp(1.1rem, 1.6vw, 1.5rem);
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.4s var(--hp-ease-out),
+    visibility 0s linear 0.4s;
+}
+.menu-panel.is-open {
+  visibility: visible;
+  opacity: 1;
+  transition:
+    opacity 0.4s var(--hp-ease-out),
+    visibility 0s;
+}
+.menu-panel__rule {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 1px;
+  background: var(--hp-lime);
+  transform-origin: top;
+  transform: scaleY(0);
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.menu-panel.is-open .menu-panel__rule {
+  transform: scaleY(1);
+}
+.menu-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 0.7svh, 0.5rem);
+}
+.menu-panel__item {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  font-size: clamp(1.125rem, 0.95rem + 0.55vw, 1.5rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.menu-panel__dash {
+  display: block;
+  width: 0;
+  height: 2px;
+  margin-right: 0;
+  background: var(--hp-lime);
+  transition:
+    width 0.5s var(--hp-ease-out),
+    margin-right 0.5s var(--hp-ease-out);
+}
+.menu-panel__item:hover .menu-panel__dash,
+.menu-panel__item:focus-visible .menu-panel__dash {
+  width: 0.75em;
+  margin-right: 0.3em;
+}
+.menu-panel__roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.05em;
+}
+.menu-panel__roll > span,
+.menu-panel__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.menu-panel__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+  color: var(--hp-lime);
+}
+.menu-panel__item:hover .menu-panel__roll > span,
+.menu-panel__item:hover .menu-panel__roll::after,
+.menu-panel__item:focus-visible .menu-panel__roll > span,
+.menu-panel__item:focus-visible .menu-panel__roll::after {
+  transform: translateY(-100%);
+}
+.menu-panel__social {
+  display: flex;
+  gap: 0.5rem;
+}
+.menu-panel__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 35%, transparent);
+  color: var(--hp-off-white);
+  transition:
+    color 0.35s var(--hp-ease-out),
+    border-color 0.35s var(--hp-ease-out),
+    background-color 0.35s var(--hp-ease-out);
+}
+/* ---------------------------------------------------------------------------
+   The menu's SECOND shape — ported from the repo, where it is new.
+
+   In the hero it still drops from under the trigger. Past the hero it runs
+   SIDEWAYS from the trigger in a single row along the bar, social cells after
+   a hairline divider. The shape is decided once per opening, at the moment it
+   opens, so a menu left open while the reader scrolls does not reshape itself
+   under them.
+
+   `--menu-row-left` is measured in JS — the trigger's right edge, plus eight —
+   because the trigger's width is the word "Menu" and so follows the font. The
+   fallback in the `left` below is only for the frame before that lands.
+
+   `is-menu-below` is the escape hatch: if the row would reach the centred
+   wordmark it drops to the line under the bar instead. See `SiteHeader`.
+   --------------------------------------------------------------------------- */
+
+.site-header.is-menu-row .menu-panel {
+  top: 0;
+  left: var(--menu-row-left, calc(var(--hp-gutter) + 6.5rem));
+  height: var(--hp-header-h);
+  flex-direction: row;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0 0 0 calc(1.25rem + 0.75rem); /* the rule, then a gap */
+}
+
+/* The rule turns with the menu: it draws DOWN in the hero and ACROSS here. */
+.site-header.is-menu-row .menu-panel__rule {
+  top: 50%;
+  bottom: auto;
+  width: 1.25rem;
+  height: 1px;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.site-header.is-menu-row .menu-panel.is-open .menu-panel__rule {
+  transform: scaleX(1);
+}
+
+.site-header.is-menu-row .menu-panel__list {
+  flex-direction: row;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+/* The trigger's own type: body size, medium, no display tracking. */
+.site-header.is-menu-row .menu-panel__item {
+  font-size: var(--hp-text-body);
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+.site-header.is-menu-row .menu-panel__item:hover .menu-panel__dash,
+.site-header.is-menu-row .menu-panel__item:focus-visible .menu-panel__dash {
+  width: 0.6em;
+  height: 1px;
+  margin-right: 0.35em;
+}
+
+/* Social: small cells after a hairline divider — "items | social". */
+.site-header.is-menu-row .menu-panel__social {
+  align-items: center;
+  gap: 0.375rem;
+  padding-left: 1.25rem;
+  border-left: 1px solid
+    color-mix(in srgb, var(--hp-off-white) 22%, transparent);
+}
+.site-header.is-menu-row .menu-panel__icon {
+  width: 1.875rem;
+  height: 1.875rem;
+}
+.site-header.is-menu-row .menu-panel__icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.site-header.is-menu-row.is-menu-below .menu-panel {
+  top: calc(var(--hp-header-h) - 0.75rem);
+  left: var(--hp-gutter);
+  height: 2.25rem;
+}
+
+.menu-panel__icon:hover,
+.menu-panel__icon:focus-visible {
+  border-color: var(--hp-lime);
+  background-color: var(--hp-lime);
+  color: var(--hp-soft);
+}
+
+/* ---------------------------------------------------------------------------
+   Overview tiles — the /work page's zoomed-out index and, through the shared
+   class, the cards on /about's hero and the film on a project page.
+   --------------------------------------------------------------------------- */
+
+.work-tile__frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--hp-dark);
+  /* Two layers so the card sits ON the page rather than in it: a tight contact
+     shadow anchors its bottom edge, a wide soft one carries the lift. Black on
+     a #0d0d0d ground only reads if it is this diffuse. */
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.5),
+    0 18px 40px -8px rgb(0 0 0 / 0.65);
+  transition:
+    box-shadow 0.45s var(--hp-ease-out),
+    transform 0.45s var(--hp-ease-out);
+}
+/* Hovering floats it a little higher and lengthens the cast. */
+.work-tile:hover .work-tile__frame,
+.work-tile:focus-visible .work-tile__frame {
+  transform: translateY(-4px);
+  box-shadow:
+    0 4px 10px rgb(0 0 0 / 0.5),
+    0 28px 56px -10px rgb(0 0 0 / 0.7);
+}
+.work-tile__frame img {
+  transition:
+    transform 0.6s var(--hp-ease-out),
+    opacity 0.4s var(--hp-ease-out);
+  opacity: 0.72;
+}
+.work-tile:hover .work-tile__frame img,
+.work-tile:focus-visible .work-tile__frame img {
+  transform: scale(1.06);
+  opacity: 1;
+}
+.work-tile[aria-current="true"] .work-tile__frame img {
+  opacity: 1;
+}
+
+/* No rule on hover, and none on the card the carousel was parked on.
+   The tiles were inconsistent about it — a frame only took the lime outline
+   once its film had loaded, so some cards had it and their neighbours did not,
+   which read as a bug rather than as a state. Hovering PLAYS the film, and a
+   moving picture among still ones is a stronger signal than any border. The
+   lift and the still brightening to full opacity carry the rest.
+
+   Focus still needs a visible ring — that outline was doing double duty as the
+   focus indicator, so the tile takes one of its own now that it is gone. */
+.work-tile:focus-visible {
+  outline: 2px solid var(--hp-lime);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Split-text reveal — the live site's own `.split__*` geometry. Each glyph is
+   clipped by its mask and swings up from under it.
+   --------------------------------------------------------------------------- */
+
+.split__word {
+  display: inline-block;
+  white-space: nowrap;
+}
+.split__mask {
+  display: inline-block;
+  vertical-align: top;
+  /* Slack on the sides lets an italic or a round overshoot the box without
+     being shaved; the bottom stays hard so the glyph is hidden before it
+     rises. */
+  clip-path: inset(0 -0.4em);
+  margin-bottom: -0.06em;
+  padding-bottom: 0.06em;
+}
+.split__char {
+  display: inline-block;
+  transform-origin: 0 100%;
+}
+
+/* Word masks — the hero's treatment. Open at the top and sides so ascenders
+   and overshoot are never shaved, hard at the bottom so the word is properly
+   hidden before it rises. Values are the live site's own. */
+.split__wmask {
+  display: inline-block;
+  vertical-align: top;
+  clip-path: inset(-0.4em -0.4em 0);
+  margin-bottom: -0.14em;
+  padding-bottom: 0.14em;
+}
+.split__w {
+  display: inline-block;
+}
+
+/* --- "View project" ------------------------------------------------------- */
+
+.view-project {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-xs);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+  transition: color 0.35s var(--hp-ease-out);
+}
+.view-project:hover,
+.view-project:focus-visible {
+  color: var(--hp-lime);
+}
+/* The label rolls: the copy on show rides up out of the box and its duplicate
+   arrives from below already lime. Same mechanism as `.header-cta__roll` and
+   `.footer__roll` — one `::after` carrying `data-text`, both halves moved by a
+   single translate, so there is nothing to keep in sync. */
+.view-project__roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.view-project__roll > span,
+.view-project__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.view-project__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+  color: var(--hp-lime);
+}
+.view-project:hover .view-project__roll > span,
+.view-project:hover .view-project__roll::after,
+.view-project:focus-visible .view-project__roll > span,
+.view-project:focus-visible .view-project__roll::after {
+  transform: translateY(-100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .view-project__roll > span,
+  .view-project__roll::after {
+    transition-duration: 0.01ms;
+  }
+}
+.view-project__arrow {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    background-color 0.35s var(--hp-ease-out),
+    color 0.35s var(--hp-ease-out);
+}
+.view-project:hover .view-project__arrow,
+.view-project:focus-visible .view-project__arrow {
+  background-color: var(--hp-lime);
+  color: var(--hp-soft);
+}
+/* The glyph is drawn pointing up-right; 45° swings it round to straight right,
+   exactly as the header's Contact CTA does. */
+.view-project__arrow svg {
+  transition: transform 0.6s var(--hp-ease-out);
+}
+.view-project:hover .view-project__arrow svg,
+.view-project:focus-visible .view-project__arrow svg {
+  transform: rotate(45deg);
+}
+
+/* ---------------------------------------------------------------------------
+   The index's control: filters that become "See more".
+
+   It used to be two things in two places — a filter bar pinned under the
+   header, and a button at the foot of the grid. They are one object now,
+   floating just above the bottom of the window for the whole of the index and
+   turning into the button as the grid runs out.
+
+   THE SLOT. `position: sticky` travels only as far as its containing block
+   allows, so the control sits inside `.work-index-wrap`, which wraps the grid
+   and nothing else. Bounded to the index branch instead, it would go on
+   floating over the closing lockup and the entire footer.
+
+   `bottom` rather than `top`: a control the reader is meant to reach for
+   belongs within reach, and the foot of the window is where the thumb is.
+   --------------------------------------------------------------------------- */
+
+.work-index-wrap {
+  position: relative;
+  /* The breathing room below the control lives HERE, not on the control.
+     See `.work-control` — it was inside the sticky box, and a sticky box's
+     `bottom` anchors its MARGIN edge, so the padding sat between the plate and
+     the foot of the window and the 24px was really 64–96. */
+  padding-bottom: clamp(2.5rem, 7svh, 4.5rem);
+}
+
+.work-control {
+  position: sticky;
+  /* 24px from the foot of the window. A control the reader is meant to reach
+     for belongs within reach, and this is close enough to the edge to read as
+     a floating bar rather than as content. */
+  bottom: 24px;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  /* No padding on the bottom edge. `bottom: 24px` positions this box's margin
+     edge, so anything below the plate inside the box is added to the 24 — the
+     plate was sitting 64 to 96px up. The trailing space belongs to the wrapper
+     instead, where it is flow spacing rather than an offset. */
+  padding: clamp(1.5rem, 5svh, 3rem) var(--hp-gutter) 0;
+  /* Only the controls are targets. The row spans the page, and a full-width
+     band across the foot of the window swallowing clicks is exactly the bug
+     the old bar had at the top. */
+  pointer-events: none;
+}
+
+/* The two controls share one centre: the plate draws in towards it, and the
+   button opens out of it. */
+.work-control__stack {
+  position: relative;
+  display: grid;
+  place-items: center;
+  max-width: 100%;
+}
+
+/**
+ * The filter plate.
+ *
+ * The rule is a real `border` on the frame, not an inset shadow. It was a
+ * shadow, and an inset shadow paints INSIDE the padding box — so with a border
+ * sitting outside it the line appeared to float within the box rather than to
+ * edge it. One border, on the edge, is what it looks like.
+ */
+.work-control__plate {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  height: 3rem;
+  max-width: 100%;
+  padding-inline: 0.25rem;
+  border: 1px solid #ffffff1f;
+  border-radius: var(--hp-radius-control);
+  background-color: #0d0d0dd9;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.work-control__more-slot {
+  grid-area: 1 / 1;
+}
+
+/* The house ticket: lime rule, rolling label, and NO arrow — this button adds
+   to the page you are already on rather than taking you somewhere. */
+.work-control__more {
+  display: inline-flex;
+  align-items: center;
+  height: 2.75rem;
+  padding-inline: clamp(1.25rem, 2.5vw, 2rem);
+  border: 1px solid var(--hp-lime);
+  border-radius: var(--hp-radius-control);
+  cursor: pointer;
+  font-family: var(--hp-font-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--hp-off-white);
+  background-color: #0d0d0dd9;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: color 0.45s var(--hp-ease-out);
+}
+.work-control__more:disabled {
+  cursor: default;
+}
+.work-control__more:hover:not(:disabled) {
+  color: var(--hp-lime);
+}
+
+/* ---------------------------------------------------------------------------
+   Work filters, inside the plate.
+
+   No surface of their own — the plate is the surface — and the accent is spent
+   on one thing only: the live filter.
+   --------------------------------------------------------------------------- */
+
+.case-filters {
+  display: inline-flex;
+  align-items: center;
+  /* 6px — inside the 4–8 the row wants, and tight enough that the pill reads
+     as belonging to the row rather than floating in it. */
+  gap: 0.375rem;
+  max-width: 100%;
+}
+
+.case-filter {
+  /* Grid rather than flex, so the label and the width-reserving copy below can
+     share one cell. */
+  display: inline-grid;
+  place-items: center;
+  /* 40px, the touch-target floor. */
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--hp-radius-control);
+  background-color: transparent;
+  cursor: pointer;
+  font-family: var(--hp-font-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  /* rgba(255,255,255,0.7) — 7.22:1 over the plate at its worst backdrop. */
+  color: #ffffffb3;
+  transition:
+    color 0.2s var(--hp-ease-out),
+    background-color 0.2s var(--hp-ease-out);
+}
+
+/**
+ * The row must not reflow when the selection moves.
+ *
+ * Inactive is 500 and active is 600, so the live item is a couple of pixels
+ * wider than it was a moment ago — and every item after it shifts. A hidden
+ * copy of the label at the heavier weight, stacked in the same grid cell,
+ * makes every button as wide as its own widest state from the start. Nothing
+ * moves; `visibility: hidden` keeps it out of the accessibility tree.
+ */
+.case-filter::after {
+  content: attr(data-label);
+  grid-area: 1 / 1;
+  visibility: hidden;
+  font-weight: 600;
+}
+.case-filter > span {
+  grid-area: 1 / 1;
+}
+
+/**
+ * Hover brightens the QUIET ones, and only those.
+ *
+ * Without the `:not([aria-pressed])` this rule also caught the live filter —
+ * and it won, because `:hover:not(:disabled)` is three pseudo-classes against
+ * the two of `.case-filter[aria-pressed="true"]`. So pointing at the selected
+ * item painted white type onto the lime pill: 1.1:1, and unreadable.
+ *
+ * The live one needs no hover state. It is already at full strength, and
+ * anything added to it can only take contrast away.
+ */
+.case-filter:not([aria-pressed="true"]):hover:not(:disabled) {
+  color: #fff;
+}
+
+/**
+ * The focus ring flips with the ground it lands on — same trap, same cause.
+ *
+ * A lime ring inset into a lime pill is not a ring at all; on the live filter
+ * it has to be the night. 17.6:1 either way.
+ */
+.case-filter:focus-visible {
+  outline: 2px solid var(--hp-lime);
+  outline-offset: -2px;
+}
+.case-filter[aria-pressed="true"]:focus-visible {
+  outline-color: var(--hp-night);
+}
+
+.case-filter:active {
+  opacity: 0.85;
+}
+
+/* The live one, and the only place the accent is spent in this row. */
+.case-filter[aria-pressed="true"] {
+  background-color: var(--hp-lime);
+  color: var(--hp-night);
+  font-weight: 600;
+}
+
+@media (max-width: 767px) {
+  /* The row scrolls rather than wrapping: five items on a narrow screen either
+     break to a second line or get clipped, and neither is a control. The mask
+     softens both ends so a half-visible item reads as "there is more". */
+  .case-filters {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    mask-image: linear-gradient(
+      to right,
+      #0000 0,
+      #000 1rem,
+      #000 calc(100% - 1rem),
+      #0000 100%
+    );
+  }
+  .case-filter {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-filter {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Opening a film.
+
+   The browser's own View Transitions used to do this — `<ViewTransition
+   share="morph">` paired on the tile and the project hero. Both sides are gone
+   now; see `components/launch.tsx` for why. The short version: the reel is a
+   WebGL canvas, so half the films on this site have no element to morph, and a
+   transition the browser owns gives you nothing to inspect when it declines to
+   run.
+
+   What is left here is the header, which still sits out the navigation — it is
+   the one fixed reference point on the page, and letting it ride would read as
+   the whole viewport moving rather than the content.
+   --------------------------------------------------------------------------- */
+
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none; /* stops old and new headers flashing over each other */
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* The launch layer: a still of the film being opened, growing from the card to
+   the screen and then down onto the project page's own frame.
+
+   Under the header (50) rather than over it, so the picture passes beneath the
+   bar exactly as the closing transition's does. It NEVER takes the pointer —
+   a stuck launch layer must be something the reader can scroll behind, not
+   something that locks the page. */
+.work-launch {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  will-change: opacity;
+}
+.work-launch__window {
+  position: absolute;
+  inset: 0;
+  will-change: clip-path;
+}
+.work-launch__media {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The morph is motion like any other: hand these users a plain cut. */
+  .rail-button,
+  .work-tile__frame,
+  .work-tile__frame img {
+    transition-duration: 0.01ms;
+  }
+  .work-tile:hover .work-tile__frame img,
+  .work-tile:focus-visible .work-tile__frame img,
+  .work-tile:hover .work-tile__frame,
+  .work-tile:focus-visible .work-tile__frame {
+    transform: none;
+  }
+}
+
+/* Phones: the CTA folds down to its arrow cell so it clears the centred logo
+   (the label stays in the accessibility tree). */
+@media (max-width: 599px) {
+  .header-cta__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .header-cta__arrow {
+    border-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header,
+  .menu-toggle__word,
+  .menu-toggle__icon span,
+  .header-cta,
+  .header-cta::before,
+  .header-cta__roll > span,
+  .header-cta__roll::after,
+  .header-cta__arrow svg,
+  .menu-panel__rule,
+  .menu-panel__dash,
+  .menu-panel__roll > span,
+  .menu-panel__roll::after {
+    transition-duration: 0.01ms;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+::selection {
+  background: var(--hp-lime);
+  color: var(--hp-night);
+}
+
+:focus-visible {
+  outline: 2px solid var(--hp-lime);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Header actions + sound toggle.
+
+   Lifted verbatim from the live build's stylesheet. The two right-hand
+   controls share one flush-right grid cell; the equaliser stands its bars up
+   when sound is on, which is the whole of the affordance.
+   --------------------------------------------------------------------------- */
+
+.site-header__actions {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.sound-toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    background-color 0.45s var(--hp-ease-out),
+    color 0.45s var(--hp-ease-out);
+}
+.sound-toggle:hover,
+.sound-toggle:focus-visible {
+  background: var(--hp-lime);
+  color: var(--hp-soft);
+}
+.sound-toggle__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+.sound-toggle__bars span {
+  width: 2px;
+  height: 2px;
+  background: currentColor;
+  transition: height 0.45s var(--hp-ease-out);
+}
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:first-child {
+  height: 7px;
+}
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(2) {
+  height: 13px;
+}
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(3) {
+  height: 9px;
+}
+.sound-toggle[aria-pressed="true"] .sound-toggle__bars span:nth-child(4) {
+  height: 14px;
+}
+
+/* ---------------------------------------------------------------------------
+   Footer — ported from the live build (hunterpark.vercel.app).
+
+   Every value here is its own: the twelve-column grid, the named areas, both
+   breakpoints, the roll-up links and the oversized wordmark.
+
+   Its `html.hp-motion .footer` rules are deliberately NOT copied. Those take
+   the footer out of flow and make it one chapter of the home page's pinned
+   scroll film; here it is an ordinary footer at the end of a document.
+   --------------------------------------------------------------------------- */
+
+/**
+ * The footer is a scroll FILM, not a block at the end of the page.
+ *
+ * `.footer` is two screens tall and its stage is pinned to the viewport for the
+ * first of them, which buys one screen of scrolling to play the hand-over in.
+ * Everything the reference does depends on this: the work behind can fade out
+ * under a footer that is already covering it, and the header's wordmark sits
+ * INSIDE the pinned box, so the footer's own mark can fly up to meet it without
+ * being clipped by the stage's overflow — which is exactly what was cutting the
+ * logo off before.
+ */
+.footer {
+  position: relative;
+  /* Well above the work, so the wordmark can fly up through it to reach the
+     header's slot. The source's own `z-index: 4` works there because its
+     footer is a chapter of a pinned film; here it has to clear the index it is
+     arriving over. */
+  z-index: 30;
+  /* 4.5 screens — the beat length `film.ts` gives this chapter in the source
+     repo. Every fraction in `site-footer.tsx` is a share of it, so shortening
+     this compresses the whole choreography rather than just ending it early. */
+  height: 450svh;
+  background: transparent;
+}
+/* NOT `overflow: hidden`. The wordmark flies up out of this box to reach the
+   header's slot, and clipping here is what made it vanish for a stretch and
+   then reappear from under the header line — it was only visible once the
+   stage had pinned far enough up to contain the header. The clip belongs to
+   the drafted plates, which is the only thing that needs it. */
+.footer__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+/* The footer takes the pointer the moment it owns the frame — as the night
+   finishes rising, not at the very end of the scroll — so its links and hovers
+   work as soon as they can be seen.
+
+   On `.footer` itself, as the source has it, NOT on the stage inside it. That
+   distinction is the whole point: `.footer` is a 450svh box at `z-index: 30`,
+   and the closing lockup is pinned underneath it for most of that. Making only
+   the stage transparent to the pointer left the wrapper still swallowing every
+   hover meant for the "Start a Project" link below. */
+.footer {
+  pointer-events: none;
+}
+.footer.is-live {
+  pointer-events: auto;
+}
+/* Starts clear and is faded in by the scroll, so the work is still visible
+   through the footer while it is arriving. `.footer` itself is transparent for
+   the same reason — this is the only thing that paints the ground. */
+.footer__ground {
+  position: absolute;
+  inset: 0;
+  background: var(--hp-night);
+}
+.footer__grid {
+  position: relative;
+  display: grid;
+  height: 100svh;
+  min-height: 100svh;
+  padding: calc(var(--hp-header-h) + clamp(1.5rem, 5svh, 3.5rem))
+    var(--hp-gutter) clamp(1rem, 3svh, 2.25rem);
+  grid-template-rows: auto auto 1fr auto auto;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(1rem, 2vw, 2rem);
+}
+.footer__grid > * {
+  position: relative;
+  z-index: 1;
+}
+
+.footer__pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* The line plates run past the frame on purpose; this is where they stop. */
+  overflow: hidden;
+}
+.footer__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  overflow: visible;
+}
+.footer__lines--tall {
+  display: none;
+}
+.footer__lines [data-footer-line] {
+  fill: none;
+  stroke: var(--hp-lime);
+  stroke-width: 1.1px;
+  opacity: 0.16;
+}
+.footer__lines--tall [data-footer-line] {
+  stroke-width: 0.9px;
+}
+.footer__lines [data-footer-line="cross"] {
+  opacity: 0.4;
+}
+.footer__glow {
+  position: absolute;
+  top: 50%;
+  left: 29%;
+  width: 60vmax;
+  height: 60vmax;
+  margin: -30vmax 0 0 -30vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #eeff410f, #eeff4100 70%);
+}
+
+.footer__statement {
+  grid-area: 1 / 1 / span 2 / span 6;
+  align-self: start;
+  max-width: 17em;
+  font-family: var(--hp-font-primary);
+  font-size: clamp(1.5rem, 0.95rem + 1.9vw, 2.75rem);
+  font-weight: 400;
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  color: var(--hp-off-white);
+}
+.footer__statement [data-em] {
+  color: var(--hp-lime);
+}
+
+.footer__group {
+  align-self: start;
+}
+.footer__group--index {
+  grid-area: 1 / 8 / auto / span 2;
+}
+.footer__group--social {
+  grid-area: 1 / 10 / auto / span 3;
+  margin-top: clamp(2.5rem, 8svh, 5.5rem);
+}
+.footer__label {
+  margin-bottom: 1rem;
+  font-family: var(--hp-font-secondary);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hp-gray);
+}
+.footer__group li + li {
+  margin-top: 0.45rem;
+}
+.footer__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--hp-font-secondary);
+  font-size: clamp(1rem, 0.9rem + 0.35vw, 1.25rem);
+  font-weight: 500;
+  color: var(--hp-off-white);
+  transition: color 0.45s var(--hp-ease-out);
+}
+.footer__link svg,
+.footer__link:hover,
+.footer__link:focus-visible {
+  color: var(--hp-lime);
+}
+/* The label rolls up and its duplicate rolls in from below. */
+.footer__roll {
+  position: relative;
+  display: block;
+  line-height: 1.25;
+  overflow: hidden;
+}
+.footer__roll > span,
+.footer__roll::after {
+  display: block;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.footer__roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto;
+}
+.footer__link:hover .footer__roll > span,
+.footer__link:hover .footer__roll::after,
+.footer__link:focus-visible .footer__roll > span,
+.footer__link:focus-visible .footer__roll::after {
+  transform: translateY(-100%);
+}
+
+.footer__contact {
+  grid-area: 2 / 8 / auto / span 5;
+  align-self: start;
+  margin-top: clamp(2rem, 7svh, 4.5rem);
+}
+.footer__say {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  font-family: var(--hp-font-primary);
+  font-size: clamp(2rem, 0.9rem + 3.6vw, 4.75rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+  transition: color 0.45s var(--hp-ease-out);
+}
+.footer__say-arrow {
+  display: grid;
+  place-items: center;
+  width: 0.62em;
+  height: 0.62em;
+  border: 1px solid var(--hp-lime);
+  color: var(--hp-lime);
+  transition:
+    background-color 0.45s var(--hp-ease-out),
+    color 0.45s var(--hp-ease-out);
+}
+.footer__say-arrow svg {
+  width: 38%;
+  height: 38%;
+  transition: transform 0.55s var(--hp-ease-out);
+}
+.footer__say:hover,
+.footer__say:focus-visible {
+  color: var(--hp-lime);
+}
+.footer__say:hover .footer__say-arrow,
+.footer__say:focus-visible .footer__say-arrow {
+  background: var(--hp-lime);
+  color: var(--hp-soft);
+}
+.footer__say:hover .footer__say-arrow svg,
+.footer__say:focus-visible .footer__say-arrow svg {
+  transform: rotate(45deg);
+}
+
+.footer__tagline {
+  grid-area: 4 / 1 / auto / span 5;
+  align-self: end;
+  margin-bottom: clamp(0.9rem, 2.5svh, 1.5rem);
+  font-family: var(--hp-font-secondary);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.8;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--hp-gray);
+}
+.footer__tagline span {
+  display: block;
+}
+
+.footer__base {
+  grid-area: 4 / 7 / auto / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-self: end;
+  align-items: baseline;
+  justify-content: space-between;
+  row-gap: 0.9rem;
+  margin-bottom: clamp(0.9rem, 2.5svh, 1.5rem);
+}
+.footer__rule {
+  flex: 0 0 100%;
+  height: 1px;
+  background: var(--hp-dark);
+  /* Drawn from the left — see the scaleX reveal in site-footer.tsx. */
+  transform-origin: 0;
+}
+.footer__small {
+  font-family: var(--hp-font-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--hp-gray);
+}
+.footer__top {
+  transition: color 0.45s var(--hp-ease-out);
+}
+.footer__top:hover,
+.footer__top:focus-visible {
+  color: var(--hp-lime);
+}
+
+.footer__mark {
+  grid-area: 5 / 1 / auto / -1;
+  width: min(100%, 196.16svh);
+}
+.footer__mark img {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 1023px) {
+  .footer__statement {
+    grid-column: 1 / span 7;
+  }
+  .footer__group--index {
+    grid-column: 9 / span 2;
+  }
+  .footer__group--social {
+    grid-column: 11 / span 2;
+  }
+  .footer__contact {
+    grid-area: 3 / 1 / auto / -1;
+    margin-top: clamp(1.5rem, 5svh, 3rem);
+  }
+  .footer__tagline {
+    grid-column: 1 / span 6;
+  }
+}
+
+@media (max-width: 767px) {
+  /* The wide plate's arcs are laid out for a landscape box; the tall one
+     carries the same motif redrawn for a phone. */
+  .footer__lines--wide {
+    display: none;
+  }
+  .footer__lines--tall {
+    display: block;
+  }
+  .footer__grid {
+    grid-template-rows: auto auto auto 1fr auto auto auto;
+    grid-template-columns: 1fr 1fr;
+  }
+  .footer__statement {
+    grid-area: 1 / 1 / auto / -1;
+    margin-bottom: clamp(1.5rem, 5svh, 2.5rem);
+  }
+  .footer__group--index {
+    grid-area: 2 / 1;
+  }
+  .footer__group--social {
+    grid-area: 2 / 2;
+    margin-top: 0;
+  }
+  .footer__contact {
+    grid-row: 3;
+  }
+  .footer__tagline {
+    grid-area: 5 / 1 / auto / -1;
+  }
+  .footer__base {
+    grid-area: 6 / 1 / auto / -1;
+  }
+  .footer__base .footer__rule {
+    display: none;
+  }
+  .footer__mark {
+    grid-row: 7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer__link,
+  .footer__roll > span,
+  .footer__roll::after,
+  .footer__say,
+  .footer__say-arrow,
+  .footer__say-arrow svg,
+  .footer__top,
+  .sound-toggle,
+  .sound-toggle__bars span {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Closing call to action — from `work.css` in the source repo.
+
+   The STATIC variant of those rules, not the `html.hp-motion` one: that staging
+   absolutely positions the lockup inside a pinned 3D space so it can wait in
+   depth behind the finale card, and this page has no such space.
+   --------------------------------------------------------------------------- */
+
+/* Pinned, so it is still on screen while it parts. Its beat is the first
+   quarter of the FOOTER's, and by then an ordinary section would be long gone
+   above — the reference keeps it on screen by stacking it in the pinned film,
+   and this is the same effect with one sticky box. The footer's own stage
+   carries `z-index: 4` and slides up over it. */
+.work__cta {
+  position: sticky;
+  top: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  height: 100svh;
+  padding: 6rem var(--hp-gutter);
+  overflow: hidden;
+  text-align: center;
+  /* Explicit, because it now has something to be above. The closing film sits
+     at 1 and the footer at 30; the lockup goes between them. Left to `auto`
+     the film painted over the type. */
+  z-index: 2;
+}
+/* Deliberately empty. No picture, no wash, no haze — the page's own night is
+   the ground here, and every attempt to put something else behind this lockup
+   has been wrong. The rule stays only so the class has a home if that changes. */
+/* Above both wash layers, and explicitly interactive: everything else in this
+   section is decoration and must not be able to intercept a pointer. */
+.work__cta-title,
+.work__cta-action {
+  pointer-events: auto;
+}
+.work__cta-title {
+  position: relative;
+  z-index: 3;
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  /* MAKE SOMETHING on one line. */
+  font-size: clamp(2.4rem, min(7.4vw, 15svh), 9.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+}
+.work__cta-line {
+  display: block;
+  white-space: nowrap;
+}
+.work__cta-line--key {
+  color: var(--hp-lime);
+}
+.work__cta-word,
+.work__cta-char {
+  display: inline-block;
+}
+.work__cta-action {
+  position: relative;
+  z-index: 3;
+  margin-top: clamp(2rem, 6svh, 3.75rem);
+}
+
+@media (max-width: 767px) {
+  /**
+   * The closing lockup, brought in off the edges.
+   *
+   * `.work__cta-line` is `white-space: nowrap` — "The Next One." is a phrase
+   * and must not break mid-way — so the type size alone decides whether it
+   * fits. At 12.5vw it did not: thirteen characters of a wide display face at
+   * 47px on a 375px screen come to more than the gutter leaves, and the
+   * section's `overflow: hidden` simply clipped the ends. It read as the words
+   * running off both sides.
+   *
+   * 9.5vw leaves about 24px clear each side at 375, and still clears at 320.
+   */
+  .work__cta-title {
+    font-size: clamp(1.9rem, 9.5vw, 3.25rem);
+  }
+  .work__cta-word {
+    display: block;
+  }
+  .work__cta-link .header-cta__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+  .work__cta-link .header-cta__arrow {
+    border-left: 1px solid var(--hp-lime);
+  }
+}
+
+/* No scrim over the top edge. The header carries no background of its own —
+   that is the reference's own rule — and a gradient standing in for one was
+   the same idea by another name. Work now passes under the bar unsoftened,
+   which is what the reference does. */
+
+/* ---------------------------------------------------------------------------
+   Closing transition — the last film, taken to fullscreen.
+
+   There is no wash behind this lockup any more. The gold and the scrim that
+   used to stand in for a background are both gone: the index's final card
+   becomes the background, pushed in to fill the screen and then pulled out of
+   focus. Stacking, from the back: the clip, the dark glass over it, the type.
+
+   The DOCK is the trick that makes it viewport-locked without `position:
+   fixed`. A fixed layer is measured against the nearest transformed ancestor
+   rather than the window, and this page has framer-motion wrappers above it
+   that carry a transform while they are animating — one of which would have
+   sized this to the whole index. A zero-height `sticky` box pinned at the top
+   of the scroller has no such failure mode, takes no space in the flow, and
+   gives its absolutely positioned child a viewport-sized box to fill.
+
+   `dvw`/`dvh` rather than `vw`/`vh`: the arithmetic in `WorkFinale` is done in
+   `window.innerWidth`/`innerHeight`, and the dynamic units are the pair that
+   agree with those while a mobile URL bar is coming and going. The large-
+   viewport units do not, and the window would land a band short of the screen.
+   --------------------------------------------------------------------------- */
+
+.work__finale-dock {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 0;
+}
+
+.work__finale {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  pointer-events: none;
+  /* Promoted once. Both the window and the picture inside it change every
+     frame of the push, and a layer that is re-promoted per frame is the whole
+     cost of doing this in the first place. */
+  will-change: opacity;
+}
+
+.work__finale-window,
+.work__finale-glass {
+  position: absolute;
+  inset: 0;
+}
+
+/* The FLIP's window. `clip-path` rather than width/height so the picture
+   inside never relayouts — only the visible rectangle changes, which the
+   compositor can do on its own. */
+.work__finale-window {
+  will-change: clip-path;
+}
+
+/* The transform carrier. Both the still and the clip ride it, so they cannot
+   drift apart, and the focus pull resolves over one layer instead of two. */
+.work__finale-media {
+  position: absolute;
+  /* No `inset`: its rect is written per frame to match the window exactly, so
+     `object-fit: cover` on the picture inside reproduces the step's crop. */
+  /* Motion only. The grade moved to its own child so a blurred raster can be
+     composited as this travels instead of being rebuilt — see the comment at
+     `work__finale-grade` in the component. */
+  will-change: transform;
+}
+.work__finale-grade {
+  position: absolute;
+  inset: 0;
+  will-change: filter;
+}
+
+.work__finale-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/**
+ * The glass.
+ *
+ * A flat dark plate and a soft vignette, and deliberately NOT `backdrop-filter`
+ * — which is what a glass layer would normally be. A backdrop filter re-samples
+ * everything beneath it every time that changes, and beneath this is a playing
+ * film: it would re-blur the whole screen sixty times a second for a result
+ * indistinguishable from folding the same blur into the picture's own filter
+ * chain, which is where it now lives. Same look, one pass instead of two.
+ */
+.work__finale-glass {
+  will-change: opacity;
+  background:
+    radial-gradient(125% 95% at 50% 45%, #00000000 0%, #00000052 100%),
+    #0000002e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No push to scrub, so the picture simply is the background. */
+  .work__finale-media {
+    transform: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Small screens — what the audit turned up.
+
+   The type scale itself needed nothing: every step is already a fluid `clamp`
+   with a sane floor (h1 36px, body 16px, sm 14px, xs 12px), so nothing on a
+   phone is set below what it should be. Two things were genuinely wrong, and
+   both are targets rather than sizes.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  /**
+   * The reel's call to action.
+   *
+   * `.view-project` is the one control on the hero, and its arrow cell is
+   * 2.25rem — 36px, under both platforms' minimum (44 on iOS, 48 on Android).
+   * The link has no height of its own either, so the cell WAS the target. On a
+   * phone this is the control a reader actually reaches for, and it was the
+   * smallest one on the page.
+   */
+  .view-project {
+    min-height: 2.75rem;
+  }
+  .view-project__arrow {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  /* 0.6875rem is 11px — below the floor everything else on this site respects,
+     and it is body copy rather than a label. */
+  .footer__tagline {
+    font-size: var(--hp-text-xs);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   A beat of the film.
+
+   The homepage stacks its chapters in one GSAP-pinned stage and scrubs a single
+   timeline through them. This is the same construction with `position: sticky`
+   doing the pinning: a tall section, a stage held at the top of the window for
+   its whole length, and everything inside driven by how far through the section
+   the reader has scrolled. See `useBeat`.
+
+   The section's height is set in the component, in screens — that number IS the
+   beat length, exactly as `FILM.beats` is on the homepage.
+   --------------------------------------------------------------------------- */
+
+.beat {
+  position: relative;
+}
+.beat__stage {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100svh;
+  overflow: hidden;
+  /* Promoted once: opacity and scale change on every frame of the hand-off. */
+  will-change: opacity, transform;
+}
+
+/* ---------------------------------------------------------------------------
+   A heading built one letter at a time, against scroll — see `ScrollChars`.
+
+   Every glyph is its own `inline-block` so it can be moved, and the LINE
+   carries the blur rather than the glyph. That is a correctness rule, not a
+   preference: a `filter` promotes an element to its own compositing layer, and
+   at display sizes the glyph boxes overlap — sixty overlapping layers
+   compositing independently draw visible seams straight down through the type.
+   Three line-layers have nowhere to seam.
+   ------------------------------------------------------------------------- */
+
+.chars__line {
+  display: block;
+  /* Promoted once rather than per frame; the filter changes continuously. */
+  will-change: filter;
+}
+.chars__char {
+  /* `inline` cannot be transformed. */
+  display: inline-block;
+  will-change: transform, opacity;
+}
+.chars__line--accent {
+  color: var(--hp-lime);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The reveal is scroll POSITION, not a transition, so there is nothing to
+     shorten — it is simply not run, and the heading is just a heading. */
+  .chars__line {
+    filter: none !important;
+    will-change: auto;
+  }
+  .chars__char {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   About — Chapter 02, Studio & Ethos.
+
+   The homepage's chapter marker, the site's own display face, and nothing
+   borrowed from anywhere else. Layout is Tailwind in the component; what lives
+   here is the type, the seal and the portrait plate — the things that are a
+   design decision rather than a grid.
+   --------------------------------------------------------------------------- */
+
+/* --- the running chapter marker, verbatim from the homepage ---------------- */
+
+/**
+ * This chapter's stage clears the header.
+ *
+ * `.beat__stage` centres its content in a full viewport, which is right until
+ * the content is nearly as tall as the viewport — then the top of it goes under
+ * the fixed header and sits across the wordmark. Reserving the header's band
+ * here means the frame the chapter composes into is the part of the window the
+ * reader can actually see.
+ */
+/**
+ * The stage, and WHY IT DOES NOT TAKE THE POINTER.
+ *
+ * This chapter begins one full screen before it begins: the section carries
+ * `margin-top: -100svh` so its pinned stage can rise into the hero's space
+ * instead of waiting below it. That overlap is the handover and it is wanted.
+ *
+ * What was not wanted is that the stage is a full-viewport box and it comes
+ * later in the document, so for the whole of the hero it sat ON TOP — invisible,
+ * empty, and swallowing every pointer event in the window. The hero's button
+ * still drew its hover states perfectly; nothing was ever reaching it to trigger
+ * them. A transparent sheet of glass over the first screen.
+ *
+ * Nothing in this chapter is clickable — it is a scrubbed sequence of pictures
+ * and type from end to end — so it has no use for the pointer and gives it
+ * back. If something here ever does need a click, it takes `pointer-events:
+ * auto` for itself rather than this line coming off.
+ *
+ * THE SECTION NEEDS IT TOO, and putting it only here is why the hero's button
+ * still did not respond. The stage stopped intercepting; the section's own box
+ * carried on, because the overlap is the SECTION's — it is the negative margin
+ * that pulls it over the hero, and a transparent child does not make an opaque
+ * parent transparent. Both, or neither.
+ */
+[data-chapter-section="1"] {
+  pointer-events: none;
+}
+.about-studio__stage {
+  padding-block: clamp(5.5rem, 12svh, 7.5rem) clamp(2rem, 5svh, 3rem);
+  pointer-events: none;
+  /**
+   * ABOVE THE CHAPTER THAT RISES INTO IT.
+   *
+   * The staircase is pulled up a whole screen so its first picture crosses the
+   * fold while this chapter's heading is still on screen — that overlap is the
+   * handover and it is wanted. What was not wanted is which of them paints on
+   * top: `.caps-section` is a later sibling, so it won by document order and
+   * the first picture slid over "What we do" while the reader was still
+   * reading it.
+   *
+   * The heading already asks to be in front — `.about-title` carries z-index 3
+   * — and it cannot be heard, because `will-change` on this element makes a
+   * stacking context and traps that 3 inside it. A z-index on the trapped
+   * element is only ever resolved against its siblings; this is the element
+   * that has to carry the answer outwards.
+   *
+   * Costs nothing after the chapter is done: the stage is at zero opacity from
+   * p=1 onwards and an element at zero opacity paints nothing, whatever its
+   * z-index. The only frames this changes are the ones where both chapters are
+   * genuinely on screen — which are the frames it is here to fix.
+   */
+  z-index: 1;
+}
+
+/**
+ * The page's ground: the hero's reel, kept.
+ *
+ * `position: fixed` with a NEGATIVE z-index, which is the whole arrangement in
+ * one line — it sits above the page's own black, which is painted by the root,
+ * and below every section's content, which is in flow. So it is behind the
+ * hero's lockup, behind the studio's words and faces, and behind nothing else.
+ *
+ * It is declared inside the hero because that is what owns the reel, but it
+ * belongs to neither chapter: nothing unmounts it and nothing moves it, so the
+ * clip the reader left the hero on is still there two chapters later.
+ */
+.about-film {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/**
+ * NO BLEED. The element is exactly the viewport, so a cover-fitted 1920-wide
+ * source on a 1920-wide screen is drawn at 1920 — rendered 1:1, as sharp as it
+ * can be, for the whole of the time it is the subject.
+ *
+ * It used to be inset -10%, which is 120% of the viewport in both axes and a
+ * 20% upscale: 20% of softness given away before any blur was applied, paid for
+ * on the one screen where sharpness is the point. The bleed a gaussian needs is
+ * a `scale` driven by the same progress as the blur instead — see `swell`. It
+ * costs nothing until there is something to hide.
+ */
+.about-film__media {
+  position: absolute;
+  inset: 0;
+  /* Motion only — the grade moved to its own child so a blurred raster can be
+     composited as this scales instead of being rebuilt. */
+}
+.about-film__grade {
+  position: absolute;
+  inset: 0;
+  will-change: filter, transform;
+}
+
+/**
+ * The climbing band — a `backdrop-filter` under a mask that rises.
+ *
+ * ADDITIVE to the blur on the clip itself, not instead of it. On its own a
+ * masked blur leaves most of the frame sharp until very late, which is what
+ * once read as a gradient rather than a blur; on its own a uniform blur has no
+ * direction in it at all. Together the bottom of the frame softens first and
+ * the softness travels up while the whole picture is also, gradually, going.
+ *
+ * The radius is CONSTANT and the mask is what moves — a changing radius
+ * re-renders a full-screen gaussian on every scroll event, where a moving mask
+ * only re-composites a layer that is already rasterised.
+ */
+.about-film__soft {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(clamp(14px, 1.8vw, 26px));
+  -webkit-backdrop-filter: blur(clamp(14px, 1.8vw, 26px));
+  will-change: mask-image;
+}
+
+/* Flat, not a gradient: the content above it is spread across the whole frame
+   by the time this is at full strength, so there is no side to favour. Its
+   strength is measured against a blown-out white frame — see `grade`. */
+.about-film__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--hp-night);
+  will-change: opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing to shorten — it is scroll position, not a transition. */
+  .about-film__media {
+    will-change: auto;
+  }
+}
+
+/* --- the split ------------------------------------------------------------ */
+
+.about-studio__split {
+  /* Over the backdrop, which is `z-index: 0` in the same stage. */
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(2rem, 5svh, 3.5rem);
+}
+@media (min-width: 1024px) {
+  .about-studio__split {
+    /* The heading takes the larger share now, and the portraits give it up.
+       That is a real trade and worth stating: at 1.18fr the other way the
+       heading could only be 2.3rem before `ScrollChars`' hard-broken lines ran
+       past the column edge. Six to five this way buys it 3rem — a third
+       larger — and costs the composition about 8% of its width. */
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: clamp(2rem, 4vw, 4.5rem);
+    align-items: center;
+  }
+}
+
+/**
+ * At the head of the left column, ranged left, and sized to FIT it.
+ *
+ * The cap is not a taste: `ScrollChars` hard-breaks the lines, so this cannot
+ * wrap its way out of a column that is too narrow — it would simply run past
+ * the edge. The longest line is 23 characters, and at roughly 0.58em of advance
+ * per character in this face that is 13.3× the font size. The left column is a
+ * little over 500px at 1440, so 2.3rem is where it stops.
+ *
+ * It was 4rem when it was a centred overlay with the whole stage to itself.
+ * Standing in a column beside the portraits, it takes a column's measure — and
+ * the column was widened to 1.2fr to let that measure be 3rem rather than 2.3.
+ */
+.about-studio__head {
+  font-size: clamp(1.75rem, 0.9rem + 2.4vw, 3rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  /* Centred, and its own line breaks kept.
+     NO `text-wrap: balance` — the lines are hard-broken in the component
+     because the reveal's stagger is counted per line, and a browser rebalance
+     would put glyphs on a line whose blur belongs to another one. */
+  text-align: left;
+}
+.about-studio__accent {
+  color: var(--hp-lime);
+}
+
+/**
+ * The space the crossing title stands in.
+ *
+ * The title is act two's child and visits this column by transform, so it takes
+ * no room here and the paragraphs would otherwise centre as if it did not
+ * exist — which is exactly what happened: the title sat near the top of the
+ * frame, the paragraphs sat in the middle, and the two read as separate things
+ * at opposite ends of a column.
+ *
+ * Reserving twice the shortfall is what centres the PAIR: the box grows by the
+ * padding and the split keeps it centred, so the content moves down by half of
+ * what is added. Measured at a 900px window, the two then sit about 26px apart
+ * with their combined centre within three pixels of the viewport's.
+ */
+/**
+ * One measure between all three things in this column.
+ *
+ * Title → subtitle → paragraphs, each separated by `--about-gap` and each
+ * starting on the same left edge, because all three are now flow children of
+ * the same box. Nothing here is reserved or offset: the title used to visit
+ * this column by transform and the spacing had to be faked with padding around
+ * a hole, which is why the three never quite lined up.
+ */
+.about-studio__claim {
+  --about-gap: clamp(1.25rem, 3.5svh, 2.25rem);
+}
+
+/**
+ * The subtitle: the credentials, at a credential's size and in OFF-WHITE.
+ *
+ * `hp-display` paints lime, which is right for a title and wrong for the line
+ * under one — two pieces of type in the same colour at two sizes read as one
+ * heading that wrapped. The lime belongs to the title; this answers it.
+ *
+ * Display face still, because it is the studio speaking rather than body copy,
+ * at well under half the title's size so the hierarchy is unarguable.
+ */
+.about-studio__sub {
+  margin-bottom: var(--about-gap);
+  font-size: clamp(1rem, 0.72rem + 0.9vw, 1.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-align: left;
+  color: var(--hp-off-white);
+}
+
+.about-studio__beats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  /* A touch narrower than it was, and in `ch` so it stays a MEASURE rather than
+     a width: the type went up a step in the same edit, and at 54ch the line was
+     growing with the font instead of holding the 60-to-70-character column that
+     makes a paragraph readable. 48ch of this face lands just under 60. */
+  max-width: 48ch;
+}
+/* Size, leading and colour all come from `hp-copy` in the markup — see the
+   utility. Nothing left to say here. */
+
+/**
+ * The founders' composition: two portraits standing against each other.
+ *
+ * Replaces a single square window that held both and showed one. The positions
+ * below are the whole layout contract the motion depends on — the founder high
+ * and to the RIGHT, the second lower and to the LEFT, overlapping her — and
+ * they are percentages of the composition box, never pixels against the
+ * viewport. So the same arrangement survives every breakpoint, and the
+ * scroll-driven travel in `Shot` has a fixed target to arrive at whatever the
+ * column happens to be that wide.
+ *
+ * The box's own aspect ratio falls out of those percentages:
+ *
+ *   lead   64% wide, square, from the top        → 0.00w ▸ 0.64w
+ *   follow 64% wide, square, from the bottom     → 0.51w ▸ 1.15w
+ *   follow is also pushed −0.06w LEFT, into the gutter
+ *   vertical overlap                               0.13w
+ *   height                                         1.18w
+ *
+ * The 0.03w of slack on the height is the two captions, which sit UNDER their
+ * frames rather than over them — a name is not a film-still label and does not
+ * belong across a face.
+ */
+.about-cast__composition {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.18;
+  /* The stage is one viewport tall and the heading is above this, so the
+     composition cannot simply take its column's full width on a short screen —
+     it would push its own foot off the bottom of a pinned frame, where no
+     amount of scrolling will reach it. Capped by HEIGHT, expressed as a width
+     because that is the side the aspect ratio is driven from. Right-aligned
+     when capped, so the founder stays on the edge she arrives at. */
+  max-width: min(100%, 68svh);
+  margin-left: auto;
+  /**
+   * The depth the portraits are seen through, and the space they move in.
+   *
+   * 900px rather than 1400: a nearer camera, which is what gives the yaw its
+   * foreshortening and the z-travel its sense of distance — at 1400 a card
+   * coming 460px forward barely changes size, which is the difference between
+   * an object approaching and a picture being rotated. Nearer than about 700
+   * and the same rotation starts to distort rather than turn.
+   *
+   * `preserve-3d` so the cards hold their own planes inside this space instead
+   * of being flattened into the parent before they are composited, and
+   * `backface-visibility` because a plane turned far enough to show its back is
+   * a plane the reader was never meant to see the back of.
+   */
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.about-cast__shot {
+  position: absolute;
+  margin: 0;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  /* Promoted once: position, depth and all three angles change on every frame
+     of the arrival and of the departure. */
+  will-change: transform, opacity;
+}
+.about-cast__frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background-color: var(--hp-dark);
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 12%, transparent);
+}
+
+/* High and right — where she comes to rest after travelling in from off the
+   top-right corner. */
+.about-cast__shot--lead {
+  top: 0;
+  right: 0;
+  width: 64%;
+}
+
+/* Lower and left, and OVER her: the overlap is what makes the pair read as one
+   composition with depth rather than as two pictures sharing a column.
+
+   The SAME width as the lead, not 58%. At two different sizes they read as one
+   portrait and one thumbnail of a portrait — a difference in importance nobody
+   intended — when what makes the composition is the offset between them.
+
+   Which is where the negative inset comes from: with the widths equal the
+   offset has to be a position, so this is pushed past the column's own left
+   edge. 6% of the composition is 33px against a 58px gutter, so it reaches
+   into the gap and never into the text. */
+/* A little further left than it was, which buys some of the clearance its
+   caption needs over the frame above — but not all of it at every width, and
+   it cannot: see the shadow on `.about-cast__tag`. */
+.about-cast__shot--follow {
+  bottom: 0;
+  left: -7.5%;
+  /* NO z-index here. It was `2`, and it was never consulted: the composition is
+     `preserve-3d`, which sorts its children by depth rather than by this
+     property. The ordering it was meant to buy is bought in `lift` instead. */
+  width: 64%;
+}
+
+/* Inset, so the settle never exposes an edge — the homepage's own trick on
+   `.caps__media`. */
+.about-cast__media {
+  position: absolute;
+  inset: -2%;
+}
+.about-cast__img {
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The travel is scroll POSITION, not a transition, so there is nothing to
+     shorten — it is simply not run, and the two portraits stand where the
+     layout puts them for the whole chapter. The same treatment the heading's
+     letter reveal gets. */
+  .about-cast__shot {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+/**
+ * THE NAME STRIP — above the picture and ranged right.
+ *
+ * One baseline carrying two weights: the name in the display face, bold and in
+ * caps, and the role trailing it, smaller and in a muted grey.
+ *
+ * `align-items: baseline` rather than `center` is the whole reason the two
+ * sizes sit together instead of looking stacked by accident: the eye reads a
+ * shared baseline as one line of type and a shared centre as two objects that
+ * happen to be adjacent.
+ *
+ * `justify-content: flex-start` ranges it left, against the frame's own left
+ * edge — the same edge the heading, the subtitle and the body of this chapter
+ * all start on. In normal flow rather than absolutely positioned, which is what
+ * makes it responsive for nothing: it wraps, it pushes the frame down by its
+ * own height, and there is no offset anywhere that could be right at one screen
+ * size and wrong at another.
+ */
+.about-cast__tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.25em 0.6em;
+  margin: 0 0 clamp(0.5rem, 1.4vw, 0.85rem);
+  text-align: left;
+  pointer-events: none;
+
+  /**
+   * THE CAPTION CARRIES ITS OWN GROUND.
+   *
+   * These two portraits overlap, and the lower one's caption sits in the zone
+   * the upper one's frame occupies. The role is set at 42% white, which has no
+   * fixed contrast at all — only a contrast against whatever it happens to land
+   * on. Over the page's near-black it reads; over a sunlit photograph the tail
+   * of "FOUNDER" simply stopped existing.
+   *
+   * Nudging the lower portrait left was tried and is not a fix: measured, the
+   * clearance it buys runs from +138px down to −18px across the widths tested,
+   * because the caption's width is set by type clamps and the frame's by the
+   * column — two different scaling laws, so no single offset is right at more
+   * than a few sizes. The same trap as the heading that was positioned in `vw`.
+   *
+   * A shadow is independent of all of it. On the dark ground it is invisible —
+   * near-black bleeding into near-black — and over a picture it is the half
+   * stop of separation that keeps the type readable wherever it falls.
+   */
+  text-shadow:
+    0 1px 2px rgb(9 9 9 / 0.9),
+    0 2px 10px rgb(9 9 9 / 0.75);
+}
+
+/* `ScrollChars` sets its line as a block, which gives the flex item no text
+   baseline to align the qualifier to — the role drops below the name and the
+   line comes apart. Inline-block restores it without touching how the glyphs
+   inside are laid out. */
+.about-cast__name .chars__line {
+  display: inline-block;
+}
+
+/**
+ * Smaller than it was on the picture, and sized against the WINDOW now.
+ *
+ * `cqw` was right while the name sat inside the frame — it fitted the type to
+ * the box it had to stay within. Out here there is no box to overflow, and the
+ * frame is no longer an ancestor to query, so the honest unit is the one the
+ * rest of the page's type uses. The two frames are the same width in layout
+ * anyway (the second only looks smaller because it sits further back in z), so
+ * one size serves both.
+ */
+.about-cast__name {
+  font-family: var(--hp-font-primary);
+  font-size: clamp(0.62rem, 0.44rem + 0.56vw, 1.05rem);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+}
+
+/* Trailing, smaller, and well back — the difference in weight and colour is
+   what stops the pair reading as two titles. Tracked OUT, the way small caps
+   are set everywhere else here. */
+.about-cast__role {
+  font-family: var(--hp-font-secondary);
+  font-size: clamp(0.46rem, 0.38rem + 0.2vw, 0.64rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--hp-off-white) 42%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   About — act two of chapter 02: Talent.
+
+   Shares the stage with act one, so everything here is absolutely placed over
+   it rather than laid out after it. Two acts in one pinned frame is what lets
+   the title travel between them instead of one ending and another beginning.
+   --------------------------------------------------------------------------- */
+
+/**
+ * The crossing title, at the reference's own section-title size.
+ *
+ * `hunterpark.vercel.app` sets its chapter titles at about 72px on a 1680
+ * window — "FILM & VIDEO" measures roughly 530px there and the string is
+ * 7.11em. 4.3vw lands on that and scales with the page; the three texts it
+ * carries then set 362 / 223 / 407px at 1440 against a 695px column, so all
+ * three fit in both the columns they visit.
+ *
+ * ONE SIZE for all three, and no scale on the way: they are one piece of type
+ * saying three things, and type that changes size between them is three pieces.
+ *
+ * It rests as the first flow child of act one's column — see `titleX` — so the
+ * gap below it is `--about-gap`, the same measure that separates the subtitle
+ * from the paragraphs.
+ */
+.about-title {
+  position: relative;
+  z-index: 3;
+  margin-bottom: var(--about-gap);
+  max-width: 100%;
+  font-size: clamp(2rem, 4.3vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  text-align: left;
+  transform-origin: left top;
+  will-change: transform;
+}
+
+/* Every run of every exchange in ONE cell, so a letter changes where it stands
+   rather than one line pushing the other around. Two `ScrollMorph`s stacked
+   here carry the heading through three texts — see its `to` prop. */
+.morph {
+  grid-area: 1 / 1;
+  display: grid;
+}
+.about-title {
+  display: grid;
+}
+.morph__run {
+  grid-area: 1 / 1;
+  display: block;
+}
+
+.talent-act {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  gap: clamp(2rem, 6svh, 3rem);
+  padding: clamp(5.5rem, 13svh, 8rem) var(--hp-gutter) clamp(2rem, 5svh, 3rem);
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .talent-act {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: clamp(3rem, 6vw, 6rem);
+    align-items: center;
+  }
+}
+
+/* The portrait's slot. Fixed by the LAYOUT, not by the pictures — every stage
+   is cut to the same 3:4, so the frame never resizes under a turn. */
+/**
+ * THE ROOM — the blurred field the Talent act is lit in. See `TalentAura`.
+ *
+ * It is the first thing in the act and the only one with a negative z-index, so
+ * every portrait, line and card in here sits in front of it without any of them
+ * having to say so.
+ *
+ * `inset: -14%` is load-bearing with the blur. A filter samples past the edges
+ * of its element, finds nothing there, and fades towards transparent — which
+ * draws a soft dark border all the way round, the one shape in this design that
+ * would announce "there is a rectangle here". Oversizing the element pushes
+ * those edges off-screen and leaves only the middle of the field visible, which
+ * is the part with no edges in it.
+ *
+ * The blur is heavy on purpose and it is also why the gradients underneath can
+ * be as simple as three pools: at this radius the hard stops between them stop
+ * existing and what is left is the colour, which is the only part wanted.
+ */
+.talent-aura {
+  position: absolute;
+  /* Was inset: -14%, which existed so a 110px blur would sample its edges off
+     screen. With that blur gone the oversize is 64% more pixels to rasterise
+     for nothing. */
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  /* NO FILTER. A ten-pixel blur here looked free and measured at 190ms a frame
+     — a full-viewport filter re-running on every change beneath it. The
+     softness it was buying lives in the gradient stops instead, where it costs
+     nothing. */
+  will-change: opacity;
+}
+.talent-aura__layer {
+  position: absolute;
+  inset: 0;
+  will-change: opacity;
+}
+
+/**
+ * The act needs a stacking context of its own.
+ *
+ * Without one the aura's `z-index: -1` is resolved against the nearest ancestor
+ * that has one — the stage — and it would slide behind the stage's own ground
+ * and disappear. `isolation` buys exactly that and nothing else: no new
+ * compositing layer, no change to how anything paints.
+ */
+.talent-act {
+  isolation: isolate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The light still changes with the portrait — it is information about the
+     picture, not decoration — but it is held well back, since a wash this size
+     moving is the part of it that can be felt rather than seen. */
+  .talent-aura {
+    opacity: 0.55;
+  }
+}
+
+.talent-act__media {
+  position: relative;
+  width: 100%;
+  max-width: min(100%, 44svh);
+  margin-inline: auto;
+}
+@media (min-width: 1024px) {
+  /**
+   * THE ROOM, at desktop size — see `TalentAura`.
+   *
+   * ONE declaration, where there were two. The other one lived here and it won,
+   * because it came later and matched: `inset: -14%` with
+   * `filter: blur(clamp(60px, 7vw, 110px))`. So the blur removed from the base
+   * rule above was never removed on any desktop viewport, and the measurement
+   * that said taking it out changed nothing was reading a rule that still had
+   * it. A 110px Gaussian over 1.28 viewports of area, re-run on every change
+   * beneath it, was 190ms of a 198ms frame.
+   *
+   * The oversize went with it. It existed only so the blur could sample past
+   * the element's edges and not draw a soft dark border round the act; with no
+   * filter there is nothing sampling anything, and the inset is 64% more pixels
+   * for nothing.
+   *
+   * What the blur was buying — no hard seam between the three pools of light —
+   * is in the gradients themselves now: mid-stops, so each pool falls off on a
+   * curve instead of a ramp.
+   */
+
+  .talent-act__media {
+    max-width: min(100%, 58svh);
+    margin-inline: 0;
+  }
+}
+
+/**
+ * The frame the pictures open inside.
+ *
+ * Flat again — the panels grow in the plane of the page rather than turning in
+ * space, so there is no perspective and no 3D here. `overflow: hidden` is kept
+ * because the clip is doing the work and a stray sub-pixel edge is cheaper to
+ * cut than to chase.
+ */
+.talent-stack {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background-color: var(--hp-dark);
+}
+
+/* One picture, filling the frame. What varies is how much of it is clipped
+   away — see `SHUT` in the component. */
+.talent-stack__panel {
+  position: absolute;
+  inset: 0;
+  will-change: clip-path, opacity;
+}
+.talent-stack__img {
+  object-fit: cover;
+}
+
+/**
+ * Room at the top for the heading that arrives into this column.
+ *
+ * The chapter's title travels here and becomes "Talent" — it is positioned by
+ * transform, so it takes no space of its own and would otherwise land on the
+ * standfirst. This reserves the space; `land` in `AboutStudio` measures this
+ * box's top and puts the heading in it. Stylesheet owns the room, the script
+ * owns the arrival, and neither has to know the other's number.
+ */
+.talent-act__body {
+  padding-top: clamp(5.25rem, 11svh, 7.5rem);
+  pointer-events: auto;
+}
+.talent-act__line {
+  max-width: 34ch;
+}
+
+/**
+ * THE RISER — one number, and all four positions are multiples of it.
+ *
+ * Still one value to change, but the multiples are no longer 0/1/2/3. Read off
+ * the reference and normalised to its smallest step, the four sit at
+ * 0 / 3.08 / 1.00 / 4.47 — so the order down the page is 1, then 3, then 2,
+ * then 4. The second item stands ahead of the third and the fourth ahead of
+ * both, which is what stops the column reading as a flight of stairs and starts
+ * it reading as a composition.
+ *
+ * Sized against the FOURTH item, which carries the largest multiple and so has
+ * the least room left for its title — 4.47 risers in, out of the column's own
+ * width. Everything else simply has air to spare.
+ */
+.talent-act__list {
+  --talent-riser: clamp(0.4rem, 2.35vw, 2.6rem);
+
+  display: flex;
+  flex-direction: column;
+  /* SPACING IS THE SEPARATION NOW. The rules between these items are gone, so
+     what tells one from the next is the air around it — which has to be real
+     air rather than the padding that used to sit either side of a line. */
+  gap: clamp(1.1rem, 3.2svh, 2rem);
+  margin-top: clamp(1.5rem, 4svh, 2.5rem);
+  /* The cards come off the surface a few degrees; this is what they come off
+     it through. Further back than the portrait's, because these are lines. */
+  perspective: 1200px;
+}
+
+.talent-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: clamp(0.9rem, 2vw, 1.5rem);
+  align-items: baseline;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+/**
+ * The four positions, as multiples of the riser.
+ *
+ * The multiples are the reference's own, measured off it rather than invented:
+ * 3.08, 1.00 and 4.47 against a first item that does not move. Written as
+ * multiples rather than as three hand-set indents so the whole arrangement
+ * still answers to one value — widen the riser and the composition opens up
+ * without any of the four drifting out of relation with the others.
+ *
+ * `margin-inline-start`, not `padding` or `transform` — padding would shrink
+ * the measure of the line inside, and a transform would slide the item without
+ * telling the layout, so nothing below could ever respond to it.
+ */
+.talent-card:nth-child(2) {
+  margin-inline-start: calc(var(--talent-riser) * 3.08);
+}
+.talent-card:nth-child(3) {
+  margin-inline-start: calc(var(--talent-riser) * 1);
+}
+.talent-card:nth-child(4) {
+  margin-inline-start: calc(var(--talent-riser) * 4.47);
+}
+
+/**
+ * THE ACCENT IS ON THE NUMBER, and the title is neutral.
+ *
+ * That inversion is the reference's, and it is the whole of why its list reads
+ * as an index rather than as four headings: the eye is given the sequence
+ * first — 01, 02, 03, 04 running down the left — and the words second. Ours had
+ * it the other way round, with every title in lime and the numbers at 38% grey,
+ * so there were four shouts and no order.
+ *
+ * Lime where the reference uses red. The hierarchy is what is being borrowed;
+ * importing a colour this page does not otherwise own would be borrowing the
+ * skin instead.
+ */
+.talent-card__num {
+  font-family: var(--hp-font-secondary);
+  font-size: clamp(0.6rem, 0.5rem + 0.28vw, 0.92rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  /* Sits on the title's own baseline — see `align-items: baseline` on the card.
+     It is a marker on the line, not a label floating above it. */
+  color: var(--hp-lime);
+}
+
+/**
+ * Large, and sized against the MOST-INDENTED item.
+ *
+ * The fourth card carries three risers, so it has the least room — measured,
+ * 608px of a 810px column at 1680. A title set to fill the first card would
+ * overflow the fourth, so the ceiling is solved against the fourth and the
+ * others simply have air to spare, which is what a staircase looks like anyway.
+ *
+ * It wraps rather than overflows if a width is ever found where even this is
+ * too wide; only "Cinematography" is anywhere near long enough to need it.
+ */
+.talent-card__title {
+  font-family: var(--hp-font-primary);
+  font-size: clamp(1.25rem, 0.8rem + 2vw, 2.9rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+}
+
+/**
+ * The row under it: the same words, spaced along a line with a middot between.
+ *
+ * `grid-column: 1 / -1`, so it starts at the NUMBER'S left edge rather than the
+ * title's. That is the reference's alignment and it is what gives each item a
+ * single left axis: the number, and the row of words beneath it, on one line —
+ * with only the title stepped in past them. Set to column 2 it lined up under
+ * the title instead and the number hung out on its own.
+ *
+ * A flex row rather than a sentence, so it wraps on its own at narrow widths
+ * instead of being squeezed — a single unwrapped row would have to be 7px on a
+ * phone to fit, which is not a size type can be read at.
+ */
+.talent-card__tags {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2em 0.62em;
+  margin-top: clamp(0.5rem, 1.4svh, 0.85rem);
+  font-family: var(--hp-font-secondary);
+  font-size: clamp(0.58rem, 0.46rem + 0.34vw, 0.84rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--hp-off-white) 52%, transparent);
+}
+
+/* The separator is DRAWN, not written: the markup holds four words, so that is
+   what a screen reader is given rather than four words and four middots. */
+.talent-card__tag:not(:last-child)::after {
+  content: "·";
+  margin-left: 0.62em;
+  color: color-mix(in srgb, var(--hp-off-white) 28%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Scroll position, not transitions — there is nothing to shorten. */
+  .talent-card,
+  .talent-stack__panel {
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   About — Chapter 03, What we do: the staircase.
+
+   After the archive on oddlymade.webflow.io. Three steps descending the page in
+   offset columns, each overlapping the one above it, so the eye is carried down
+   diagonally rather than straight. Each step assembles as it rises — see
+   `about-capabilities.tsx` for the order.
+   --------------------------------------------------------------------------- */
+
+/**
+ * IT STARTS A SCREEN EARLIER THAN IT USED TO.
+ *
+ * The chapter above is thirteen screens and its stage has said everything it
+ * has to say by twelve and a half: the title has handed over, the words and the
+ * faces are gone, the stage is at zero. What was left was most of a screen of
+ * nothing, and then the staircase arriving from below it — which is why this
+ * section read as not showing up. The reader had already been told the next
+ * thing was called "What we do" and then had to scroll past an empty screen to
+ * be shown any of it.
+ *
+ * Pulling it up closes exactly that gap: the first picture now crosses the fold
+ * while the title that names it is still the last thing on screen. It overlaps
+ * nothing that is visible — what it rises over is a stage already faded out,
+ * which also no longer takes the pointer.
+ *
+ * The alternative was to start the reveal earlier on the run instead, and that
+ * was tried: it opened the first window to 93% BELOW THE FOLD, so the reader
+ * scrolled down to a picture that had already finished arriving. A reveal has
+ * to happen where it can be seen, which is a fact about the layout and not
+ * about the timing.
+ */
+/* Explicitly BELOW the chapter above it for the length of their overlap — see
+   `.about-studio__stage`. `relative` only so the z-index has something to
+   apply to; it moves nothing. */
+.caps-section {
+  position: relative;
+  z-index: 0;
+  margin-top: -62svh;
+  padding-block: clamp(5rem, 14svh, 9rem);
+}
+/**
+ * The chapter title, at the live build's own scale.
+ *
+ * There it is the loudest thing on the screen — full lime, upper case, packed
+ * to the margins and set as large as the line will take. At 3.25rem in
+ * off-white it was quieter than the step titles underneath it, which is the
+ * wrong way round for a chapter heading.
+ *
+ * The motion is unchanged because it was already the reference's: the word
+ * rises out of a mask (`.stair__mask` / `.stair__word`) against scroll. Only
+ * its climb got longer — see `useEnter` in `AboutCapabilities`.
+ */
+/**
+ * The staircase's own heading — the same type as the crossing title it takes
+ * over from, so the hand-over is a change of MECHANISM and not of appearance.
+ *
+ * Sized and tracked to match `.about-title` exactly: the reader should see one
+ * heading that stops being pinned and starts travelling, not two headings.
+ */
+/* Dark until the pinned heading hands over at the instant the two coincide —
+   see the hand-over in `AboutStudio`. No transition: one is drawn or the other
+   is, and they are in the same place at the same size when it happens, so there
+   is nothing to blend. */
+.caps-section__head {
+  opacity: 0;
+}
+:root[data-title-handed-over="1"] .caps-section__head {
+  opacity: 1;
+}
+
+.caps-section__head {
+  margin-bottom: clamp(1.5rem, 5svh, 3.5rem);
+  font-family: var(--hp-font-primary);
+  font-size: clamp(2rem, 4.3vw, 6rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+/* The mask a line rises out of. The clip is the PARENT and the motion is on the
+   child — one element cannot both clip and be clipped. */
+.stair__mask {
+  display: block;
+  overflow: hidden;
+}
+.stair__word {
+  display: block;
+  will-change: transform;
+}
+
+.caps-stairs {
+  /* The chain's SVG is laid over this, so the route's coordinates and the
+     overlay share one origin. */
+  position: relative;
+  display: grid;
+  margin-top: clamp(2.5rem, 7svh, 4.5rem);
+  gap: clamp(3rem, 10svh, 7rem);
+}
+@media (min-width: 768px) {
+  /* Twelve columns and a real riser between the treads. The chain is held by
+     the SHARED VERTICAL EDGES, not by the rows being flush — each step's
+     words sit under its own picture, so a zero gap would only put the next
+     picture against the previous caption rather than against the corner. */
+  .caps-stairs {
+    display: block;
+  }
+  /* FLUSH. Any gap at all is a gap the shared corner falls into — the next
+     picture would be born a few dozen pixels below where the last one ended,
+     which is exactly the break this chain exists to not have. The rows are
+     taller than their words, so nothing collapses. */
+  .caps-stairs > .stair + .stair {
+    margin-top: 0;
+  }
+  /* Landscape everywhere, one ratio, and the files are cut to it — see
+     `public/capabilities`. A frame that disagrees with its picture is a frame
+     that crops somebody's head off. */
+  .caps-stairs .stair__frame {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+.stair {
+  display: grid;
+  gap: clamp(0.9rem, 2svh, 1.4rem);
+}
+
+.stair {
+  display: grid;
+  gap: clamp(1.25rem, 3svh, 2rem);
+}
+
+/**
+ * The descent — a chain, and every join is a single point.
+ *
+ * Each step's reveal grows out of the corner the step above it finished on, so
+ * the geometry has to put those two corners in the same place. Two things make
+ * that true and both are load-bearing:
+ *
+ *   the ROWS ARE FLUSH — zero gap, so the y of a join matches
+ *   the COLUMNS ARE HALVES — so the x of a join matches
+ *
+ *   0%                 40%                           100%
+ *   ├──────────────────┼──────────────────────────────┤
+ *   │  01 ▸ opens TL   │            words             │  ends BR  ●
+ *   │       words      │     02 ▸ opens TL  ●         │  ends BL  ●
+ *   │  03 ◂ opens TR ● │            words             │  ends BR  ●
+ *   │       words      │     04 ▸ opens TL  ●         │  ends BL  ●
+ *   │  05 ◂ opens TR ● │            words             │
+ *
+ * 40 / 60 / 40 / 60 / 40, so the run does not read as five of the same thing.
+ * ● is the join, and every one of them is on the 40% line — the only line the
+ * two columns share, whichever way round they are used. That is why alternating
+ * the widths costs the chain nothing: the shared edge moved, it did not go.
+ *
+ * The side alternates strictly, and which corner a step opens from is simply
+ * whichever bottom corner of the step above happens to sit on that line.
+ *
+ * `column-gap` is 0 and the air comes from padding inside the words, so the
+ * picture's edge lands ON the 50% line rather than near it. A gutter here would
+ * put the whole chain a few pixels out of true.
+ */
+@media (min-width: 768px) {
+  .stair {
+    /**
+     * 44 / 56, and the swap below does the rest.
+     *
+     * One pair of widths covers both arrangements, because the steps do not
+     * change the grid — they change which cell each element sits in. The odd
+     * steps put the picture in the second column and the words in the first,
+     * so the same `44% 56%` reads as a 44 picture against 56 of words going
+     * one way and a 56 picture against 44 of words coming back. Two
+     * compositions, one track list, and nothing that can fall out of step
+     * with itself.
+     */
+    grid-template-columns: 44% 56%;
+    /* Against the middle of its own picture — at this size a line hanging off
+       the foot of a half-width frame reads as a stray footnote. */
+    align-items: center;
+    column-gap: 0;
+  }
+
+  /* Picture left, words right — the odd steps. */
+  .stair[data-step="0"] .stair__body,
+  .stair[data-step="2"] .stair__body,
+  .stair[data-step="4"] .stair__body {
+    grid-area: 1 / 2;
+    padding-left: clamp(2rem, 4vw, 4rem);
+  }
+
+  /* Picture right, words left — the even ones. */
+  .stair[data-step="1"] .stair__frame,
+  .stair[data-step="3"] .stair__frame {
+    grid-area: 1 / 2;
+  }
+  .stair[data-step="1"] .stair__body,
+  .stair[data-step="3"] .stair__body {
+    grid-area: 1 / 1;
+    padding-right: clamp(2rem, 4vw, 4rem);
+  }
+}
+
+.stair__frame {
+  position: relative;
+  /* The single-column fallback's ratio; each step overrides it above. */
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background-color: var(--hp-dark);
+  /* Promoted once: the whole frame travels on every pixel of its arrival. */
+  will-change: transform, opacity;
+}
+.stair__media {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+/* Serves both the still and the clip. `next/image` with `fill` writes its own
+   inline position and size so these are inert there; a plain `<video>` has
+   neither, and without them it would sit at its intrinsic size inside a frame
+   that is clipping it. */
+.stair__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/**
+ * The words fill their column.
+ *
+ * It was capped at 46ch, which on the steps whose picture is 40% left a
+ * 728px column carrying a 560px measure and a third of it empty. The column
+ * widths are the composition now — 40/60 and 60/40 — so the text box IS the
+ * 60%, and the measure is whatever that comes to.
+ */
+.stair__body {
+  max-width: 100%;
+}
+
+/**
+ * After the studio chapter on the live build: the discipline set as large and
+ * as heavy as the column will carry, packed tight, with a single light line
+ * under it. Bigger and tighter than it was — there the type is the loudest
+ * thing on the screen after the still itself, and at 3.5rem against a 480px
+ * picture it was the quietest.
+ *
+ * NO `color` here. It is a MotionValue — dormant grey until the step's own line
+ * lands, then lime, exactly as the reference's list goes from dormant to live.
+ * See `TITLE_INK`.
+ */
+/**
+ * As large as the longest of the five will allow on ONE LINE — solved, not
+ * guessed, and re-solved now that the columns are uneven.
+ *
+ * "CREATIVE DIRECTION" is 12.16em in `soehne-breit-900` at this tracking and
+ * sets the ceiling for all five. It is also, by the 40/60/40/60/40 pattern, the
+ * one whose words get the NARROW column — so the ceiling is now a 40% column
+ * rather than a 50% one, and the type comes down with it:
+ *
+ *    768px page   words 252px   type 19px   line 229px    9% spare
+ *   1280px        words 422     type 31     line 381      9%
+ *   1440px        words 475     type 35     line 429      9%
+ *   1920px        words 652     type 47     line 572     12%
+ *
+ * That is 35px at 1440 where even columns allowed 46. It is the cost of the
+ * alternating widths and there is no way to have both: the longest title and
+ * the narrowest column are the same step. Swapping the pattern to
+ * 60/40/60/40/60 would hand it the wide column back and the type with it.
+ *
+ * `nowrap` is a guarantee rather than a crop — the size already fits; it only
+ * makes the intent impossible to break by accident later.
+ */
+.stair__title {
+  font-family: var(--hp-font-primary);
+  font-size: clamp(1.25rem, 2.45vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The glyphs of a scattered title. `inline-block` because a transform does
+   nothing to a non-replaced inline element — and because the line has to hold
+   its final width from the first frame, so the letters flying about have
+   nowhere to push. */
+.scatter__char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Scroll position, not a transition — there is nothing to shorten. The
+     title simply stands where the type sets it. */
+  .scatter__char {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+.stair__line {
+  margin-top: clamp(0.75rem, 1.4vw, 1.25rem);
+}
+
+/* --- contact ------------------------------------------------------------- */
+
+/**
+ * The contact page, in the SITE'S language rather than a dialect of it.
+ *
+ * The first pass invented its own: a 90rem centred shell where every other
+ * section is full-bleed to `--hp-gutter`, off-white headings where the display
+ * cut is lime, a 999px pill where `--hp-radius-control` is 0px and its own note
+ * says a rounded control "would read as a control borrowed from another site",
+ * and an `animation: hero-rise` that referenced a keyframe which does not
+ * exist — the real one is `hp-hero-rise` — so the opening never animated at all.
+ *
+ * None of that survives. Type comes from the shared utilities (`hp-display`,
+ * `hp-sub`, `hp-copy`, `hp-eyebrow`, `label-xs`), rhythm from `--hp-gutter`,
+ * curves from `--hp-ease-out`, and the controls are the header ticket's: a
+ * square lime-ruled box that the lime floods into from the left.
+ *
+ * What is left here is only what is genuinely this page's: where its four
+ * sections sit, and how the three ways arrive.
+ */
+
+/* Full-bleed to the gutter, as every other section on the site is. */
+.contact-section {
+  padding-inline: var(--hp-gutter);
+}
+
+/* --- the opening --- */
+
+/**
+ * FIXED and full screen, with the second section travelling up over it — the
+ * reference's arrangement. `height`, not `min-height`, so nothing of what
+ * follows can show beneath it on load.
+ */
+/**
+ * STICKY, not fixed — and that distinction is the whole bug it replaces.
+ *
+ * `fixed` took the hero out of the flow: its cards were then positioned against
+ * the viewport while the section below measured itself against the document, so
+ * the moment anything scrolled the two stopped agreeing and the hand-over came
+ * apart. `sticky` keeps the hero in the flow, holds it at the top of the window
+ * while the next section travels over it, and — the reason it matters here —
+ * leaves the cards exactly where they are on screen at the instant the second
+ * section begins. That is what lets one of them appear to grow out of the
+ * scatter rather than reappearing somewhere else.
+ */
+/* The hero's sticky container: hero + reveal only, so the hero is released
+   exactly as the reveal's stage leaves and never shows behind the footer. No
+   overflow here — any overflow value would break the sticky. */
+.contact-opening {
+  position: relative;
+}
+.contact-hero {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  height: 100svh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: calc(var(--hp-header-h) + clamp(1rem, 3svh, 2rem)) var(--hp-gutter)
+    clamp(1.5rem, 4svh, 2.5rem);
+}
+
+.contact-hero__scatter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.contact-hero__card {
+  position: absolute;
+  display: block;
+  width: calc(var(--w) * var(--card-scale, 1));
+  translate: -50% -50%;
+  opacity: 0;
+  /* Long and soft: a gentle expo-out with no overshoot, so each card drifts in
+     and settles rather than arriving. */
+  animation: hp-card-in 1.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* Height from the picture's own ratio — never cropped to a box. */
+.contact-hero__card img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/**
+ * The card's arrival, measured off the reference preloader: scale 1 at opacity
+ * 0, overshooting to 1.085 as it becomes visible, settling to 1. The rotation
+ * is composed into every keyframe — a transform in a keyframe REPLACES the
+ * element's own, so a card with `rotate()` in its style would un-tilt itself
+ * for the length of the move.
+ */
+/* SOFTER than the reference's pop (1 → 1.085 → 1): the card rises a little,
+   grows from just under size and comes into focus as it fades up, with the
+   fade finishing before the movement does so it never looks half-there. */
+@keyframes hp-card-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(1.75rem) rotate(var(--rot)) scale(0.94);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) rotate(var(--rot)) scale(1);
+  }
+}
+
+/* Centred in the frame, over the scatter. */
+.contact-hero__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: clamp(0.75rem, 2svh, 1.25rem);
+  max-width: 54rem;
+}
+.contact-hero__title {
+  font-size: clamp(2.4rem, min(7.4vw, 15svh), 9.5rem);
+  display: grid;
+}
+.contact-hero__title > span {
+  display: block;
+  animation: hp-hero-rise 1s var(--hp-ease-out) both;
+}
+.contact-hero__standfirst {
+  max-width: 40ch;
+}
+
+/* The reference enlarges its cards on a narrow screen rather than letting them
+   scale with the viewport — 13-16% of the width at 1680, 24-38% at 390. */
+@media (max-width: 700px) {
+  .contact-hero__card {
+    --card-scale: 1.8;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-hero__card {
+    animation: none;
+    opacity: 0.22;
+    transform: rotate(var(--rot));
+  }
+}
+
+/* --- the three ways --- */
+
+.contact-ways {
+  padding-block: clamp(5rem, 14svh, 9rem);
+}
+.contact-ways__list {
+  margin-top: clamp(2rem, 6svh, 3.5rem);
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 3.5rem);
+  list-style: none;
+  padding: 0;
+}
+@media (min-width: 900px) {
+  .contact-ways__list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.contact-way {
+  position: relative;
+  padding-top: clamp(1.1rem, 2.5svh, 1.6rem);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.75rem;
+  align-items: baseline;
+  opacity: 0;
+  transform: translateY(1.25rem);
+  transition:
+    opacity 0.9s var(--hp-ease-out),
+    transform 0.9s var(--hp-ease-out);
+}
+.is-in .contact-way {
+  opacity: 1;
+  transform: none;
+}
+/* The rule draws itself as the section arrives — the staircase's move. */
+.contact-way__rule {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: color-mix(in srgb, var(--hp-off-white) 22%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.1s var(--hp-ease-out);
+}
+.is-in .contact-way__rule {
+  transform: scaleX(1);
+}
+/* Lime, on the title's own baseline — `talent-card__num`, unchanged. */
+.contact-way__num {
+  font-weight: 700;
+  color: var(--hp-lime);
+}
+.contact-way__title {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.9rem);
+}
+.contact-way__body {
+  grid-column: 2;
+  margin-top: 0.85rem;
+}
+.contact-way__cta {
+  grid-column: 2;
+  margin-top: 1.4rem;
+}
+.contact-ways__social {
+  margin-top: clamp(2.5rem, 6svh, 4rem);
+}
+.contact-ways__social a,
+.contact-closing__mail {
+  color: var(--hp-off-white);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--hp-lime) 55%, transparent);
+  padding-bottom: 0.12em;
+  transition: color 0.45s var(--hp-ease-out);
+}
+.contact-ways__social a:hover,
+.contact-closing__mail:hover {
+  color: var(--hp-lime);
+}
+
+/* --- the control, which is the header ticket's --- */
+
+.contact-action {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 2.75rem;
+  padding-inline: 1.15rem;
+  overflow: hidden;
+  border: 1px solid var(--hp-lime);
+  border-radius: var(--hp-radius-control);
+  background: transparent;
+  color: var(--hp-off-white);
+  font-family: var(--hp-font-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.45s var(--hp-ease-out);
+}
+.contact-action::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--hp-lime);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.6s var(--hp-ease-out);
+}
+.contact-action:hover,
+.contact-action:focus-visible {
+  color: var(--hp-soft);
+}
+.contact-action:hover::before,
+.contact-action:focus-visible::before {
+  clip-path: inset(0);
+}
+
+/* --- the brief --- */
+
+.contact-form-section {
+  padding-block: clamp(5rem, 14svh, 9rem);
+  border-top: 1px solid color-mix(in srgb, var(--hp-off-white) 12%, transparent);
+}
+.contact-form-section__inner {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 5rem);
+}
+@media (min-width: 1024px) {
+  .contact-form-section__inner {
+    grid-template-columns: 1fr 1.15fr;
+    align-items: start;
+  }
+}
+/**
+ * The CHAPTER-TITLE treatment, not the page-title one.
+ *
+ * The site has two display settings and they are not interchangeable. A
+ * page-level line — the hero here, `.work__cta-title` there — runs the
+ * `hp-display` recipe at -0.045em on a 0.88 line. A section heading inside a
+ * page runs slightly looser: `.caps-section__head` is -0.035em on 0.95, which
+ * is what stops a mid-page title shouting as loudly as the one that opens it.
+ *
+ * This is a section heading, so it takes the second. Measured against
+ * `.caps-section__head` on /about, the three values now resolve identically.
+ */
+.contact-form-section__head {
+  font-size: clamp(2rem, 4.3vw, 6rem);
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+.contact-form-section__note {
+  margin-top: clamp(1rem, 2.5svh, 1.5rem);
+  max-width: 34ch;
+}
+.contact-form {
+  display: grid;
+  gap: clamp(1.1rem, 2.5svh, 1.6rem);
+}
+.contact-field {
+  display: grid;
+  gap: 0.55rem;
+}
+.contact-field__opt {
+  letter-spacing: 0.14em;
+  opacity: 0.6;
+}
+/* Ruled lines, not boxes — and square, like every control here. */
+.contact-field input,
+.contact-field textarea {
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-copy);
+  color: var(--hp-off-white);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--hp-off-white) 28%, transparent);
+  border-radius: var(--hp-radius-control);
+  padding: 0.6rem 0;
+  resize: vertical;
+  transition: border-color 0.45s var(--hp-ease-out);
+}
+.contact-field input:focus-visible,
+.contact-field textarea:focus-visible {
+  outline: none;
+  border-bottom-color: var(--hp-lime);
+}
+.contact-submit {
+  justify-self: start;
+  margin-top: clamp(0.5rem, 2svh, 1rem);
+}
+.contact-form__status {
+  font-size: var(--hp-text-sm);
+}
+
+/* --- the last word --- */
+
+.contact-closing {
+  padding-block: clamp(5rem, 16svh, 11rem) clamp(4rem, 12svh, 8rem);
+  border-top: 1px solid color-mix(in srgb, var(--hp-off-white) 12%, transparent);
+}
+.contact-closing__head {
+  font-size: clamp(2.25rem, 1.1rem + 5vw, 7rem);
+  display: grid;
+}
+.contact-closing__head > span {
+  display: block;
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition:
+    opacity 1s var(--hp-ease-out),
+    transform 1s var(--hp-ease-out);
+}
+.contact-closing__head > span:nth-child(2) {
+  transition-delay: 0.1s;
+}
+.is-in .contact-closing__head > span {
+  opacity: 1;
+  transform: none;
+}
+.contact-closing__mail {
+  display: inline-block;
+  margin-top: clamp(2rem, 5svh, 3rem);
+  font-family: var(--hp-font-primary);
+  font-weight: 400;
+  font-size: clamp(1.125rem, 1rem + 0.8vw, 1.75rem);
+}
+.contact-closing__reply {
+  margin-top: clamp(1rem, 2.5svh, 1.5rem);
+}
+.contact-closing__cities {
+  margin-top: clamp(1.5rem, 4svh, 2.5rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  list-style: none;
+  padding: 0;
+  color: color-mix(in srgb, var(--hp-off-white) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* `hero-rise` already carries its own reduced-motion handling site-wide; what
+     is left here is this page's own scrubbed arrivals. */
+  .contact-way,
+  .contact-closing__head > span {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .contact-way__rule {
+    transform: scaleX(1);
+    transition: none;
+  }
+}
+
+/* --- the second section -------------------------------------------------- */
+
+/**
+ * A picture out of the opening grows until it is the whole screen, and the
+ * contact panel is read on it. See `ContactReveal`.
+ *
+ * `z-index: 1` and a ground of its own: the hero below is `fixed`, so this has
+ * to travel over it and cover it rather than share the frame with it.
+ */
+/**
+ * TRANSPARENT until the picture covers the frame.
+ *
+ * It had the page's black, which meant the second section blacked the hero out
+ * the instant it reached the top — so the picture was not growing out of the
+ * scatter, it was growing out of nothing. With no ground of its own, the only
+ * thing this section paints at the start is the clipped picture itself, and the
+ * hero is visible behind it until that picture has filled the screen.
+ */
+.contact-reveal {
+  position: relative;
+  z-index: 1;
+  /* Set from `SCREENS` in `ContactReveal`, which owns the timeline. */
+  height: var(--reveal-h, 460svh);
+  background: transparent;
+}
+/* The hand-over's blur: a fixed-radius copy over the sharp picture, faded in.
+   Scaled past the frame so the blur's soft edge is never inside it. */
+.contact-reveal__blur {
+  position: absolute;
+  inset: 0;
+  filter: blur(28px);
+  transform: scale(1.12);
+}
+/* The footer, pulled up over the reveal's tail — see `FOOTER_OVERLAP`. Its
+   box is transparent until the footer is live, so it must not take the
+   pointer from the form underneath it; `.footer.is-live` takes it back. */
+.contact-footer {
+  margin-top: calc(var(--overlap, 0svh) * -1);
+  pointer-events: none;
+}
+.contact-reveal__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+/* Its box — left, top, width, height, tilt — is set from the scroll in
+   `ContactReveal`: it starts as the hero card and grows to the frame. */
+.contact-reveal__media {
+  position: absolute;
+  overflow: hidden;
+  opacity: 0;
+  will-change: transform;
+}
+.contact-reveal__shot {
+  position: absolute;
+  inset: 0;
+}
+.contact-reveal__img {
+  object-fit: cover;
+}
+/* A light wash only — the panel's two boxes carry their own grounds now, so
+   the photograph can stay a photograph around them. */
+.contact-reveal__scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--hp-night) 28%, transparent);
+}
+
+.contact-reveal__panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  padding-block: calc(var(--hp-header-h) + clamp(1rem, 3svh, 2rem))
+    clamp(1.5rem, 4svh, 2.5rem);
+  overflow-y: auto;
+}
+/* Two boxes side by side, as flyward sets them: the same height, a narrow
+   seam between. */
+.contact-reveal__grid {
+  display: grid;
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+@media (min-width: 1024px) {
+  .contact-reveal__grid {
+    grid-template-columns: 1.1fr 1fr;
+    align-items: stretch;
+  }
+}
+/* The information on frosted glass: the picture behind it, blurred and
+   darkened just enough for white type. */
+.contact-reveal__info {
+  padding: clamp(1.25rem, 2.6vw, 2.75rem);
+  background: color-mix(in srgb, var(--hp-night) 34%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.1);
+  backdrop-filter: blur(22px) saturate(1.1);
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 14%, transparent);
+}
+/* The form on solid white, dark type — legibility first. */
+.contact-reveal__form {
+  padding: clamp(1.25rem, 2.6vw, 2.75rem);
+  background: var(--hp-off-white);
+  color: var(--hp-night);
+}
+.contact-reveal__form .contact-reveal__label,
+.contact-reveal__form .contact-field__label,
+.contact-reveal__form .contact-form__status {
+  color: color-mix(in srgb, var(--hp-night) 62%, transparent);
+}
+.contact-reveal__form .contact-field input,
+.contact-reveal__form .contact-field textarea {
+  color: var(--hp-night);
+}
+.contact-reveal__form .contact-field textarea {
+  height: 5.5rem;
+}
+/* The form's title: the chapter-title treatment of `.contact-reveal__line`,
+   a step smaller, in ink, with clear air before the first field. */
+.contact-reveal__form-head {
+  font-size: clamp(1.4rem, 2.2vw, 2.4rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--hp-night);
+  margin-bottom: clamp(1.25rem, 3svh, 2rem);
+}
+.contact-reveal__form .contact-field input:focus-visible,
+.contact-reveal__form .contact-field textarea:focus-visible {
+  border-bottom-color: var(--hp-night);
+}
+/* The action in ink on white; it still fills with the lime on hover. */
+.contact-reveal__form .contact-action {
+  border-color: var(--hp-night);
+  color: var(--hp-night);
+}
+.contact-reveal__form .contact-action:hover,
+.contact-reveal__form .contact-action:focus-visible {
+  border-color: var(--hp-lime);
+  color: var(--hp-night);
+}
+/* The chapter-title treatment, as `.caps-section__head` carries it. */
+.contact-reveal__line {
+  font-size: clamp(1.6rem, 3vw, 3.5rem);
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+  max-width: 14ch;
+}
+.contact-reveal__facts {
+  display: grid;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  margin-top: clamp(1.25rem, 3svh, 2rem);
+}
+@media (min-width: 560px) {
+  .contact-reveal__facts {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.contact-reveal__label {
+  color: color-mix(in srgb, var(--hp-off-white) 55%, transparent);
+  margin-bottom: 0.6rem;
+}
+.contact-reveal__mail,
+.contact-reveal__social a {
+  color: var(--hp-off-white);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--hp-lime) 55%, transparent);
+  transition: color 0.45s var(--hp-ease-out);
+}
+.contact-reveal__mail:hover,
+.contact-reveal__social a:hover {
+  color: var(--hp-lime);
+}
+.contact-reveal__social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  list-style: none;
+  padding: 0;
+}
+.contact-reveal__reply {
+  max-width: 30ch;
+}
+
+/* The map plate — see `ContactReveal` for why it is a slot and not a map. */
+.contact-reveal__map {
+  margin-top: clamp(1.25rem, 3svh, 2rem);
+}
+.contact-reveal__plate {
+  display: grid;
+  place-items: center;
+  min-height: clamp(6rem, 14svh, 9rem);
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 22%, transparent);
+  border-radius: var(--hp-radius-control);
+  background: color-mix(in srgb, var(--hp-night) 45%, transparent);
+}
+.contact-reveal__cities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.contact-reveal__pending {
+  color: color-mix(in srgb, var(--hp-off-white) 45%, transparent);
+}
+
+/* The form sits on a photograph here, so its rules carry a touch more weight
+   than they do on black. Nothing else about it changes. */
+.contact-reveal__form .contact-field input,
+.contact-reveal__form .contact-field textarea {
+  border-bottom-color: color-mix(in srgb, var(--hp-night) 30%, transparent);
+}
+.contact-reveal__form .contact-form {
+  gap: clamp(0.7rem, 1.6svh, 1.1rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-reveal {
+    height: auto;
+  }
+  /* No scrubbed hand-over here: the footer is static and opaque, so it follows
+     the reveal instead of overlapping it. */
+  .contact-footer {
+    margin-top: 0;
+  }
+  .contact-reveal__blur {
+    display: none;
+  }
+  .contact-reveal__stage {
+    position: relative;
+    height: auto;
+    min-height: 100svh;
+  }
+  .contact-reveal__panel {
+    position: relative;
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -43,7 +43,7 @@ export function initHeader(): void {
   // --- Expanded menu ---------------------------------------------------------
   // A short list off a lime rule. In the hero it drops from the trigger; past the hero it runs
   // sideways from it in one row, social cells included. Either way it has no background and
-  // the page stays live and in place underneath. Items don't navigate yet; outside clicks close.
+  // the page stays live and in place underneath. Items are links to the pages; outside clicks close.
   const rule = menu.querySelector<HTMLElement>("[data-menu-rule]");
   const items = menu.querySelectorAll<HTMLElement>("[data-menu-item]");
   const social = menu.querySelectorAll<HTMLElement>("[data-menu-social]");

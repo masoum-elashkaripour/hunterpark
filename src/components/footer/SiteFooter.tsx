@@ -13,11 +13,12 @@
 import { socialLinks, tagline } from "../../data/navigation";
 import { SplitWords } from "../motion/SplitText";
 
-// On-page chapters; the film moves to them (scripts/footer.ts) rather than jumping
+// The site's pages. (A "#chapter" href here would still be moved to by the film —
+// scripts/footer.ts — rather than jumped to.)
 const index = [
-  { label: "Studio", href: "#studio" },
-  { label: "Work", href: "#work" },
-  { label: "Contact", href: "/contact/" },
+  { label: "About", href: "/about" },
+  { label: "Work", href: "/work" },
+  { label: "Contact", href: "/contact" },
 ] as const;
 
 function Arrow() {
@@ -155,7 +156,7 @@ export default function SiteFooter() {
             <p className="footer__label" data-footer-item>
               <span>New project</span>
             </p>
-            <a className="footer__say" href="/contact/" data-footer-item>
+            <a className="footer__say" href="/contact" data-footer-item>
               <span className="footer__say-text">Say hello</span>
               <span className="footer__say-arrow">
                 <Arrow />
