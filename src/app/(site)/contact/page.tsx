@@ -21,9 +21,8 @@ import { ContactFooter } from "@/components/contact-footer";
  * section arrives. Nothing was invented to hold the new structure — it is the
  * Talent act's card and the capabilities staircase, rearranged.
  *
- * The footer is the SITE'S footer, driven the way the other pages drive it —
- * see `ContactFooter`, which carries `AboutClosing`'s scroll arithmetic
- * unchanged so it runs at the same speed here as it does on /work and /about.
+ * The footer is the SITE'S footer, shown STILL here — one screen, finished,
+ * no scroll film — see `ContactFooter`.
  *
  * What is NOT here is anything that was not known: no address, no phone, no
  * cities. See `lib/contact.ts`.
