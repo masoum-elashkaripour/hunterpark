@@ -212,7 +212,9 @@
    * as separate films. Both axes move together by construction: there is still
    * only the one value, so widening it cannot put them out of step.
    */
-  --hp-grid-gap: clamp(1.5rem, 1.2rem + 0.9vw, 2rem);
+  /* The work index's one gap, both axes — a little more air than it had
+     (24–32px): 32–44px. */
+  --hp-grid-gap: clamp(2rem, 1.6rem + 1.1vw, 2.75rem);
 
   --hp-gutter: clamp(1.25rem, 3.76vw, 4.0625rem);
   --hp-header-h: clamp(4rem, 3.2rem + 2vw, 5.5rem);
