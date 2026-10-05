@@ -1,10 +1,8 @@
-/**
- * Header menu items — the site's three pages. News has no page yet, so it is
- * left out rather than linked to nothing.
- */
+/** Header menu items — the site's pages. */
 export const primaryNav = [
   { label: "Works", href: "/work" },
   { label: "About", href: "/about" },
+  { label: "News", href: "/news" },
   { label: "Contact", href: "/contact" },
 ] as const;
 

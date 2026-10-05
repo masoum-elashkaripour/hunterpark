@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
   },
 
   /**
-   * Cache headers for the /work, /about and /contact pages, carried over from
+   * Cache headers for the /work, /about, /contact and /news pages, carried over from
    * their own repo. The homepage's routes and shared folders (/fonts, /brand,
    * /media) are deliberately left as they were.
    */
@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
     const forever = [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }];
 
     return [
-      ...["/about", "/contact", "/work", "/work/:slug*"].map((source) => ({
+      ...["/about", "/contact", "/news", "/work", "/work/:slug*"].map((source) => ({
         source,
         headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
       })),

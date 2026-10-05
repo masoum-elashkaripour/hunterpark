@@ -21,13 +21,13 @@ import { setSoundEnabled, soundEnabled } from "@/lib/sound";
  * the wordmark did nothing and "Works" went where you already were. They now
  * address the merged site: the homepage at `/`, the index at `/work`.
  *
- * The three pages — the same list the homepage's header carries. News has no
- * page yet, so it is left out; `href: null` still renders an inert entry if
- * one is ever needed.
+ * The site's pages — the same list the homepage's header carries. `href: null`
+ * still renders an inert entry if one is ever needed.
  */
 const MENU: { label: string; href: string | null }[] = [
   { label: "Works", href: "/work" },
   { label: "About", href: "/about" },
+  { label: "News", href: "/news" },
   { label: "Contact", href: "/contact" },
 ];
 
