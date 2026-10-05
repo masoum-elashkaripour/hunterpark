@@ -212,7 +212,9 @@
    * as separate films. Both axes move together by construction: there is still
    * only the one value, so widening it cannot put them out of step.
    */
-  --hp-grid-gap: clamp(1.5rem, 1.2rem + 0.9vw, 2rem);
+  /* The work index's one gap, both axes — a little more air than it had
+     (24–32px): 32–44px. */
+  --hp-grid-gap: clamp(2rem, 1.6rem + 1.1vw, 2.75rem);
 
   --hp-gutter: clamp(1.25rem, 3.76vw, 4.0625rem);
   --hp-header-h: clamp(4rem, 3.2rem + 2vw, 5.5rem);
@@ -2865,7 +2867,8 @@ html[data-logo-handoff] .site-header__logo {
 .talent-stack__panel {
   position: absolute;
   inset: 0;
-  will-change: clip-path, opacity;
+  /* The blinds are a moving mask — see `SLATS` in the component. */
+  will-change: mask-image;
 }
 .talent-stack__img {
   object-fit: cover;
@@ -3460,6 +3463,18 @@ html[data-logo-handoff] .site-header__logo {
   font-size: clamp(2.4rem, min(7.4vw, 15svh), 9.5rem);
   display: grid;
 }
+/* ONE LINE, ALWAYS. Each glyph is its own box (for the letter-by-letter
+   motion), so the browser may break between any two of them — and the first
+   thing to go would be the full stop, alone on a line. No break here; and on
+   a narrow phone the size follows the width, so the line always fits. */
+.contact-hero__title .chars__line {
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .contact-hero__title {
+    font-size: min(2.4rem, 11.5vw);
+  }
+}
 /* The title's mask — it rises out of it on load (see `ContactHero`). */
 .contact-hero__mask {
   display: block;
@@ -3469,7 +3484,18 @@ html[data-logo-handoff] .site-header__logo {
 /* The words' arrival, slower than the shared 1s, as on /news. Reduced motion
    still switches it off (see `.hero-rise`, `.hero-mask-rise`). */
 .contact-hero__rise {
-  animation-duration: 1.8s;
+  /* The globe's own opening length (see `OPEN_FOR`), so the words and the
+     pictures finish arriving together. */
+  animation-duration: 2.2s;
+}
+/* Held — not yet started — until the globe begins to open and marks the
+   section `data-opening` (see `WORDS_AT`); their delays count from there.
+   Only where scripting runs: without it the words are simply shown. */
+@media (scripting: enabled) {
+  .contact-hero:not([data-opening]) .contact-hero__rise {
+    animation-name: none;
+    visibility: hidden;
+  }
 }
 .contact-hero__content .hp-eyebrow .contact-hero__rise,
 .contact-hero__standfirst .contact-hero__rise {
