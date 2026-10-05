@@ -6,7 +6,7 @@ import { m, useTransform, type MotionValue } from "motion/react";
 import { useBeat, useEnter, type Cue } from "@/components/use-beat";
 import { ScrollChars } from "@/components/scroll-chars";
 import { ScrollMorph } from "@/components/scroll-morph";
-import { TalentStack } from "@/components/talent-stack";
+import { TalentStack, REVEAL } from "@/components/talent-stack";
 import { TalentAura } from "@/components/talent-aura";
 
 /**
@@ -234,16 +234,25 @@ const LEAVE_ORDER = { cards: 4, line: 4, media: 5 };
  * `beatEach` that never got scaled with the window around it. Moving a card now
  * moves its portrait, because they are the same number.
  */
+/**
+ * FOUR pictures, three changes — spread EVENLY over the stretch where the
+ * portrait stands still: from the moment it lands (the end of its arrival,
+ * `CUE.morph[1]`) to the act handing over (`CUE.morph2[0]`). Each change is
+ * one blinds-length (`REVEAL`, shared with the stack so they cannot drift) and
+ * each picture gets the same rest before the next one begins; the last one
+ * then stays through the exit. Tying them to card arrivals put two changes
+ * closer together than one slow blind takes.
+ */
+const TURNS = 3;
+const TURN_REST =
+  (CUE.morph2[0] - CUE.morph[1] - TURNS * REVEAL) / (TURNS + 1);
 const SHOT_BOUNDS = [
-  /* The title's morph opening. */
+  /* The first picture is live from the start of the arrival. */
   CUE.morph[0],
-  /* ...and the short line taking over from it. */
-  CUE.morph[1],
-  /* Then one per card, read straight off the cards' own cue. */
-  CUE.cardFrom,
-  CUE.cardFrom + CUE.cardStep,
-  CUE.cardFrom + CUE.cardStep * 2,
-  CUE.cardFrom + CUE.cardStep * 3,
+  ...Array.from(
+    { length: TURNS },
+    (_, k) => CUE.morph[1] + (k + 1) * (TURN_REST + REVEAL),
+  ),
   /* And the act handing over. */
   CUE.morph2[0],
 ];
@@ -258,31 +267,27 @@ const SHOT_BOUNDS = [
  * describe a different picture. See `TalentAura`.
  */
 const SHOTS = [
+  /* The most colourful of the archive, measured (Hasler–Süsstrunk): magenta
+     satin (95), green-and-red (63), an orange-and-teal paper ruff (123, from
+     the supplied photographs, cropped to the stack's 3:4), a graffiti wall
+     (77) — four different palettes in a row. */
   {
-    src: "/talent/stage-1.jpg",
-    aura: { base: "#183940", accent: "#145d63", far: "#16304a" },
-  },
-  {
-    src: "/talent/stage-2.jpg",
-    aura: { base: "#183440", accent: "#145f63", far: "#4a1616" },
+    src: "/talent/stage-4.jpg",
+    aura: { base: "#183b40", accent: "#631434", far: "#16434a" },
   },
   {
     src: "/talent/stage-3.jpg",
     aura: { base: "#183440", accent: "#633e14", far: "#162e4a" },
   },
   {
-    src: "/talent/stage-4.jpg",
-    aura: { base: "#183b40", accent: "#631434", far: "#16434a" },
-  },
-  {
-    src: "/talent/stage-5.jpg",
-    aura: { base: "#341840", accent: "#631438", far: "#16274a" },
+    src: "/talent/stage-7.jpg",
+    aura: { base: "#183d36", accent: "#633014", far: "#3a2418" },
   },
   {
     src: "/talent/stage-6.jpg",
     aura: { base: "#401b18", accent: "#631b14", far: "#161d4a" },
   },
-];
+]
 
 /** Deliberately short — the four cards under it carry the detail. */
 const TALENT_LINE =
@@ -1005,12 +1010,40 @@ export function AboutStudio() {
      from the bottom and leaves the picture holding the frame on its own for a
      moment before it turns away too. */
   const mediaOut = CUE.outFrom + LEAVE_ORDER.media * CUE.outStep;
+  /**
+   * THE FOUNDERS' MOVE, given to the talent portrait — the same
+   * `ARRIVE.lead` / `DEPART.lead` the shots above travel on, MIRRORED because
+   * this portrait stands on the left: in over the top-left corner from deep
+   * behind the screen, square and still at rest, out past the bottom-left. Four stops per axis, as
+   * there, so scrubbing back takes it apart the way it came.
+   *
+   * The departure runs from a little before `mediaOut` to the stage's own
+   * clearing: a card crossing past the frame needs the room, as the founders'
+   * exit did.
+   */
+  const media: [number, number, number, number] = [
+    CUE.morph[0],
+    CUE.morph[1],
+    mediaOut - CUE.outEach * 0.6,
+    CUE.out[1],
+  ];
+  /* MIRRORED. The founders stand on the RIGHT and come and go by the right
+     edge; this portrait stands on the LEFT, so the same move is flipped about
+     the vertical: in over the top-LEFT corner, out past the bottom-LEFT, with
+     the yaw and roll reversed so it turns toward the frame it is entering. */
+  const flip = (v: string) => (v.startsWith("-") ? v.slice(1) : `-${v}`);
+  const mediaX = useTransform(p, media, [flip(ARRIVE.lead.x), "0vw", "0vw", flip(DEPART.lead.x)]);
+  const mediaY = useTransform(p, media, [ARRIVE.lead.y, "0vh", "0vh", DEPART.lead.y]);
+  const mediaZ = useTransform(p, media, [ARRIVE.lead.z, 0, 0, DEPART.lead.z]);
+  const mediaRX = useTransform(p, media, [ARRIVE.lead.rx, 0, 0, DEPART.lead.rx]);
+  const mediaRY = useTransform(p, media, [-ARRIVE.lead.ry, 0, 0, -DEPART.lead.ry]);
+  const mediaTilt = useTransform(p, media, [-ARRIVE.lead.tilt, 0, 0, -DEPART.lead.tilt]);
+  /* Up early and stays up — it leaves by travelling, as the founders do. */
   const talentOpacity = useTransform(
     p,
-    [CUE.morph[0], CUE.morph[1], mediaOut, mediaOut + CUE.outEach],
-    [0, 1, 1, 0],
+    [media[0], media[0] + (media[1] - media[0]) * 0.35],
+    [0, 1],
   );
-  const mediaY = useTransform(p, [mediaOut, mediaOut + CUE.outEach], [0, -50]);
 
   /**
    * The room's own presence — NOT the portraits'.
@@ -1171,7 +1204,17 @@ export function AboutStudio() {
 
           <m.div
             className="talent-act__media"
-            style={{ opacity: talentOpacity, y: mediaY }}
+            style={{
+              opacity: talentOpacity,
+              x: mediaX,
+              y: mediaY,
+              z: mediaZ,
+              rotateX: mediaRX,
+              rotateY: mediaRY,
+              rotate: mediaTilt,
+              /* The founders' composition is seen through 900px; so is this. */
+              transformPerspective: 900,
+            }}
           >
             <TalentStack shots={SHOTS} bounds={SHOT_BOUNDS} progress={p} />
           </m.div>

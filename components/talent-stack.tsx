@@ -45,7 +45,10 @@ import {
  * open for the rest of its stage, which is the reference's rhythm: a panel that
  * arrives, and then simply is.
  */
-const REVEAL = 0.042;
+/* Slower blinds: 0.07 of the chapter (~740px of scroll at 900px) where the
+   iris had 0.042. The tightest gap between two pictures is ~0.10, so this
+   still leaves each one a stretch of standing still after it lands. */
+export const REVEAL = 0.07;
 
 /**
  * The closed rectangle, as insets — measured off the live build.
@@ -55,7 +58,14 @@ const REVEAL = 0.042;
  * asymmetry is the character of the move: it travels much further vertically
  * than horizontally, so it reads as unfolding rather than as a box being scaled.
  */
-const SHUT = { y: 50, x: 31 };
+/**
+ * THE BLINDS — this replaced the inset iris above. The next picture is let in
+ * through horizontal slats, a venetian blind opening over the one before (the
+ * way tokonoma.xyz changes its pictures). Every slat opens from its own top
+ * edge at once, so the change reads as one shutter rather than a wipe.
+ */
+const SLATS = 7;
+const BAND = 100 / SLATS;
 
 /**
  * How still the page has to be before a picture finishes opening.
@@ -66,7 +76,7 @@ const SHUT = { y: 50, x: 31 };
 const SETTLE_AFTER = 160;
 
 /** The auto-complete. Long and soft — this is the move's whole character. */
-const SETTLE = { duration: 1.1, ease: [0.22, 1, 0.3, 1] as const };
+const SETTLE = { duration: 1.8, ease: [0.25, 0.8, 0.3, 1] as const };
 
 /**
  * How much scroll the parked offset is handed back over once the reader moves.
@@ -197,29 +207,19 @@ function Panel({
 }) {
   const window_ = [from - REVEAL, from];
 
-  const insetY = useTransform(progress, window_, [SHUT.y, 0], { ease: EASE });
-  const insetX = useTransform(progress, window_, [SHUT.x, 0], { ease: EASE });
-  const clipPath = useMotionTemplate`inset(${insetY}% ${insetX}%)`;
-
-  /**
-   * Up with the rectangle, and finished before it is.
-   *
-   * The reference carries opacity alongside the insets rather than relying on
-   * the clip alone. Finished early on purpose: a picture that is still gaining
-   * opacity as its last edge lands reads as two moves ending at once, where
-   * this reads as one picture arriving and then being revealed the rest of the
-   * way.
-   */
-  const opacity = useTransform(
-    progress,
-    [window_[0], from - REVEAL * 0.25],
-    [0, 1],
-  );
+  /* How far each slat has opened, as a share of its band — 0 shut, BAND
+     fully open (a hair past it, so no seam is left between slats). */
+  const open = useTransform(progress, window_, [0, BAND + 0.05], {
+    ease: EASE,
+  });
+  const mask = useMotionTemplate`repeating-linear-gradient(to bottom, #000 0%, #000 ${open}%, transparent ${open}%, transparent ${BAND}%)`;
 
   return (
     <m.div
       className="talent-stack__panel"
-      style={first ? undefined : { clipPath, opacity }}
+      style={
+        first ? undefined : { maskImage: mask, WebkitMaskImage: mask }
+      }
     >
       <Image
         src={shot.src}
