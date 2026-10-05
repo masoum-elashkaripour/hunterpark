@@ -96,7 +96,7 @@ export default function Work() {
             </span>
           </h2>
           <div className="work__cta-action" data-work-cta-action>
-            <a href="/contact/" className="header-cta work__cta-link">
+            <a href="/contact" className="header-cta work__cta-link">
               <span className="header-cta__label">
                 <span className="header-cta__roll" data-text="Start a Project">
                   <span>Start a Project</span>

@@ -1,8 +1,12 @@
 /**
- * Header menu items. For now these are expand/collapse menu entries only —
- * no routes, no page loads. Add an `href` per item when pages exist.
+ * Header menu items — the site's three pages. News has no page yet, so it is
+ * left out rather than linked to nothing.
  */
-export const primaryNav = [{ label: "Works" }, { label: "About" }, { label: "News" }] as const;
+export const primaryNav = [
+  { label: "Works", href: "/work" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+] as const;
 
 export const socialLinks = [
   { label: "Instagram", href: "https://www.instagram.com/hunterparktv/" },
