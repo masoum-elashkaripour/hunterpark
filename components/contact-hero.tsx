@@ -37,13 +37,23 @@ const COUNT = 40;
 /** Seconds before the globe begins to open, and how long opening takes. */
 const OPEN_AT = 1.6;
 const OPEN_FOR = 2.2;
-/** When the words arrive — as the opening is well under way. */
-const WORDS_AT = 2.1;
+/**
+ * The words arrive WITH the opening, ON THE GLOBE'S CLOCK: the globe marks the
+ * section `data-opening` at the instant it starts to spread, and only then do
+ * the words' animations start (see `.contact-hero__rise` in CSS). A CSS delay
+ * alone counted from first paint while the globe counts from hydration, and
+ * the gap between those — a second in development, more on a slow phone — put
+ * the words ahead of the pictures. Each word takes the opening's own length
+ * (2.2s), so words and globe finish arriving together, as one gesture.
+ */
+const WORDS_AT = 0;
+/** The stagger between eyebrow, title, standfirst and call to action. */
+const WORDS_STEP = 0.28;
 /** Radians per second, and the axis's lean toward the reader. */
 const SPIN = 0.16;
 const LEAN = 0.32;
 
-const TITLE = ["Let’s talk"];
+const TITLE = ["Let’s talk."];
 
 /** The tiles' places on a unit sphere — Fibonacci, so evenly spread. */
 const POINTS = Array.from({ length: COUNT }, (_, i) => {
@@ -70,6 +80,8 @@ export function ContactHero() {
   useEffect(() => {
     const globe = globeRef.current;
     if (!globe) return;
+    const section = globe.closest("section");
+    let opened = false;
     const tiles = tileRefs.current;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -106,6 +118,11 @@ export function ContactHero() {
       const open = still
         ? 1
         : ease(Math.min(1, Math.max(0, (t - OPEN_AT) / OPEN_FOR)));
+      /* The words' cue — see `WORDS_AT`. */
+      if (!opened && (still || t >= OPEN_AT)) {
+        opened = true;
+        section?.setAttribute("data-opening", "");
+      }
       const short = Math.min(vw, vh);
       const narrow = vw < 700;
       /* Closed: a ball in the middle. Open: wide enough that the pictures ring
@@ -226,7 +243,7 @@ export function ContactHero() {
           <span className="contact-hero__mask">
             <span
               className="hero-mask-rise contact-hero__rise"
-              style={{ animationDelay: `${WORDS_AT + 0.12}s` }}
+              style={{ animationDelay: `${WORDS_AT + WORDS_STEP}s` }}
             >
               <ScrollChars lines={TITLE} progress={leave} from={-40} />
             </span>
@@ -239,7 +256,7 @@ export function ContactHero() {
         >
           <span
             className="hero-rise contact-hero__rise"
-            style={{ animationDelay: `${WORDS_AT + 0.45}s` }}
+            style={{ animationDelay: `${WORDS_AT + WORDS_STEP * 2}s` }}
           >
             An idea, a brief, or just the urge to talk it through.
           </span>
@@ -249,7 +266,7 @@ export function ContactHero() {
         <m.div style={{ opacity: fade, y: lift }}>
           <div
             className="hero-rise contact-hero__rise"
-            style={{ animationDelay: `${WORDS_AT + 0.6}s` }}
+            style={{ animationDelay: `${WORDS_AT + WORDS_STEP * 3}s` }}
           >
             {/* Glides to the form rather than jumping — a native anchor jump
                 would cut straight across the whole opening. */}
