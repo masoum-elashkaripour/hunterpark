@@ -2126,3 +2126,1217 @@ html[data-logo-handoff] .site-header__logo {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   A beat of the film.
+
+   The homepage stacks its chapters in one GSAP-pinned stage and scrubs a single
+   timeline through them. This is the same construction with `position: sticky`
+   doing the pinning: a tall section, a stage held at the top of the window for
+   its whole length, and everything inside driven by how far through the section
+   the reader has scrolled. See `useBeat`.
+
+   The section's height is set in the component, in screens — that number IS the
+   beat length, exactly as `FILM.beats` is on the homepage.
+   --------------------------------------------------------------------------- */
+
+.beat {
+  position: relative;
+}
+.beat__stage {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100svh;
+  overflow: hidden;
+  /* Promoted once: opacity and scale change on every frame of the hand-off. */
+  will-change: opacity, transform;
+}
+
+/* ---------------------------------------------------------------------------
+   A heading built one letter at a time, against scroll — see `ScrollChars`.
+
+   Every glyph is its own `inline-block` so it can be moved, and the LINE
+   carries the blur rather than the glyph. That is a correctness rule, not a
+   preference: a `filter` promotes an element to its own compositing layer, and
+   at display sizes the glyph boxes overlap — sixty overlapping layers
+   compositing independently draw visible seams straight down through the type.
+   Three line-layers have nowhere to seam.
+   ------------------------------------------------------------------------- */
+
+.chars__line {
+  display: block;
+  /* Promoted once rather than per frame; the filter changes continuously. */
+  will-change: filter;
+}
+.chars__char {
+  /* `inline` cannot be transformed. */
+  display: inline-block;
+  will-change: transform, opacity;
+}
+.chars__line--accent {
+  color: var(--hp-lime);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The reveal is scroll POSITION, not a transition, so there is nothing to
+     shorten — it is simply not run, and the heading is just a heading. */
+  .chars__line {
+    filter: none !important;
+    will-change: auto;
+  }
+  .chars__char {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   About — Chapter 02, Studio & Ethos.
+
+   The homepage's chapter marker, the site's own display face, and nothing
+   borrowed from anywhere else. Layout is Tailwind in the component; what lives
+   here is the type, the seal and the portrait plate — the things that are a
+   design decision rather than a grid.
+   --------------------------------------------------------------------------- */
+
+/* --- the running chapter marker, verbatim from the homepage ---------------- */
+
+/**
+ * This chapter's stage clears the header.
+ *
+ * `.beat__stage` centres its content in a full viewport, which is right until
+ * the content is nearly as tall as the viewport — then the top of it goes under
+ * the fixed header and sits across the wordmark. Reserving the header's band
+ * here means the frame the chapter composes into is the part of the window the
+ * reader can actually see.
+ */
+/**
+ * The stage, and WHY IT DOES NOT TAKE THE POINTER.
+ *
+ * This chapter begins one full screen before it begins: the section carries
+ * `margin-top: -100svh` so its pinned stage can rise into the hero's space
+ * instead of waiting below it. That overlap is the handover and it is wanted.
+ *
+ * What was not wanted is that the stage is a full-viewport box and it comes
+ * later in the document, so for the whole of the hero it sat ON TOP — invisible,
+ * empty, and swallowing every pointer event in the window. The hero's button
+ * still drew its hover states perfectly; nothing was ever reaching it to trigger
+ * them. A transparent sheet of glass over the first screen.
+ *
+ * Nothing in this chapter is clickable — it is a scrubbed sequence of pictures
+ * and type from end to end — so it has no use for the pointer and gives it
+ * back. If something here ever does need a click, it takes `pointer-events:
+ * auto` for itself rather than this line coming off.
+ *
+ * THE SECTION NEEDS IT TOO, and putting it only here is why the hero's button
+ * still did not respond. The stage stopped intercepting; the section's own box
+ * carried on, because the overlap is the SECTION's — it is the negative margin
+ * that pulls it over the hero, and a transparent child does not make an opaque
+ * parent transparent. Both, or neither.
+ */
+[data-chapter-section="1"] {
+  pointer-events: none;
+}
+.about-studio__stage {
+  padding-block: clamp(5.5rem, 12svh, 7.5rem) clamp(2rem, 5svh, 3rem);
+  pointer-events: none;
+  /**
+   * ABOVE THE CHAPTER THAT RISES INTO IT.
+   *
+   * The staircase is pulled up a whole screen so its first picture crosses the
+   * fold while this chapter's heading is still on screen — that overlap is the
+   * handover and it is wanted. What was not wanted is which of them paints on
+   * top: `.caps-section` is a later sibling, so it won by document order and
+   * the first picture slid over "What we do" while the reader was still
+   * reading it.
+   *
+   * The heading already asks to be in front — `.about-title` carries z-index 3
+   * — and it cannot be heard, because `will-change` on this element makes a
+   * stacking context and traps that 3 inside it. A z-index on the trapped
+   * element is only ever resolved against its siblings; this is the element
+   * that has to carry the answer outwards.
+   *
+   * Costs nothing after the chapter is done: the stage is at zero opacity from
+   * p=1 onwards and an element at zero opacity paints nothing, whatever its
+   * z-index. The only frames this changes are the ones where both chapters are
+   * genuinely on screen — which are the frames it is here to fix.
+   */
+  z-index: 1;
+}
+
+/**
+ * The page's ground: the hero's reel, kept.
+ *
+ * `position: fixed` with a NEGATIVE z-index, which is the whole arrangement in
+ * one line — it sits above the page's own black, which is painted by the root,
+ * and below every section's content, which is in flow. So it is behind the
+ * hero's lockup, behind the studio's words and faces, and behind nothing else.
+ *
+ * It is declared inside the hero because that is what owns the reel, but it
+ * belongs to neither chapter: nothing unmounts it and nothing moves it, so the
+ * clip the reader left the hero on is still there two chapters later.
+ */
+.about-film {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/**
+ * NO BLEED. The element is exactly the viewport, so a cover-fitted 1920-wide
+ * source on a 1920-wide screen is drawn at 1920 — rendered 1:1, as sharp as it
+ * can be, for the whole of the time it is the subject.
+ *
+ * It used to be inset -10%, which is 120% of the viewport in both axes and a
+ * 20% upscale: 20% of softness given away before any blur was applied, paid for
+ * on the one screen where sharpness is the point. The bleed a gaussian needs is
+ * a `scale` driven by the same progress as the blur instead — see `swell`. It
+ * costs nothing until there is something to hide.
+ */
+.about-film__media {
+  position: absolute;
+  inset: 0;
+  /* Motion only — the grade moved to its own child so a blurred raster can be
+     composited as this scales instead of being rebuilt. */
+}
+.about-film__grade {
+  position: absolute;
+  inset: 0;
+  will-change: filter, transform;
+}
+
+/**
+ * The climbing band — a `backdrop-filter` under a mask that rises.
+ *
+ * ADDITIVE to the blur on the clip itself, not instead of it. On its own a
+ * masked blur leaves most of the frame sharp until very late, which is what
+ * once read as a gradient rather than a blur; on its own a uniform blur has no
+ * direction in it at all. Together the bottom of the frame softens first and
+ * the softness travels up while the whole picture is also, gradually, going.
+ *
+ * The radius is CONSTANT and the mask is what moves — a changing radius
+ * re-renders a full-screen gaussian on every scroll event, where a moving mask
+ * only re-composites a layer that is already rasterised.
+ */
+.about-film__soft {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(clamp(14px, 1.8vw, 26px));
+  -webkit-backdrop-filter: blur(clamp(14px, 1.8vw, 26px));
+  will-change: mask-image;
+}
+
+/* Flat, not a gradient: the content above it is spread across the whole frame
+   by the time this is at full strength, so there is no side to favour. Its
+   strength is measured against a blown-out white frame — see `grade`. */
+.about-film__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--hp-night);
+  will-change: opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing to shorten — it is scroll position, not a transition. */
+  .about-film__media {
+    will-change: auto;
+  }
+}
+
+/* --- the split ------------------------------------------------------------ */
+
+.about-studio__split {
+  /* Over the backdrop, which is `z-index: 0` in the same stage. */
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(2rem, 5svh, 3.5rem);
+}
+@media (min-width: 1024px) {
+  .about-studio__split {
+    /* The heading takes the larger share now, and the portraits give it up.
+       That is a real trade and worth stating: at 1.18fr the other way the
+       heading could only be 2.3rem before `ScrollChars`' hard-broken lines ran
+       past the column edge. Six to five this way buys it 3rem — a third
+       larger — and costs the composition about 8% of its width. */
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: clamp(2rem, 4vw, 4.5rem);
+    align-items: center;
+  }
+}
+
+/**
+ * At the head of the left column, ranged left, and sized to FIT it.
+ *
+ * The cap is not a taste: `ScrollChars` hard-breaks the lines, so this cannot
+ * wrap its way out of a column that is too narrow — it would simply run past
+ * the edge. The longest line is 23 characters, and at roughly 0.58em of advance
+ * per character in this face that is 13.3× the font size. The left column is a
+ * little over 500px at 1440, so 2.3rem is where it stops.
+ *
+ * It was 4rem when it was a centred overlay with the whole stage to itself.
+ * Standing in a column beside the portraits, it takes a column's measure — and
+ * the column was widened to 1.2fr to let that measure be 3rem rather than 2.3.
+ */
+.about-studio__head {
+  font-size: clamp(1.75rem, 0.9rem + 2.4vw, 3rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  /* Centred, and its own line breaks kept.
+     NO `text-wrap: balance` — the lines are hard-broken in the component
+     because the reveal's stagger is counted per line, and a browser rebalance
+     would put glyphs on a line whose blur belongs to another one. */
+  text-align: left;
+}
+.about-studio__accent {
+  color: var(--hp-lime);
+}
+
+/**
+ * The space the crossing title stands in.
+ *
+ * The title is act two's child and visits this column by transform, so it takes
+ * no room here and the paragraphs would otherwise centre as if it did not
+ * exist — which is exactly what happened: the title sat near the top of the
+ * frame, the paragraphs sat in the middle, and the two read as separate things
+ * at opposite ends of a column.
+ *
+ * Reserving twice the shortfall is what centres the PAIR: the box grows by the
+ * padding and the split keeps it centred, so the content moves down by half of
+ * what is added. Measured at a 900px window, the two then sit about 26px apart
+ * with their combined centre within three pixels of the viewport's.
+ */
+/**
+ * One measure between all three things in this column.
+ *
+ * Title → subtitle → paragraphs, each separated by `--about-gap` and each
+ * starting on the same left edge, because all three are now flow children of
+ * the same box. Nothing here is reserved or offset: the title used to visit
+ * this column by transform and the spacing had to be faked with padding around
+ * a hole, which is why the three never quite lined up.
+ */
+.about-studio__claim {
+  --about-gap: clamp(1.25rem, 3.5svh, 2.25rem);
+}
+
+/**
+ * The subtitle: the credentials, at a credential's size and in OFF-WHITE.
+ *
+ * `hp-display` paints lime, which is right for a title and wrong for the line
+ * under one — two pieces of type in the same colour at two sizes read as one
+ * heading that wrapped. The lime belongs to the title; this answers it.
+ *
+ * Display face still, because it is the studio speaking rather than body copy,
+ * at well under half the title's size so the hierarchy is unarguable.
+ */
+.about-studio__sub {
+  margin-bottom: var(--about-gap);
+  font-size: clamp(1rem, 0.72rem + 0.9vw, 1.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-align: left;
+  color: var(--hp-off-white);
+}
+
+.about-studio__beats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  /* A touch narrower than it was, and in `ch` so it stays a MEASURE rather than
+     a width: the type went up a step in the same edit, and at 54ch the line was
+     growing with the font instead of holding the 60-to-70-character column that
+     makes a paragraph readable. 48ch of this face lands just under 60. */
+  max-width: 48ch;
+}
+/* Size, leading and colour all come from `hp-copy` in the markup — see the
+   utility. Nothing left to say here. */
+
+/**
+ * The founders' composition: two portraits standing against each other.
+ *
+ * Replaces a single square window that held both and showed one. The positions
+ * below are the whole layout contract the motion depends on — the founder high
+ * and to the RIGHT, the second lower and to the LEFT, overlapping her — and
+ * they are percentages of the composition box, never pixels against the
+ * viewport. So the same arrangement survives every breakpoint, and the
+ * scroll-driven travel in `Shot` has a fixed target to arrive at whatever the
+ * column happens to be that wide.
+ *
+ * The box's own aspect ratio falls out of those percentages:
+ *
+ *   lead   64% wide, square, from the top        → 0.00w ▸ 0.64w
+ *   follow 64% wide, square, from the bottom     → 0.51w ▸ 1.15w
+ *   follow is also pushed −0.06w LEFT, into the gutter
+ *   vertical overlap                               0.13w
+ *   height                                         1.18w
+ *
+ * The 0.03w of slack on the height is the two captions, which sit UNDER their
+ * frames rather than over them — a name is not a film-still label and does not
+ * belong across a face.
+ */
+.about-cast__composition {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.18;
+  /* The stage is one viewport tall and the heading is above this, so the
+     composition cannot simply take its column's full width on a short screen —
+     it would push its own foot off the bottom of a pinned frame, where no
+     amount of scrolling will reach it. Capped by HEIGHT, expressed as a width
+     because that is the side the aspect ratio is driven from. Right-aligned
+     when capped, so the founder stays on the edge she arrives at. */
+  max-width: min(100%, 68svh);
+  margin-left: auto;
+  /**
+   * The depth the portraits are seen through, and the space they move in.
+   *
+   * 900px rather than 1400: a nearer camera, which is what gives the yaw its
+   * foreshortening and the z-travel its sense of distance — at 1400 a card
+   * coming 460px forward barely changes size, which is the difference between
+   * an object approaching and a picture being rotated. Nearer than about 700
+   * and the same rotation starts to distort rather than turn.
+   *
+   * `preserve-3d` so the cards hold their own planes inside this space instead
+   * of being flattened into the parent before they are composited, and
+   * `backface-visibility` because a plane turned far enough to show its back is
+   * a plane the reader was never meant to see the back of.
+   */
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.about-cast__shot {
+  position: absolute;
+  margin: 0;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  /* Promoted once: position, depth and all three angles change on every frame
+     of the arrival and of the departure. */
+  will-change: transform, opacity;
+}
+.about-cast__frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background-color: var(--hp-dark);
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 12%, transparent);
+}
+
+/* High and right — where she comes to rest after travelling in from off the
+   top-right corner. */
+.about-cast__shot--lead {
+  top: 0;
+  right: 0;
+  width: 64%;
+}
+
+/* Lower and left, and OVER her: the overlap is what makes the pair read as one
+   composition with depth rather than as two pictures sharing a column.
+
+   The SAME width as the lead, not 58%. At two different sizes they read as one
+   portrait and one thumbnail of a portrait — a difference in importance nobody
+   intended — when what makes the composition is the offset between them.
+
+   Which is where the negative inset comes from: with the widths equal the
+   offset has to be a position, so this is pushed past the column's own left
+   edge. 6% of the composition is 33px against a 58px gutter, so it reaches
+   into the gap and never into the text. */
+/* A little further left than it was, which buys some of the clearance its
+   caption needs over the frame above — but not all of it at every width, and
+   it cannot: see the shadow on `.about-cast__tag`. */
+.about-cast__shot--follow {
+  bottom: 0;
+  left: -7.5%;
+  /* NO z-index here. It was `2`, and it was never consulted: the composition is
+     `preserve-3d`, which sorts its children by depth rather than by this
+     property. The ordering it was meant to buy is bought in `lift` instead. */
+  width: 64%;
+}
+
+/* Inset, so the settle never exposes an edge — the homepage's own trick on
+   `.caps__media`. */
+.about-cast__media {
+  position: absolute;
+  inset: -2%;
+}
+.about-cast__img {
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The travel is scroll POSITION, not a transition, so there is nothing to
+     shorten — it is simply not run, and the two portraits stand where the
+     layout puts them for the whole chapter. The same treatment the heading's
+     letter reveal gets. */
+  .about-cast__shot {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+/**
+ * THE NAME STRIP — above the picture and ranged right.
+ *
+ * One baseline carrying two weights: the name in the display face, bold and in
+ * caps, and the role trailing it, smaller and in a muted grey.
+ *
+ * `align-items: baseline` rather than `center` is the whole reason the two
+ * sizes sit together instead of looking stacked by accident: the eye reads a
+ * shared baseline as one line of type and a shared centre as two objects that
+ * happen to be adjacent.
+ *
+ * `justify-content: flex-start` ranges it left, against the frame's own left
+ * edge — the same edge the heading, the subtitle and the body of this chapter
+ * all start on. In normal flow rather than absolutely positioned, which is what
+ * makes it responsive for nothing: it wraps, it pushes the frame down by its
+ * own height, and there is no offset anywhere that could be right at one screen
+ * size and wrong at another.
+ */
+.about-cast__tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.25em 0.6em;
+  margin: 0 0 clamp(0.5rem, 1.4vw, 0.85rem);
+  text-align: left;
+  pointer-events: none;
+
+  /**
+   * THE CAPTION CARRIES ITS OWN GROUND.
+   *
+   * These two portraits overlap, and the lower one's caption sits in the zone
+   * the upper one's frame occupies. The role is set at 42% white, which has no
+   * fixed contrast at all — only a contrast against whatever it happens to land
+   * on. Over the page's near-black it reads; over a sunlit photograph the tail
+   * of "FOUNDER" simply stopped existing.
+   *
+   * Nudging the lower portrait left was tried and is not a fix: measured, the
+   * clearance it buys runs from +138px down to −18px across the widths tested,
+   * because the caption's width is set by type clamps and the frame's by the
+   * column — two different scaling laws, so no single offset is right at more
+   * than a few sizes. The same trap as the heading that was positioned in `vw`.
+   *
+   * A shadow is independent of all of it. On the dark ground it is invisible —
+   * near-black bleeding into near-black — and over a picture it is the half
+   * stop of separation that keeps the type readable wherever it falls.
+   */
+  text-shadow:
+    0 1px 2px rgb(9 9 9 / 0.9),
+    0 2px 10px rgb(9 9 9 / 0.75);
+}
+
+/* `ScrollChars` sets its line as a block, which gives the flex item no text
+   baseline to align the qualifier to — the role drops below the name and the
+   line comes apart. Inline-block restores it without touching how the glyphs
+   inside are laid out. */
+.about-cast__name .chars__line {
+  display: inline-block;
+}
+
+/**
+ * Smaller than it was on the picture, and sized against the WINDOW now.
+ *
+ * `cqw` was right while the name sat inside the frame — it fitted the type to
+ * the box it had to stay within. Out here there is no box to overflow, and the
+ * frame is no longer an ancestor to query, so the honest unit is the one the
+ * rest of the page's type uses. The two frames are the same width in layout
+ * anyway (the second only looks smaller because it sits further back in z), so
+ * one size serves both.
+ */
+.about-cast__name {
+  font-family: var(--hp-font-primary);
+  font-size: clamp(0.62rem, 0.44rem + 0.56vw, 1.05rem);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+}
+
+/* Trailing, smaller, and well back — the difference in weight and colour is
+   what stops the pair reading as two titles. Tracked OUT, the way small caps
+   are set everywhere else here. */
+.about-cast__role {
+  font-family: var(--hp-font-secondary);
+  font-size: clamp(0.46rem, 0.38rem + 0.2vw, 0.64rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--hp-off-white) 42%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   About — act two of chapter 02: Talent.
+
+   Shares the stage with act one, so everything here is absolutely placed over
+   it rather than laid out after it. Two acts in one pinned frame is what lets
+   the title travel between them instead of one ending and another beginning.
+   --------------------------------------------------------------------------- */
+
+/**
+ * The crossing title, at the reference's own section-title size.
+ *
+ * `hunterpark.vercel.app` sets its chapter titles at about 72px on a 1680
+ * window — "FILM & VIDEO" measures roughly 530px there and the string is
+ * 7.11em. 4.3vw lands on that and scales with the page; the three texts it
+ * carries then set 362 / 223 / 407px at 1440 against a 695px column, so all
+ * three fit in both the columns they visit.
+ *
+ * ONE SIZE for all three, and no scale on the way: they are one piece of type
+ * saying three things, and type that changes size between them is three pieces.
+ *
+ * It rests as the first flow child of act one's column — see `titleX` — so the
+ * gap below it is `--about-gap`, the same measure that separates the subtitle
+ * from the paragraphs.
+ */
+.about-title {
+  position: relative;
+  z-index: 3;
+  margin-bottom: var(--about-gap);
+  max-width: 100%;
+  font-size: clamp(2rem, 4.3vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  text-align: left;
+  transform-origin: left top;
+  will-change: transform;
+}
+
+/* Every run of every exchange in ONE cell, so a letter changes where it stands
+   rather than one line pushing the other around. Two `ScrollMorph`s stacked
+   here carry the heading through three texts — see its `to` prop. */
+.morph {
+  grid-area: 1 / 1;
+  display: grid;
+}
+.about-title {
+  display: grid;
+}
+.morph__run {
+  grid-area: 1 / 1;
+  display: block;
+}
+
+.talent-act {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  gap: clamp(2rem, 6svh, 3rem);
+  padding: clamp(5.5rem, 13svh, 8rem) var(--hp-gutter) clamp(2rem, 5svh, 3rem);
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .talent-act {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: clamp(3rem, 6vw, 6rem);
+    align-items: center;
+  }
+}
+
+/* The portrait's slot. Fixed by the LAYOUT, not by the pictures — every stage
+   is cut to the same 3:4, so the frame never resizes under a turn. */
+/**
+ * THE ROOM — the blurred field the Talent act is lit in. See `TalentAura`.
+ *
+ * It is the first thing in the act and the only one with a negative z-index, so
+ * every portrait, line and card in here sits in front of it without any of them
+ * having to say so.
+ *
+ * `inset: -14%` is load-bearing with the blur. A filter samples past the edges
+ * of its element, finds nothing there, and fades towards transparent — which
+ * draws a soft dark border all the way round, the one shape in this design that
+ * would announce "there is a rectangle here". Oversizing the element pushes
+ * those edges off-screen and leaves only the middle of the field visible, which
+ * is the part with no edges in it.
+ *
+ * The blur is heavy on purpose and it is also why the gradients underneath can
+ * be as simple as three pools: at this radius the hard stops between them stop
+ * existing and what is left is the colour, which is the only part wanted.
+ */
+.talent-aura {
+  position: absolute;
+  /* Was inset: -14%, which existed so a 110px blur would sample its edges off
+     screen. With that blur gone the oversize is 64% more pixels to rasterise
+     for nothing. */
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  /* NO FILTER. A ten-pixel blur here looked free and measured at 190ms a frame
+     — a full-viewport filter re-running on every change beneath it. The
+     softness it was buying lives in the gradient stops instead, where it costs
+     nothing. */
+  will-change: opacity;
+}
+.talent-aura__layer {
+  position: absolute;
+  inset: 0;
+  will-change: opacity;
+}
+
+/**
+ * The act needs a stacking context of its own.
+ *
+ * Without one the aura's `z-index: -1` is resolved against the nearest ancestor
+ * that has one — the stage — and it would slide behind the stage's own ground
+ * and disappear. `isolation` buys exactly that and nothing else: no new
+ * compositing layer, no change to how anything paints.
+ */
+.talent-act {
+  isolation: isolate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The light still changes with the portrait — it is information about the
+     picture, not decoration — but it is held well back, since a wash this size
+     moving is the part of it that can be felt rather than seen. */
+  .talent-aura {
+    opacity: 0.55;
+  }
+}
+
+.talent-act__media {
+  position: relative;
+  width: 100%;
+  max-width: min(100%, 44svh);
+  margin-inline: auto;
+}
+@media (min-width: 1024px) {
+  /**
+   * THE ROOM, at desktop size — see `TalentAura`.
+   *
+   * ONE declaration, where there were two. The other one lived here and it won,
+   * because it came later and matched: `inset: -14%` with
+   * `filter: blur(clamp(60px, 7vw, 110px))`. So the blur removed from the base
+   * rule above was never removed on any desktop viewport, and the measurement
+   * that said taking it out changed nothing was reading a rule that still had
+   * it. A 110px Gaussian over 1.28 viewports of area, re-run on every change
+   * beneath it, was 190ms of a 198ms frame.
+   *
+   * The oversize went with it. It existed only so the blur could sample past
+   * the element's edges and not draw a soft dark border round the act; with no
+   * filter there is nothing sampling anything, and the inset is 64% more pixels
+   * for nothing.
+   *
+   * What the blur was buying — no hard seam between the three pools of light —
+   * is in the gradients themselves now: mid-stops, so each pool falls off on a
+   * curve instead of a ramp.
+   */
+
+  .talent-act__media {
+    max-width: min(100%, 58svh);
+    margin-inline: 0;
+  }
+}
+
+/**
+ * The frame the pictures open inside.
+ *
+ * Flat again — the panels grow in the plane of the page rather than turning in
+ * space, so there is no perspective and no 3D here. `overflow: hidden` is kept
+ * because the clip is doing the work and a stray sub-pixel edge is cheaper to
+ * cut than to chase.
+ */
+.talent-stack {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background-color: var(--hp-dark);
+}
+
+/* One picture, filling the frame. What varies is how much of it is clipped
+   away — see `SHUT` in the component. */
+.talent-stack__panel {
+  position: absolute;
+  inset: 0;
+  will-change: clip-path, opacity;
+}
+.talent-stack__img {
+  object-fit: cover;
+}
+
+/**
+ * Room at the top for the heading that arrives into this column.
+ *
+ * The chapter's title travels here and becomes "Talent" — it is positioned by
+ * transform, so it takes no space of its own and would otherwise land on the
+ * standfirst. This reserves the space; `land` in `AboutStudio` measures this
+ * box's top and puts the heading in it. Stylesheet owns the room, the script
+ * owns the arrival, and neither has to know the other's number.
+ */
+.talent-act__body {
+  padding-top: clamp(5.25rem, 11svh, 7.5rem);
+  pointer-events: auto;
+}
+.talent-act__line {
+  max-width: 34ch;
+}
+
+/**
+ * THE RISER — one number, and all four positions are multiples of it.
+ *
+ * Still one value to change, but the multiples are no longer 0/1/2/3. Read off
+ * the reference and normalised to its smallest step, the four sit at
+ * 0 / 3.08 / 1.00 / 4.47 — so the order down the page is 1, then 3, then 2,
+ * then 4. The second item stands ahead of the third and the fourth ahead of
+ * both, which is what stops the column reading as a flight of stairs and starts
+ * it reading as a composition.
+ *
+ * Sized against the FOURTH item, which carries the largest multiple and so has
+ * the least room left for its title — 4.47 risers in, out of the column's own
+ * width. Everything else simply has air to spare.
+ */
+.talent-act__list {
+  --talent-riser: clamp(0.4rem, 2.35vw, 2.6rem);
+
+  display: flex;
+  flex-direction: column;
+  /* SPACING IS THE SEPARATION NOW. The rules between these items are gone, so
+     what tells one from the next is the air around it — which has to be real
+     air rather than the padding that used to sit either side of a line. */
+  gap: clamp(1.1rem, 3.2svh, 2rem);
+  margin-top: clamp(1.5rem, 4svh, 2.5rem);
+  /* The cards come off the surface a few degrees; this is what they come off
+     it through. Further back than the portrait's, because these are lines. */
+  perspective: 1200px;
+}
+
+.talent-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: clamp(0.9rem, 2vw, 1.5rem);
+  align-items: baseline;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+/**
+ * The four positions, as multiples of the riser.
+ *
+ * The multiples are the reference's own, measured off it rather than invented:
+ * 3.08, 1.00 and 4.47 against a first item that does not move. Written as
+ * multiples rather than as three hand-set indents so the whole arrangement
+ * still answers to one value — widen the riser and the composition opens up
+ * without any of the four drifting out of relation with the others.
+ *
+ * `margin-inline-start`, not `padding` or `transform` — padding would shrink
+ * the measure of the line inside, and a transform would slide the item without
+ * telling the layout, so nothing below could ever respond to it.
+ */
+.talent-card:nth-child(2) {
+  margin-inline-start: calc(var(--talent-riser) * 3.08);
+}
+.talent-card:nth-child(3) {
+  margin-inline-start: calc(var(--talent-riser) * 1);
+}
+.talent-card:nth-child(4) {
+  margin-inline-start: calc(var(--talent-riser) * 4.47);
+}
+
+/**
+ * THE ACCENT IS ON THE NUMBER, and the title is neutral.
+ *
+ * That inversion is the reference's, and it is the whole of why its list reads
+ * as an index rather than as four headings: the eye is given the sequence
+ * first — 01, 02, 03, 04 running down the left — and the words second. Ours had
+ * it the other way round, with every title in lime and the numbers at 38% grey,
+ * so there were four shouts and no order.
+ *
+ * Lime where the reference uses red. The hierarchy is what is being borrowed;
+ * importing a colour this page does not otherwise own would be borrowing the
+ * skin instead.
+ */
+.talent-card__num {
+  font-family: var(--hp-font-secondary);
+  font-size: clamp(0.6rem, 0.5rem + 0.28vw, 0.92rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  /* Sits on the title's own baseline — see `align-items: baseline` on the card.
+     It is a marker on the line, not a label floating above it. */
+  color: var(--hp-lime);
+}
+
+/**
+ * Large, and sized against the MOST-INDENTED item.
+ *
+ * The fourth card carries three risers, so it has the least room — measured,
+ * 608px of a 810px column at 1680. A title set to fill the first card would
+ * overflow the fourth, so the ceiling is solved against the fourth and the
+ * others simply have air to spare, which is what a staircase looks like anyway.
+ *
+ * It wraps rather than overflows if a width is ever found where even this is
+ * too wide; only "Cinematography" is anywhere near long enough to need it.
+ */
+.talent-card__title {
+  font-family: var(--hp-font-primary);
+  font-size: clamp(1.25rem, 0.8rem + 2vw, 2.9rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--hp-off-white);
+}
+
+/**
+ * The row under it: the same words, spaced along a line with a middot between.
+ *
+ * `grid-column: 1 / -1`, so it starts at the NUMBER'S left edge rather than the
+ * title's. That is the reference's alignment and it is what gives each item a
+ * single left axis: the number, and the row of words beneath it, on one line —
+ * with only the title stepped in past them. Set to column 2 it lined up under
+ * the title instead and the number hung out on its own.
+ *
+ * A flex row rather than a sentence, so it wraps on its own at narrow widths
+ * instead of being squeezed — a single unwrapped row would have to be 7px on a
+ * phone to fit, which is not a size type can be read at.
+ */
+.talent-card__tags {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2em 0.62em;
+  margin-top: clamp(0.5rem, 1.4svh, 0.85rem);
+  font-family: var(--hp-font-secondary);
+  font-size: clamp(0.58rem, 0.46rem + 0.34vw, 0.84rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--hp-off-white) 52%, transparent);
+}
+
+/* The separator is DRAWN, not written: the markup holds four words, so that is
+   what a screen reader is given rather than four words and four middots. */
+.talent-card__tag:not(:last-child)::after {
+  content: "·";
+  margin-left: 0.62em;
+  color: color-mix(in srgb, var(--hp-off-white) 28%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Scroll position, not transitions — there is nothing to shorten. */
+  .talent-card,
+  .talent-stack__panel {
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   About — Chapter 03, What we do: the staircase.
+
+   After the archive on oddlymade.webflow.io. Three steps descending the page in
+   offset columns, each overlapping the one above it, so the eye is carried down
+   diagonally rather than straight. Each step assembles as it rises — see
+   `about-capabilities.tsx` for the order.
+   --------------------------------------------------------------------------- */
+
+/**
+ * IT STARTS A SCREEN EARLIER THAN IT USED TO.
+ *
+ * The chapter above is thirteen screens and its stage has said everything it
+ * has to say by twelve and a half: the title has handed over, the words and the
+ * faces are gone, the stage is at zero. What was left was most of a screen of
+ * nothing, and then the staircase arriving from below it — which is why this
+ * section read as not showing up. The reader had already been told the next
+ * thing was called "What we do" and then had to scroll past an empty screen to
+ * be shown any of it.
+ *
+ * Pulling it up closes exactly that gap: the first picture now crosses the fold
+ * while the title that names it is still the last thing on screen. It overlaps
+ * nothing that is visible — what it rises over is a stage already faded out,
+ * which also no longer takes the pointer.
+ *
+ * The alternative was to start the reveal earlier on the run instead, and that
+ * was tried: it opened the first window to 93% BELOW THE FOLD, so the reader
+ * scrolled down to a picture that had already finished arriving. A reveal has
+ * to happen where it can be seen, which is a fact about the layout and not
+ * about the timing.
+ */
+/* Explicitly BELOW the chapter above it for the length of their overlap — see
+   `.about-studio__stage`. `relative` only so the z-index has something to
+   apply to; it moves nothing. */
+.caps-section {
+  position: relative;
+  z-index: 0;
+  margin-top: -62svh;
+  padding-block: clamp(5rem, 14svh, 9rem);
+}
+/**
+ * The chapter title, at the live build's own scale.
+ *
+ * There it is the loudest thing on the screen — full lime, upper case, packed
+ * to the margins and set as large as the line will take. At 3.25rem in
+ * off-white it was quieter than the step titles underneath it, which is the
+ * wrong way round for a chapter heading.
+ *
+ * The motion is unchanged because it was already the reference's: the word
+ * rises out of a mask (`.stair__mask` / `.stair__word`) against scroll. Only
+ * its climb got longer — see `useEnter` in `AboutCapabilities`.
+ */
+/**
+ * The staircase's own heading — the same type as the crossing title it takes
+ * over from, so the hand-over is a change of MECHANISM and not of appearance.
+ *
+ * Sized and tracked to match `.about-title` exactly: the reader should see one
+ * heading that stops being pinned and starts travelling, not two headings.
+ */
+/* Dark until the pinned heading hands over at the instant the two coincide —
+   see the hand-over in `AboutStudio`. No transition: one is drawn or the other
+   is, and they are in the same place at the same size when it happens, so there
+   is nothing to blend. */
+.caps-section__head {
+  opacity: 0;
+}
+:root[data-title-handed-over="1"] .caps-section__head {
+  opacity: 1;
+}
+
+.caps-section__head {
+  margin-bottom: clamp(1.5rem, 5svh, 3.5rem);
+  font-family: var(--hp-font-primary);
+  font-size: clamp(2rem, 4.3vw, 6rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+/* The mask a line rises out of. The clip is the PARENT and the motion is on the
+   child — one element cannot both clip and be clipped. */
+.stair__mask {
+  display: block;
+  overflow: hidden;
+}
+.stair__word {
+  display: block;
+  will-change: transform;
+}
+
+.caps-stairs {
+  /* The chain's SVG is laid over this, so the route's coordinates and the
+     overlay share one origin. */
+  position: relative;
+  display: grid;
+  margin-top: clamp(2.5rem, 7svh, 4.5rem);
+  gap: clamp(3rem, 10svh, 7rem);
+}
+@media (min-width: 768px) {
+  /* Twelve columns and a real riser between the treads. The chain is held by
+     the SHARED VERTICAL EDGES, not by the rows being flush — each step's
+     words sit under its own picture, so a zero gap would only put the next
+     picture against the previous caption rather than against the corner. */
+  .caps-stairs {
+    display: block;
+  }
+  /* FLUSH. Any gap at all is a gap the shared corner falls into — the next
+     picture would be born a few dozen pixels below where the last one ended,
+     which is exactly the break this chain exists to not have. The rows are
+     taller than their words, so nothing collapses. */
+  .caps-stairs > .stair + .stair {
+    margin-top: 0;
+  }
+  /* Landscape everywhere, one ratio, and the files are cut to it — see
+     `public/capabilities`. A frame that disagrees with its picture is a frame
+     that crops somebody's head off. */
+  .caps-stairs .stair__frame {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+.stair {
+  display: grid;
+  gap: clamp(0.9rem, 2svh, 1.4rem);
+}
+
+.stair {
+  display: grid;
+  gap: clamp(1.25rem, 3svh, 2rem);
+}
+
+/**
+ * The descent — a chain, and every join is a single point.
+ *
+ * Each step's reveal grows out of the corner the step above it finished on, so
+ * the geometry has to put those two corners in the same place. Two things make
+ * that true and both are load-bearing:
+ *
+ *   the ROWS ARE FLUSH — zero gap, so the y of a join matches
+ *   the COLUMNS ARE HALVES — so the x of a join matches
+ *
+ *   0%                 40%                           100%
+ *   ├──────────────────┼──────────────────────────────┤
+ *   │  01 ▸ opens TL   │            words             │  ends BR  ●
+ *   │       words      │     02 ▸ opens TL  ●         │  ends BL  ●
+ *   │  03 ◂ opens TR ● │            words             │  ends BR  ●
+ *   │       words      │     04 ▸ opens TL  ●         │  ends BL  ●
+ *   │  05 ◂ opens TR ● │            words             │
+ *
+ * 40 / 60 / 40 / 60 / 40, so the run does not read as five of the same thing.
+ * ● is the join, and every one of them is on the 40% line — the only line the
+ * two columns share, whichever way round they are used. That is why alternating
+ * the widths costs the chain nothing: the shared edge moved, it did not go.
+ *
+ * The side alternates strictly, and which corner a step opens from is simply
+ * whichever bottom corner of the step above happens to sit on that line.
+ *
+ * `column-gap` is 0 and the air comes from padding inside the words, so the
+ * picture's edge lands ON the 50% line rather than near it. A gutter here would
+ * put the whole chain a few pixels out of true.
+ */
+@media (min-width: 768px) {
+  .stair {
+    /**
+     * 44 / 56, and the swap below does the rest.
+     *
+     * One pair of widths covers both arrangements, because the steps do not
+     * change the grid — they change which cell each element sits in. The odd
+     * steps put the picture in the second column and the words in the first,
+     * so the same `44% 56%` reads as a 44 picture against 56 of words going
+     * one way and a 56 picture against 44 of words coming back. Two
+     * compositions, one track list, and nothing that can fall out of step
+     * with itself.
+     */
+    grid-template-columns: 44% 56%;
+    /* Against the middle of its own picture — at this size a line hanging off
+       the foot of a half-width frame reads as a stray footnote. */
+    align-items: center;
+    column-gap: 0;
+  }
+
+  /* Picture left, words right — the odd steps. */
+  .stair[data-step="0"] .stair__body,
+  .stair[data-step="2"] .stair__body,
+  .stair[data-step="4"] .stair__body {
+    grid-area: 1 / 2;
+    padding-left: clamp(2rem, 4vw, 4rem);
+  }
+
+  /* Picture right, words left — the even ones. */
+  .stair[data-step="1"] .stair__frame,
+  .stair[data-step="3"] .stair__frame {
+    grid-area: 1 / 2;
+  }
+  .stair[data-step="1"] .stair__body,
+  .stair[data-step="3"] .stair__body {
+    grid-area: 1 / 1;
+    padding-right: clamp(2rem, 4vw, 4rem);
+  }
+}
+
+.stair__frame {
+  position: relative;
+  /* The single-column fallback's ratio; each step overrides it above. */
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background-color: var(--hp-dark);
+  /* Promoted once: the whole frame travels on every pixel of its arrival. */
+  will-change: transform, opacity;
+}
+.stair__media {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+/* Serves both the still and the clip. `next/image` with `fill` writes its own
+   inline position and size so these are inert there; a plain `<video>` has
+   neither, and without them it would sit at its intrinsic size inside a frame
+   that is clipping it. */
+.stair__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/**
+ * The words fill their column.
+ *
+ * It was capped at 46ch, which on the steps whose picture is 40% left a
+ * 728px column carrying a 560px measure and a third of it empty. The column
+ * widths are the composition now — 40/60 and 60/40 — so the text box IS the
+ * 60%, and the measure is whatever that comes to.
+ */
+.stair__body {
+  max-width: 100%;
+}
+
+/**
+ * After the studio chapter on the live build: the discipline set as large and
+ * as heavy as the column will carry, packed tight, with a single light line
+ * under it. Bigger and tighter than it was — there the type is the loudest
+ * thing on the screen after the still itself, and at 3.5rem against a 480px
+ * picture it was the quietest.
+ *
+ * NO `color` here. It is a MotionValue — dormant grey until the step's own line
+ * lands, then lime, exactly as the reference's list goes from dormant to live.
+ * See `TITLE_INK`.
+ */
+/**
+ * As large as the longest of the five will allow on ONE LINE — solved, not
+ * guessed, and re-solved now that the columns are uneven.
+ *
+ * "CREATIVE DIRECTION" is 12.16em in `soehne-breit-900` at this tracking and
+ * sets the ceiling for all five. It is also, by the 40/60/40/60/40 pattern, the
+ * one whose words get the NARROW column — so the ceiling is now a 40% column
+ * rather than a 50% one, and the type comes down with it:
+ *
+ *    768px page   words 252px   type 19px   line 229px    9% spare
+ *   1280px        words 422     type 31     line 381      9%
+ *   1440px        words 475     type 35     line 429      9%
+ *   1920px        words 652     type 47     line 572     12%
+ *
+ * That is 35px at 1440 where even columns allowed 46. It is the cost of the
+ * alternating widths and there is no way to have both: the longest title and
+ * the narrowest column are the same step. Swapping the pattern to
+ * 60/40/60/40/60 would hand it the wide column back and the type with it.
+ *
+ * `nowrap` is a guarantee rather than a crop — the size already fits; it only
+ * makes the intent impossible to break by accident later.
+ */
+.stair__title {
+  font-family: var(--hp-font-primary);
+  font-size: clamp(1.25rem, 2.45vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The glyphs of a scattered title. `inline-block` because a transform does
+   nothing to a non-replaced inline element — and because the line has to hold
+   its final width from the first frame, so the letters flying about have
+   nowhere to push. */
+.scatter__char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Scroll position, not a transition — there is nothing to shorten. The
+     title simply stands where the type sets it. */
+  .scatter__char {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+.stair__line {
+  margin-top: clamp(0.75rem, 1.4vw, 1.25rem);
+}
+
