@@ -3340,3 +3340,650 @@ html[data-logo-handoff] .site-header__logo {
   margin-top: clamp(0.75rem, 1.4vw, 1.25rem);
 }
 
+/* --- contact ------------------------------------------------------------- */
+
+/**
+ * The contact page, in the SITE'S language rather than a dialect of it.
+ *
+ * The first pass invented its own: a 90rem centred shell where every other
+ * section is full-bleed to `--hp-gutter`, off-white headings where the display
+ * cut is lime, a 999px pill where `--hp-radius-control` is 0px and its own note
+ * says a rounded control "would read as a control borrowed from another site",
+ * and an `animation: hero-rise` that referenced a keyframe which does not
+ * exist — the real one is `hp-hero-rise` — so the opening never animated at all.
+ *
+ * None of that survives. Type comes from the shared utilities (`hp-display`,
+ * `hp-sub`, `hp-copy`, `hp-eyebrow`, `label-xs`), rhythm from `--hp-gutter`,
+ * curves from `--hp-ease-out`, and the controls are the header ticket's: a
+ * square lime-ruled box that the lime floods into from the left.
+ *
+ * What is left here is only what is genuinely this page's: where its four
+ * sections sit, and how the three ways arrive.
+ */
+
+/* Full-bleed to the gutter, as every other section on the site is. */
+.contact-section {
+  padding-inline: var(--hp-gutter);
+}
+
+/* --- the opening --- */
+
+/**
+ * FIXED and full screen, with the second section travelling up over it — the
+ * reference's arrangement. `height`, not `min-height`, so nothing of what
+ * follows can show beneath it on load.
+ */
+/**
+ * STICKY, not fixed — and that distinction is the whole bug it replaces.
+ *
+ * `fixed` took the hero out of the flow: its cards were then positioned against
+ * the viewport while the section below measured itself against the document, so
+ * the moment anything scrolled the two stopped agreeing and the hand-over came
+ * apart. `sticky` keeps the hero in the flow, holds it at the top of the window
+ * while the next section travels over it, and — the reason it matters here —
+ * leaves the cards exactly where they are on screen at the instant the second
+ * section begins. That is what lets one of them appear to grow out of the
+ * scatter rather than reappearing somewhere else.
+ */
+/* The hero's sticky container: hero + reveal only, so the hero is released
+   exactly as the reveal's stage leaves and never shows behind the footer. No
+   overflow here — any overflow value would break the sticky. */
+.contact-opening {
+  position: relative;
+}
+.contact-hero {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  height: 100svh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: calc(var(--hp-header-h) + clamp(1rem, 3svh, 2rem)) var(--hp-gutter)
+    clamp(1.5rem, 4svh, 2.5rem);
+}
+
+.contact-hero__scatter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.contact-hero__card {
+  position: absolute;
+  display: block;
+  width: calc(var(--w) * var(--card-scale, 1));
+  translate: -50% -50%;
+  opacity: 0;
+  /* Long and soft: a gentle expo-out with no overshoot, so each card drifts in
+     and settles rather than arriving. */
+  animation: hp-card-in 1.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* Height from the picture's own ratio — never cropped to a box. */
+.contact-hero__card img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/**
+ * The card's arrival, measured off the reference preloader: scale 1 at opacity
+ * 0, overshooting to 1.085 as it becomes visible, settling to 1. The rotation
+ * is composed into every keyframe — a transform in a keyframe REPLACES the
+ * element's own, so a card with `rotate()` in its style would un-tilt itself
+ * for the length of the move.
+ */
+/* SOFTER than the reference's pop (1 → 1.085 → 1): the card rises a little,
+   grows from just under size and comes into focus as it fades up, with the
+   fade finishing before the movement does so it never looks half-there. */
+@keyframes hp-card-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(1.75rem) rotate(var(--rot)) scale(0.94);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) rotate(var(--rot)) scale(1);
+  }
+}
+
+/* Centred in the frame, over the scatter. */
+.contact-hero__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: clamp(0.75rem, 2svh, 1.25rem);
+  max-width: 54rem;
+}
+.contact-hero__title {
+  font-size: clamp(2.4rem, min(7.4vw, 15svh), 9.5rem);
+  display: grid;
+}
+.contact-hero__title > span {
+  display: block;
+  animation: hp-hero-rise 1s var(--hp-ease-out) both;
+}
+.contact-hero__standfirst {
+  max-width: 40ch;
+}
+
+/* The reference enlarges its cards on a narrow screen rather than letting them
+   scale with the viewport — 13-16% of the width at 1680, 24-38% at 390. */
+@media (max-width: 700px) {
+  .contact-hero__card {
+    --card-scale: 1.8;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-hero__card {
+    animation: none;
+    opacity: 0.22;
+    transform: rotate(var(--rot));
+  }
+}
+
+/* --- the three ways --- */
+
+.contact-ways {
+  padding-block: clamp(5rem, 14svh, 9rem);
+}
+.contact-ways__list {
+  margin-top: clamp(2rem, 6svh, 3.5rem);
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 3.5rem);
+  list-style: none;
+  padding: 0;
+}
+@media (min-width: 900px) {
+  .contact-ways__list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.contact-way {
+  position: relative;
+  padding-top: clamp(1.1rem, 2.5svh, 1.6rem);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.75rem;
+  align-items: baseline;
+  opacity: 0;
+  transform: translateY(1.25rem);
+  transition:
+    opacity 0.9s var(--hp-ease-out),
+    transform 0.9s var(--hp-ease-out);
+}
+.is-in .contact-way {
+  opacity: 1;
+  transform: none;
+}
+/* The rule draws itself as the section arrives — the staircase's move. */
+.contact-way__rule {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: color-mix(in srgb, var(--hp-off-white) 22%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.1s var(--hp-ease-out);
+}
+.is-in .contact-way__rule {
+  transform: scaleX(1);
+}
+/* Lime, on the title's own baseline — `talent-card__num`, unchanged. */
+.contact-way__num {
+  font-weight: 700;
+  color: var(--hp-lime);
+}
+.contact-way__title {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.9rem);
+}
+.contact-way__body {
+  grid-column: 2;
+  margin-top: 0.85rem;
+}
+.contact-way__cta {
+  grid-column: 2;
+  margin-top: 1.4rem;
+}
+.contact-ways__social {
+  margin-top: clamp(2.5rem, 6svh, 4rem);
+}
+.contact-ways__social a,
+.contact-closing__mail {
+  color: var(--hp-off-white);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--hp-lime) 55%, transparent);
+  padding-bottom: 0.12em;
+  transition: color 0.45s var(--hp-ease-out);
+}
+.contact-ways__social a:hover,
+.contact-closing__mail:hover {
+  color: var(--hp-lime);
+}
+
+/* --- the control, which is the header ticket's --- */
+
+.contact-action {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 2.75rem;
+  padding-inline: 1.15rem;
+  overflow: hidden;
+  border: 1px solid var(--hp-lime);
+  border-radius: var(--hp-radius-control);
+  background: transparent;
+  color: var(--hp-off-white);
+  font-family: var(--hp-font-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.45s var(--hp-ease-out);
+}
+.contact-action::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--hp-lime);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.6s var(--hp-ease-out);
+}
+.contact-action:hover,
+.contact-action:focus-visible {
+  color: var(--hp-soft);
+}
+.contact-action:hover::before,
+.contact-action:focus-visible::before {
+  clip-path: inset(0);
+}
+
+/* --- the brief --- */
+
+.contact-form-section {
+  padding-block: clamp(5rem, 14svh, 9rem);
+  border-top: 1px solid color-mix(in srgb, var(--hp-off-white) 12%, transparent);
+}
+.contact-form-section__inner {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 5rem);
+}
+@media (min-width: 1024px) {
+  .contact-form-section__inner {
+    grid-template-columns: 1fr 1.15fr;
+    align-items: start;
+  }
+}
+/**
+ * The CHAPTER-TITLE treatment, not the page-title one.
+ *
+ * The site has two display settings and they are not interchangeable. A
+ * page-level line — the hero here, `.work__cta-title` there — runs the
+ * `hp-display` recipe at -0.045em on a 0.88 line. A section heading inside a
+ * page runs slightly looser: `.caps-section__head` is -0.035em on 0.95, which
+ * is what stops a mid-page title shouting as loudly as the one that opens it.
+ *
+ * This is a section heading, so it takes the second. Measured against
+ * `.caps-section__head` on /about, the three values now resolve identically.
+ */
+.contact-form-section__head {
+  font-size: clamp(2rem, 4.3vw, 6rem);
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+.contact-form-section__note {
+  margin-top: clamp(1rem, 2.5svh, 1.5rem);
+  max-width: 34ch;
+}
+.contact-form {
+  display: grid;
+  gap: clamp(1.1rem, 2.5svh, 1.6rem);
+}
+.contact-field {
+  display: grid;
+  gap: 0.55rem;
+}
+.contact-field__opt {
+  letter-spacing: 0.14em;
+  opacity: 0.6;
+}
+/* Ruled lines, not boxes — and square, like every control here. */
+.contact-field input,
+.contact-field textarea {
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-copy);
+  color: var(--hp-off-white);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--hp-off-white) 28%, transparent);
+  border-radius: var(--hp-radius-control);
+  padding: 0.6rem 0;
+  resize: vertical;
+  transition: border-color 0.45s var(--hp-ease-out);
+}
+.contact-field input:focus-visible,
+.contact-field textarea:focus-visible {
+  outline: none;
+  border-bottom-color: var(--hp-lime);
+}
+.contact-submit {
+  justify-self: start;
+  margin-top: clamp(0.5rem, 2svh, 1rem);
+}
+.contact-form__status {
+  font-size: var(--hp-text-sm);
+}
+
+/* --- the last word --- */
+
+.contact-closing {
+  padding-block: clamp(5rem, 16svh, 11rem) clamp(4rem, 12svh, 8rem);
+  border-top: 1px solid color-mix(in srgb, var(--hp-off-white) 12%, transparent);
+}
+.contact-closing__head {
+  font-size: clamp(2.25rem, 1.1rem + 5vw, 7rem);
+  display: grid;
+}
+.contact-closing__head > span {
+  display: block;
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition:
+    opacity 1s var(--hp-ease-out),
+    transform 1s var(--hp-ease-out);
+}
+.contact-closing__head > span:nth-child(2) {
+  transition-delay: 0.1s;
+}
+.is-in .contact-closing__head > span {
+  opacity: 1;
+  transform: none;
+}
+.contact-closing__mail {
+  display: inline-block;
+  margin-top: clamp(2rem, 5svh, 3rem);
+  font-family: var(--hp-font-primary);
+  font-weight: 400;
+  font-size: clamp(1.125rem, 1rem + 0.8vw, 1.75rem);
+}
+.contact-closing__reply {
+  margin-top: clamp(1rem, 2.5svh, 1.5rem);
+}
+.contact-closing__cities {
+  margin-top: clamp(1.5rem, 4svh, 2.5rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  list-style: none;
+  padding: 0;
+  color: color-mix(in srgb, var(--hp-off-white) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* `hero-rise` already carries its own reduced-motion handling site-wide; what
+     is left here is this page's own scrubbed arrivals. */
+  .contact-way,
+  .contact-closing__head > span {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .contact-way__rule {
+    transform: scaleX(1);
+    transition: none;
+  }
+}
+
+/* --- the second section -------------------------------------------------- */
+
+/**
+ * A picture out of the opening grows until it is the whole screen, and the
+ * contact panel is read on it. See `ContactReveal`.
+ *
+ * `z-index: 1` and a ground of its own: the hero below is `fixed`, so this has
+ * to travel over it and cover it rather than share the frame with it.
+ */
+/**
+ * TRANSPARENT until the picture covers the frame.
+ *
+ * It had the page's black, which meant the second section blacked the hero out
+ * the instant it reached the top — so the picture was not growing out of the
+ * scatter, it was growing out of nothing. With no ground of its own, the only
+ * thing this section paints at the start is the clipped picture itself, and the
+ * hero is visible behind it until that picture has filled the screen.
+ */
+.contact-reveal {
+  position: relative;
+  z-index: 1;
+  /* Set from `SCREENS` in `ContactReveal`, which owns the timeline. */
+  height: var(--reveal-h, 460svh);
+  background: transparent;
+}
+/* The hand-over's blur: a fixed-radius copy over the sharp picture, faded in.
+   Scaled past the frame so the blur's soft edge is never inside it. */
+.contact-reveal__blur {
+  position: absolute;
+  inset: 0;
+  filter: blur(28px);
+  transform: scale(1.12);
+}
+/* The footer, pulled up over the reveal's tail — see `FOOTER_OVERLAP`. Its
+   box is transparent until the footer is live, so it must not take the
+   pointer from the form underneath it; `.footer.is-live` takes it back. */
+.contact-footer {
+  margin-top: calc(var(--overlap, 0svh) * -1);
+  pointer-events: none;
+}
+.contact-reveal__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+/* Its box — left, top, width, height, tilt — is set from the scroll in
+   `ContactReveal`: it starts as the hero card and grows to the frame. */
+.contact-reveal__media {
+  position: absolute;
+  overflow: hidden;
+  opacity: 0;
+  will-change: transform;
+}
+.contact-reveal__shot {
+  position: absolute;
+  inset: 0;
+}
+.contact-reveal__img {
+  object-fit: cover;
+}
+/* A light wash only — the panel's two boxes carry their own grounds now, so
+   the photograph can stay a photograph around them. */
+.contact-reveal__scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--hp-night) 28%, transparent);
+}
+
+.contact-reveal__panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  padding-block: calc(var(--hp-header-h) + clamp(1rem, 3svh, 2rem))
+    clamp(1.5rem, 4svh, 2.5rem);
+  overflow-y: auto;
+}
+/* Two boxes side by side, as flyward sets them: the same height, a narrow
+   seam between. */
+.contact-reveal__grid {
+  display: grid;
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+@media (min-width: 1024px) {
+  .contact-reveal__grid {
+    grid-template-columns: 1.1fr 1fr;
+    align-items: stretch;
+  }
+}
+/* The information on frosted glass: the picture behind it, blurred and
+   darkened just enough for white type. */
+.contact-reveal__info {
+  padding: clamp(1.25rem, 2.6vw, 2.75rem);
+  background: color-mix(in srgb, var(--hp-night) 34%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.1);
+  backdrop-filter: blur(22px) saturate(1.1);
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 14%, transparent);
+}
+/* The form on solid white, dark type — legibility first. */
+.contact-reveal__form {
+  padding: clamp(1.25rem, 2.6vw, 2.75rem);
+  background: var(--hp-off-white);
+  color: var(--hp-night);
+}
+.contact-reveal__form .contact-reveal__label,
+.contact-reveal__form .contact-field__label,
+.contact-reveal__form .contact-form__status {
+  color: color-mix(in srgb, var(--hp-night) 62%, transparent);
+}
+.contact-reveal__form .contact-field input,
+.contact-reveal__form .contact-field textarea {
+  color: var(--hp-night);
+}
+.contact-reveal__form .contact-field textarea {
+  height: 5.5rem;
+}
+/* The form's title: the chapter-title treatment of `.contact-reveal__line`,
+   a step smaller, in ink, with clear air before the first field. */
+.contact-reveal__form-head {
+  font-size: clamp(1.4rem, 2.2vw, 2.4rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--hp-night);
+  margin-bottom: clamp(1.25rem, 3svh, 2rem);
+}
+.contact-reveal__form .contact-field input:focus-visible,
+.contact-reveal__form .contact-field textarea:focus-visible {
+  border-bottom-color: var(--hp-night);
+}
+/* The action in ink on white; it still fills with the lime on hover. */
+.contact-reveal__form .contact-action {
+  border-color: var(--hp-night);
+  color: var(--hp-night);
+}
+.contact-reveal__form .contact-action:hover,
+.contact-reveal__form .contact-action:focus-visible {
+  border-color: var(--hp-lime);
+  color: var(--hp-night);
+}
+/* The chapter-title treatment, as `.caps-section__head` carries it. */
+.contact-reveal__line {
+  font-size: clamp(1.6rem, 3vw, 3.5rem);
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+  max-width: 14ch;
+}
+.contact-reveal__facts {
+  display: grid;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  margin-top: clamp(1.25rem, 3svh, 2rem);
+}
+@media (min-width: 560px) {
+  .contact-reveal__facts {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.contact-reveal__label {
+  color: color-mix(in srgb, var(--hp-off-white) 55%, transparent);
+  margin-bottom: 0.6rem;
+}
+.contact-reveal__mail,
+.contact-reveal__social a {
+  color: var(--hp-off-white);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--hp-lime) 55%, transparent);
+  transition: color 0.45s var(--hp-ease-out);
+}
+.contact-reveal__mail:hover,
+.contact-reveal__social a:hover {
+  color: var(--hp-lime);
+}
+.contact-reveal__social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  list-style: none;
+  padding: 0;
+}
+.contact-reveal__reply {
+  max-width: 30ch;
+}
+
+/* The map plate — see `ContactReveal` for why it is a slot and not a map. */
+.contact-reveal__map {
+  margin-top: clamp(1.25rem, 3svh, 2rem);
+}
+.contact-reveal__plate {
+  display: grid;
+  place-items: center;
+  min-height: clamp(6rem, 14svh, 9rem);
+  border: 1px solid color-mix(in srgb, var(--hp-off-white) 22%, transparent);
+  border-radius: var(--hp-radius-control);
+  background: color-mix(in srgb, var(--hp-night) 45%, transparent);
+}
+.contact-reveal__cities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.contact-reveal__pending {
+  color: color-mix(in srgb, var(--hp-off-white) 45%, transparent);
+}
+
+/* The form sits on a photograph here, so its rules carry a touch more weight
+   than they do on black. Nothing else about it changes. */
+.contact-reveal__form .contact-field input,
+.contact-reveal__form .contact-field textarea {
+  border-bottom-color: color-mix(in srgb, var(--hp-night) 30%, transparent);
+}
+.contact-reveal__form .contact-form {
+  gap: clamp(0.7rem, 1.6svh, 1.1rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-reveal {
+    height: auto;
+  }
+  /* No scrubbed hand-over here: the footer is static and opaque, so it follows
+     the reveal instead of overlapping it. */
+  .contact-footer {
+    margin-top: 0;
+  }
+  .contact-reveal__blur {
+    display: none;
+  }
+  .contact-reveal__stage {
+    position: relative;
+    height: auto;
+    min-height: 100svh;
+  }
+  .contact-reveal__panel {
+    position: relative;
+    opacity: 1;
+    transform: none;
+  }
+}
