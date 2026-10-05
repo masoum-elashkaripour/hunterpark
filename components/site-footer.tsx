@@ -72,7 +72,8 @@ const LIVE_AT = MOTION.night.end;
 const INDEX = [
   { label: "Studio", href: "/work" },
   { label: "Work", href: "/work" },
-  { label: "Contact", href: "/work" },
+  /* Was `/work` — a placeholder from before there was a contact page. */
+  { label: "Contact", href: "/contact" },
 ];
 
 const SOCIAL = [
@@ -165,12 +166,18 @@ function Line({
   at,
   d,
   circle,
+  cross,
 }: {
   p: MotionValue<number>;
   driven: boolean;
   at: number;
   d?: string;
   circle?: { cx: number; cy: number; r: number };
+  /**
+   * The cross ticks, which are drafted paths like the rest and are marked only
+   * so the stylesheet can give them their heavier 0.4 against the guides' 0.16.
+   */
+  cross?: boolean;
 }) {
   const reduced = useReducedMotion();
   /* `figure.lines` from the source: the run spans 0.46 → 0.84, each line takes
@@ -195,7 +202,7 @@ function Line({
   ) : (
     <m.path
       d={d}
-      data-footer-line
+      data-footer-line={cross ? "cross" : ""}
       style={reduced || !driven ? undefined : { pathLength }}
     />
   );
@@ -286,11 +293,18 @@ export function SiteFooter({
   /**
    * The drafted plates belong to the FOOTER, and must not be seen before it.
    *
-   * The arcs and guides draw themselves on from `figure.lines`, but the cross
-   * ticks are plain paths with nothing animating them — so they were on screen
-   * from the start, showing through the footer's still-transparent stage and
-   * scattering little plus marks over the closing lockup. Tied to the night, so
-   * the whole plate arrives with the ground it belongs to.
+   * This exists because the cross ticks used to be plain paths with nothing
+   * animating them: they were on screen from the start, showing through the
+   * footer's still-transparent stage and scattering plus marks over the closing
+   * lockup. Fading the whole plate on the night fixed that and introduced a
+   * worse one — the crosses were then FULLY UP at 0.451, while every guide and
+   * arc around them waits for `figure.lines` at 0.46.
+   *
+   * The crosses draw themselves on now, like the lines they sit among, so this
+   * no longer has anything to hide: at the moment the plate becomes opaque
+   * every path in it still has zero length. It is kept because the glow lives
+   * in here too, and the glow is a filled element that genuinely does need the
+   * ground beneath it before it can be seen.
    */
   const plateOpacity = useTransform(progress, [N.start, N.end], [0, 1]);
 
@@ -532,9 +546,31 @@ export function SiteFooter({
               <Line p={progress} driven={driven} at={3} d="M 0 560 H 1600" />
               <Line p={progress} driven={driven} at={4} d="M 880 0 V 620" />
               <Line p={progress} driven={driven} at={5} d="M 0 640 L 880 340" />
-              <path
+              {/* THE CROSS TICKS ARE PART OF THIS SEQUENCE, not a separate
+                  event. They were a plain `<path>` with nothing animating them,
+                  so they were faded in bodily on `night` (0.233 -> 0.451) just
+                  to stop them showing through the still-transparent stage —
+                  which left them FINISHED at 0.451 while the guides around them
+                  only begin at `figure.lines`, 0.46. Four plus marks alone on a
+                  black field, a beat before anything they belong to.
+
+                  Drafted now, and LAST in the stagger, which is where the
+                  reference puts them. Measured on it, by stroke-dashoffset:
+                  with 3000px of the page left its guides are already drawing
+                  (1003 of 1131) while the crosses are still untouched at 144;
+                  at 2400px the guides are ~89% and the crosses 43%; both finish
+                  together. So the order is guides first, crosses closing behind
+                  them — never the other way round.
+
+                  `at={5}` is the last of the six slots the existing stagger
+                  already defines, so this is a position in that sequence rather
+                  than a delay bolted on beside it. */}
+              <Line
+                p={progress}
+                driven={driven}
+                at={5}
+                cross
                 d="M 871 340 H 889 M 880 331 V 349 M 871 560 H 889 M 880 551 V 569 M 291 560 H 309 M 300 551 V 569 M 631 560 H 649 M 640 551 V 569"
-                data-footer-line="cross"
               />
             </m.g>
           </svg>
@@ -570,9 +606,14 @@ export function SiteFooter({
               <Line p={progress} driven={driven} at={3} d="M 0 545 H 390" />
               <Line p={progress} driven={driven} at={4} d="M 330 440 V 700" />
               <Line p={progress} driven={driven} at={5} d="M 0 650 L 330 440" />
-              <path
+              {/* The phone plate's three, on the same schedule — see the wide
+                  plate above. */}
+              <Line
+                p={progress}
+                driven={driven}
+                at={5}
+                cross
                 d="M 325 545 H 335 M 330 540 V 550 M 150 545 H 160 M 155 540 V 550 M 325 440 H 335 M 330 435 V 445"
-                data-footer-line="cross"
               />
             </m.g>
           </svg>
@@ -677,7 +718,10 @@ export function SiteFooter({
               <span>New project</span>
             </Item>
             <Item p={progress} driven={driven} at={6}>
-              <Link className="footer__say" href="/work">
+              {/* "New project / Say hello" — this is the footer's contact
+                  call, and it went to the work index for want of anywhere
+                  else. It has somewhere else now. */}
+              <Link className="footer__say" href="/contact">
                 <span className="footer__say-text">Say hello</span>
                 <span className="footer__say-arrow">
                   <Arrow />

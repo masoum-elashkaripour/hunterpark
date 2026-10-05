@@ -36,12 +36,60 @@ export type Work = {
  *
  * When a project's real cut lands, set its `video` and `poster` together.
  */
-const LANDSCAPE = Array.from({ length: 11 }, (_, i) => ({
-  video: `/video/sample-${i + 1}.mp4`,
-  poster: `/poster/sample-${i + 1}.jpg`,
+/**
+ * ORDER IS MEANING HERE, so it is written out rather than generated.
+ *
+ * It used to be `Array.from({length: 11}, i => sample-${i+1})` — numeric order,
+ * which is no order at all. `SAMPLES` draws its landscape cells from this array
+ * front to back and `WORKS` takes `SAMPLES[i]`, so position 0 is the first
+ * landscape card a reader ever sees on the index. Numeric order put `sample-1`
+ * there: 1280x720 at 453 kbps, the weakest file in the set, with the three
+ * supplied 1080p clips at positions 9, 10 and 11 — so far down that they only
+ * appeared around the fourteenth card.
+ *
+ * The three supplied clips lead now. Measured, a frame a second across each
+ * file, against the stand-ins they displaced:
+ *
+ *   sample-9    1920x1080   3806 kbps   luma 163   sat  3.4   the brightest
+ *   sample-10   1920x1080   3901 kbps   luma 112   sat 27.2   bright and saturated
+ *   sample-11   1920x1080  10593 kbps   luma  67   sat 31.4   the most saturated
+ *   ---
+ *   sample-1    1280x720     453 kbps   luma  93   sat 21.4   was first
+ *   sample-2    1280x720    1245 kbps   luma  94   sat 30.4   was second
+ *
+ * Every supplied clip is 1080p and between three and twenty-three times the
+ * bitrate of the stand-in it replaced at the front.
+ *
+ * The eight stand-ins keep their slots further down rather than being deleted:
+ * there are thirty-one projects and six supplied clips, so the list still needs
+ * filler. They are ordered brightest first behind the real footage, which is
+ * the same rule, applied twice.
+ */
+const LANDSCAPE = [
+  /* Supplied footage — see the measurements above. */
+  "sample-9",
+  "sample-10",
+  "sample-11",
+  /* Stand-ins, brightest first: luma 139, 136, 94, 93, 85, 67, 32, 24. */
+  "sample-7",
+  "sample-5",
+  "sample-2",
+  "sample-1",
+  "sample-4",
+  "sample-3",
+  "sample-6",
+  "sample-8",
+].map((name) => ({
+  video: `/video/${name}.mp4`,
+  poster: `/poster/${name}.jpg`,
 }));
 
-/** Vertical cuts. Supplied as 4K masters and transcoded down for the web. */
+/**
+ * Vertical cuts. Supplied as 4K masters and transcoded down for the web — so
+ * all three of these are real footage, not stand-ins, and they already sit at
+ * the front of their own rotation. `vertical-1` is both the brightest of them
+ * (luma 134) and the one `oneWorkPerClip` hands the index's first feature slot.
+ */
 const PORTRAIT = Array.from({ length: 3 }, (_, i) => ({
   video: `/video/vertical-${i + 1}.mp4`,
   poster: `/poster/vertical-${i + 1}.jpg`,
@@ -92,35 +140,33 @@ const SAMPLES = (() => {
  * repeat across thirty-one projects, so an un-deduplicated reel plays the same
  * shot every few cards.
  *
- * The order is measured, not guessed — mean saturation and luma sampled a
- * frame a second across each clip:
+ * THE SUPPLIED FOOTAGE LEADS. The reel is the first thing the page shows, and
+ * it was opening on 720p stand-ins while three 1080p clips sat unused in it.
+ * Measured a frame a second across each file:
  *
- *   sample-2  sat 30.6  luma 95    saturated and bright
- *   sample-3  sat 31.6  luma 67    the most saturated
- *   sample-4  sat 12.8  luma 118   editorial pick, see below
- *   sample-6  sat 11.4  luma  32   editorial pick, see below
- *   sample-5  sat 14.2  luma 137   bright, less colour
- *   sample-10                        editorial pick, see below
+ *   sample-9    1920x1080   3806 kbps   luma 163  sat  3.4   the brightest shot
+ *   sample-10   1920x1080   3901 kbps   luma 112  sat 27.2   bright, saturated
+ *   sample-11   1920x1080  10593 kbps   luma  67  sat 31.4   the most saturated
+ *   sample-2    1280x720    1245 kbps   luma  94  sat 30.4
+ *   sample-3    1280x720    2673 kbps   luma  67  sat 31.5
+ *   sample-6    1280x720     311 kbps   luma  32  sat  7.6
  *
- * Two of these are here by choice rather than by measurement, both asked for
- * by name: `sample-4` carries Northwell Health / Cancer Institute,
- * `sample-6` carries NAMI NYC / Inside & Outwards, and `sample-10` carries
- * NYC Ballet / Lincoln Center — the one shot against yellow, which took
- * `sample-7`'s slot (St. Bernards / Women's Health). `sample-6` in particular is
- * the darkest clip in the set — a red-lit figure against near-black — so it
- * reads very differently from its neighbours on the arc. That is a deliberate
- * choice, not an oversight.
+ * `sample-6` is kept, and kept last, deliberately: it is the darkest clip in
+ * the set — a red-lit figure against near-black — and it carries NAMI NYC /
+ * Inside & Outwards, which was asked for by name. Last is where a deliberate
+ * dark contrast belongs once there is brighter footage to open on.
  *
- * `sample-1` (Old Dominion / NCAA) came out to make room. 1 and 8 are the two
- * still out: 8 is both flat and dark (luma 24) with nothing asking for it.
+ * `sample-4` and `sample-5` came out. Both were here on brightness grounds
+ * measured against the old set, and both are 720p; the supplied clips beat them
+ * on the same measurement that put them here.
  */
 export const REEL_CLIPS = [
+  "/video/sample-9.mp4",
+  "/video/sample-10.mp4",
+  "/video/sample-11.mp4",
   "/video/sample-2.mp4",
   "/video/sample-3.mp4",
-  "/video/sample-4.mp4",
   "/video/sample-6.mp4",
-  "/video/sample-5.mp4",
-  "/video/sample-10.mp4",
 ];
 
 /**
@@ -383,7 +429,39 @@ const BASE_WORKS: Omit<Work, "video" | "poster">[] = [
   },
 ];
 
-export const WORKS: Work[] = BASE_WORKS.map((work, i) => ({
-  ...work,
-  ...SAMPLES[i % SAMPLES.length],
-}));
+/**
+ * Clips PINNED to a project by name, independent of the pool.
+ *
+ * These three were chosen off the stills that were sent, frame by frame — the
+ * captions in those stills name the same three works, which is what confirmed
+ * them. `app/about/page.tsx` then looks each one up BY SLUG to build the hero's
+ * film reel, so the pairing is load-bearing for a different page.
+ *
+ * It used to be implicit: a project got whatever `SAMPLES[i]` happened to hand
+ * it, and these three landed on the right clips by arithmetic. Reordering
+ * `LANDSCAPE` to put the supplied footage first moved every project's clip by
+ * some amount, and these three silently became `sample-2`, `sample-7` and
+ * `sample-6` — three films nobody picked, on the one reel that was picked by
+ * hand.
+ *
+ * Written down, the pairing survives any future reordering, which is the point:
+ * an editorial choice should not be a consequence of an array's index.
+ */
+const PINNED: Record<string, string> = {
+  /* red-lit hair against a blue curtain */
+  "inside-outwards": "sample-6",
+  /* a dancer on a white runway, pampas grass */
+  "northwell-cancer-institute": "sample-4",
+  /* neon yellow hair, a hand through it */
+  "andrea-miller": "sample-10",
+};
+
+export const WORKS: Work[] = BASE_WORKS.map((work, i) => {
+  const pin = PINNED[work.slug];
+  return {
+    ...work,
+    ...(pin
+      ? { video: `/video/${pin}.mp4`, poster: `/poster/${pin}.jpg` }
+      : SAMPLES[i % SAMPLES.length]),
+  };
+});

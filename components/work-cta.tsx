@@ -69,8 +69,17 @@ const PART = {
  */
 const OPEN = { letter: 0.17, stagger: 0.036, from: 0.02 };
 
-/** The lockup. Both lines come apart letter by letter, in opposite directions. */
-const LINES: { text: string; dir: 1 | -1; key?: boolean }[] = [
+export type CtaLine = { text: string; dir: 1 | -1; key?: boolean };
+
+/**
+ * The lockup. Both lines come apart letter by letter, in opposite directions.
+ *
+ * This is the WORK page's closing and it stays the default, because that is the
+ * page this component was built for. `/about` passes its own — a reel of films
+ * ends by asking for the next one; an argument about how a studio works ends
+ * somewhere else entirely, and one closing cannot be both. See `AboutClosing`.
+ */
+const LINES: CtaLine[] = [
   { text: "Let's Make", dir: -1 },
   { text: "The Next One.", dir: 1, key: true },
 ];
@@ -89,6 +98,9 @@ const leadOrder = (i: number, length: number, dir: 1 | -1) =>
   dir === 1 ? length - 1 - i : i;
 
 const ACTION = "Start a Project";
+
+/** The copy, defaulting to the work page's — see `LINES`. */
+type Copy = { lines?: CtaLine[]; action?: string };
 
 /** How far out of frame a piece travels, as a share of the viewport width. */
 const OUT = 140;
@@ -212,7 +224,9 @@ const Arrow = () => (
 export function WorkCta({
   progress,
   reveal,
-}: {
+  lines = LINES,
+  action = ACTION,
+}: Copy & {
   /** The footer's beat. Drives the parting. */
   progress: MotionValue<number>;
   /**
@@ -233,7 +247,7 @@ export function WorkCta({
   return (
     <section className="work__cta" aria-labelledby="cta-heading">
       <h2 className="work__cta-title" id="cta-heading">
-        {LINES.map((line, l) => {
+        {lines.map((line, l) => {
           const first = order;
           const last = order + line.text.length - 1;
           return (
@@ -281,7 +295,7 @@ export function WorkCta({
         <Piece
           p={progress}
           e={reveal}
-          at={PART.stagger * (LINES.length - 1) * 2}
+          at={PART.stagger * (lines.length - 1) * 2}
           /* Straight after the last letter — no arbitrary gap. */
           order={order}
           dir={1}
@@ -294,8 +308,8 @@ export function WorkCta({
         >
           <Link href="/work" className="header-cta work__cta-link">
             <span className="header-cta__label">
-              <span className="header-cta__roll" data-text={ACTION}>
-                <span>{ACTION}</span>
+              <span className="header-cta__roll" data-text={action}>
+                <span>{action}</span>
               </span>
             </span>
             <span className="header-cta__arrow" aria-hidden="true">

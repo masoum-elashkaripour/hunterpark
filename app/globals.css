@@ -155,6 +155,16 @@
   --hp-text-h5: 1.25rem;
   --hp-text-h6: 1.125rem;
   --hp-text-body: 1rem;
+  /**
+   * The page's RUNNING PROSE size — the one every paragraph is set in.
+   *
+   * There were three of them before this: the hero's standfirst at `h5`, the
+   * studio's paragraphs at a clamp of their own, and the staircase's lines at
+   * `body`. Three sizes for one voice, so a reader going down the page watched
+   * the same kind of sentence get smaller twice. This is the only one now —
+   * see `@utility hp-copy`, which is what they all use.
+   */
+  --hp-text-copy: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
   --hp-text-sm: 0.875rem;
   --hp-text-xs: 0.75rem;
   --hp-leading-tight: 1.16;
@@ -263,7 +273,19 @@ html {
 }
 
 body {
-  background: var(--hp-night);
+  /**
+   * NO BACKGROUND HERE, and that is load-bearing.
+   *
+   * `html` above already paints the page's night. A background on the root
+   * normally propagates to the canvas and the body is then drawn without one —
+   * but only when the root has none of its own. With both declared, the body's
+   * is painted as ordinary block-level content, which in the paint order comes
+   * AFTER negative-z-index children of the root. That buried `.about-film`,
+   * the fixed layer the hero's reel lives on, under an opaque black rectangle:
+   * the hero rendered as its lockup on nothing.
+   *
+   * One declaration, on the root, and the colour is identical.
+   */
   color: var(--hp-off-white);
   /* Söhne carries titles *and* main text; Instrument Sans is reserved for the
      small supporting bits (indexes, meta, captions) — see the repo's
@@ -322,6 +344,19 @@ body {
   letter-spacing: 0.01em;
   line-height: 1.1;
   color: var(--hp-off-white);
+}
+
+/**
+ * Running prose. One size, one measure, one colour, everywhere on the page.
+ *
+ * Deliberately a utility rather than three component rules that happen to
+ * agree: agreement drifts, a shared declaration cannot.
+ */
+@utility hp-copy {
+  font-family: var(--hp-font-secondary);
+  font-size: var(--hp-text-copy);
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--hp-off-white) 72%, transparent);
 }
 
 @utility hp-eyebrow {
@@ -415,6 +450,73 @@ body {
     translate: 0 0;
   }
 }
+/**
+ * THE HERO'S ARRIVAL, in CSS rather than in JavaScript.
+ *
+ * It was `animate()` on MotionValues, which cannot run until Motion hydrates —
+ * and the state it animates FROM is what the server ships. So on a slow
+ * connection the hero was a video with nothing on it: the eyebrow, the title,
+ * the standfirst and the reel index all sat at `opacity: 0` in the HTML,
+ * waiting on a bundle that was queued behind three video files. The header came
+ * up at once the whole time, because the header's entrance has always been a
+ * CSS animation. This is the header's mechanism, given to the hero.
+ *
+ * A CSS animation runs at first paint. There is no frame in which the hero is
+ * blank, with or without JavaScript, fast connection or slow.
+ *
+ * It has to be its own element, separate from the one carrying the scroll-bound
+ * exit: Motion writes `transform` from a MotionValue and an animation writing
+ * the same property would simply lose. Outer element leaves, inner arrives.
+ */
+@keyframes hp-hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/**
+ * NO `display` HERE, and that is the whole point of the rule.
+ *
+ * It carried `display: block` and that quietly won against the `flex` on the
+ * reel index — same specificity, later in the sheet — so the three bars and
+ * their label stopped being a flex row and `gap-3` had nothing to space. The
+ * dashes ran together at the bottom of the hero.
+ *
+ * An animation class has no business deciding how its host lays out its
+ * children. Each host keeps its own display; the only one that needed help was
+ * the eyebrow, whose span has to be inline-block for a transform to take, and
+ * it says so itself at the call site.
+ */
+.hero-rise {
+  animation: hp-hero-rise 1s var(--hp-ease-out) both;
+}
+
+/* The lockup's own line, rising out of its mask — same idea, no opacity,
+   because the glyphs inside it carry their own. */
+@keyframes hp-hero-mask {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: none;
+  }
+}
+.hero-mask-rise {
+  display: block;
+  animation: hp-hero-mask 1s var(--hp-ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-mask-rise {
+    animation: none;
+  }
+}
+
 @keyframes hp-header-in-right {
   from {
     opacity: 0;
@@ -431,9 +533,27 @@ body {
 .menu-toggle {
   animation: hp-header-in-left 1s var(--hp-ease-out) 0.5s both;
 }
-.sound-toggle,
-.header-cta {
+.sound-toggle {
   animation: hp-header-in-right 1s var(--hp-ease-out) 0.6s both;
+}
+
+/**
+ * THE BAR'S ENTRANCE, scoped to the bar.
+ *
+ * This used to sit on `.header-cta` itself, which meant every button wearing
+ * that class — the hero's, the closing lockup's — inherited the header's
+ * slide-in AND its 0.6s delay, with `both` holding them invisible until it
+ * fired. The hero's lockup had its own carefully staggered arrival and then sat
+ * there with a hole in it for six tenths of a second, waiting on a rule that
+ * belongs to the navigation.
+ *
+ * The grid placement below goes with it for the same reason: `grid-column: 3`
+ * is a fact about the header's three-column bar, not about what a button is.
+ */
+.site-header__inner > .header-cta {
+  animation: hp-header-in-right 1s var(--hp-ease-out) 0.6s both;
+  grid-column: 3;
+  justify-self: end;
 }
 @media (prefers-reduced-motion: reduce) {
   .site-header__logo,
@@ -465,9 +585,13 @@ html[data-logo-handoff] .site-header__logo {
   isolation: isolate;
   display: inline-flex;
   align-items: center;
-  grid-column: 3;
-  justify-self: end;
   height: 2.75rem;
+  /* `stretch` + `overflow: hidden` is how the arrow cell gets the ticket's full
+     height and how the lime `::before` is kept inside the rule as it floods in.
+     Ours had `center` and no clip, with `align-self` on the arrow making up for
+     it — the same picture by a longer route. Theirs, now. */
+  align-items: stretch;
+  overflow: hidden;
   border: 1px solid var(--hp-lime);
   border-radius: var(--hp-radius-control);
   color: var(--hp-off-white);
@@ -524,7 +648,6 @@ html[data-logo-handoff] .site-header__logo {
   display: grid;
   place-items: center;
   width: 2.75rem;
-  align-self: stretch;
   border-left: 1px solid var(--hp-lime);
   color: var(--hp-lime);
   transition:
@@ -709,6 +832,88 @@ html[data-logo-handoff] .site-header__logo {
     border-color 0.35s var(--hp-ease-out),
     background-color 0.35s var(--hp-ease-out);
 }
+/* ---------------------------------------------------------------------------
+   The menu's SECOND shape — ported from the repo, where it is new.
+
+   In the hero it still drops from under the trigger. Past the hero it runs
+   SIDEWAYS from the trigger in a single row along the bar, social cells after
+   a hairline divider. The shape is decided once per opening, at the moment it
+   opens, so a menu left open while the reader scrolls does not reshape itself
+   under them.
+
+   `--menu-row-left` is measured in JS — the trigger's right edge, plus eight —
+   because the trigger's width is the word "Menu" and so follows the font. The
+   fallback in the `left` below is only for the frame before that lands.
+
+   `is-menu-below` is the escape hatch: if the row would reach the centred
+   wordmark it drops to the line under the bar instead. See `SiteHeader`.
+   --------------------------------------------------------------------------- */
+
+.site-header.is-menu-row .menu-panel {
+  top: 0;
+  left: var(--menu-row-left, calc(var(--hp-gutter) + 6.5rem));
+  height: var(--hp-header-h);
+  flex-direction: row;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0 0 0 calc(1.25rem + 0.75rem); /* the rule, then a gap */
+}
+
+/* The rule turns with the menu: it draws DOWN in the hero and ACROSS here. */
+.site-header.is-menu-row .menu-panel__rule {
+  top: 50%;
+  bottom: auto;
+  width: 1.25rem;
+  height: 1px;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.site-header.is-menu-row .menu-panel.is-open .menu-panel__rule {
+  transform: scaleX(1);
+}
+
+.site-header.is-menu-row .menu-panel__list {
+  flex-direction: row;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+/* The trigger's own type: body size, medium, no display tracking. */
+.site-header.is-menu-row .menu-panel__item {
+  font-size: var(--hp-text-body);
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+.site-header.is-menu-row .menu-panel__item:hover .menu-panel__dash,
+.site-header.is-menu-row .menu-panel__item:focus-visible .menu-panel__dash {
+  width: 0.6em;
+  height: 1px;
+  margin-right: 0.35em;
+}
+
+/* Social: small cells after a hairline divider — "items | social". */
+.site-header.is-menu-row .menu-panel__social {
+  align-items: center;
+  gap: 0.375rem;
+  padding-left: 1.25rem;
+  border-left: 1px solid
+    color-mix(in srgb, var(--hp-off-white) 22%, transparent);
+}
+.site-header.is-menu-row .menu-panel__icon {
+  width: 1.875rem;
+  height: 1.875rem;
+}
+.site-header.is-menu-row .menu-panel__icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.site-header.is-menu-row.is-menu-below .menu-panel {
+  top: calc(var(--hp-header-h) - 0.75rem);
+  left: var(--hp-gutter);
+  height: 2.25rem;
+}
+
 .menu-panel__icon:hover,
 .menu-panel__icon:focus-visible {
   border-color: var(--hp-lime);
@@ -718,7 +923,7 @@ html[data-logo-handoff] .site-header__logo {
 
 /* ---------------------------------------------------------------------------
    Overview tiles — the /work page's zoomed-out index and, through the shared
-   class, the cards on /work-2 and the film on a project page.
+   class, the cards on /about's hero and the film on a project page.
    --------------------------------------------------------------------------- */
 
 .work-tile__frame {
@@ -1842,8 +2047,17 @@ html[data-logo-handoff] .site-header__logo {
    drift apart, and the focus pull resolves over one layer instead of two. */
 .work__finale-media {
   position: absolute;
+  /* No `inset`: its rect is written per frame to match the window exactly, so
+     `object-fit: cover` on the picture inside reproduces the step's crop. */
+  /* Motion only. The grade moved to its own child so a blurred raster can be
+     composited as this travels instead of being rebuilt — see the comment at
+     `work__finale-grade` in the component. */
+  will-change: transform;
+}
+.work__finale-grade {
+  position: absolute;
   inset: 0;
-  will-change: transform, filter;
+  will-change: filter;
 }
 
 .work__finale-frame {
@@ -1911,3 +2125,4 @@ html[data-logo-handoff] .site-header__logo {
     font-size: var(--hp-text-xs);
   }
 }
+

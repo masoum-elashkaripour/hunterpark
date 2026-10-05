@@ -115,7 +115,17 @@ const SETTLE = 180;
  * `getComputedStyle`-class measurement and nothing about it changes while the
  * reader is scrolling.
  */
-const ENTRY = { tail: 1.0, cap: 0.75, hold: 1.85 };
+const ENTRY = { tail: 1.0, cap: 0.75, hold: 1.85, lead: 0.1 };
+
+/**
+ * `lead` — HOW FAR BEFORE THE HEADER THE ZOOM STARTS. See `AboutClosing`,
+ * which documents this and carries the same tenth of a screen.
+ *
+ * The card used to climb the whole way, arrive at the header, and only then
+ * begin to open — a stop and a restart where there should be one gesture. With
+ * the lead the climb and the zoom overlap. Spent against `travel` too, so the
+ * run starts earlier and still ends where it did.
+ */
 
 /**
  * The same run, when there is no card to measure at all.
@@ -317,7 +327,11 @@ export function WorkCarousel({ works }: { works: Work[] }) {
    * of the window, and a negative fraction pushes it back out past the fold —
    * which is the only way to be told about something before it arrives.
    */
-  const [tailRef, near] = useInView<HTMLDivElement>(-3);
+  /* Only the ref is wanted now. The flag it used to return existed to mount the
+     closing film four screens early; `LazyVideo` does that for itself, from the
+     element's own position, which is both earlier and not this component's
+     business. */
+  const [tailRef] = useInView<HTMLDivElement>(-3);
 
   const [filmEl, setFilmEl] = useState<HTMLDivElement | null>(null);
   const film = useMotionValue(0);
@@ -437,7 +451,8 @@ export function WorkCarousel({ works }: { works: Work[] }) {
        * Falling back to the closing section's own box when there is no card at
        * all — an empty filter — so the page still has a bottom.
        */
-      const mark = headerH;
+      /* The header, plus the lead — see `ENTRY.lead`. */
+      const mark = headerH + view * ENTRY.lead;
       const row = card?.getBoundingClientRect();
 
       /* A height of zero means the card is gone or not laid out yet — there is
@@ -568,6 +583,29 @@ export function WorkCarousel({ works }: { works: Work[] }) {
    * left alone.
    */
   const reveal = useTransform(entry, [0.57, 1], [0, 1]);
+
+  /**
+   * Tell the header which chapter this page is in.
+   *
+   * The header decides the menu's shape from scroll position — under a third of
+   * a screen it drops from the trigger, past that it runs sideways. That works
+   * on the homepage, whose hero is a stretch of scroll. It does not work here:
+   * the reel does not scroll at all, and the top of the index is scroll zero, so
+   * the row shape was unreachable on the one page it was ported for.
+   *
+   * The reel IS this page's hero and the index is what follows it, so the state
+   * says so directly. On `<html>` rather than through a prop because the header
+   * lives in the root layout — the same channel the repo uses for
+   * `data-menu-below`.
+   */
+  useEffect(() => {
+    const root = document.documentElement;
+    if (zoomedOut) root.dataset.workIndex = "";
+    else delete root.dataset.workIndex;
+    return () => {
+      delete root.dataset.workIndex;
+    };
+  }, [zoomedOut]);
 
   const handleReceded = useCallback(() => {
     setReceding(false);
@@ -749,12 +787,7 @@ export function WorkCarousel({ works }: { works: Work[] }) {
                   Both of those are settled by being siblings here. */}
               <div className="work__finale-dock">
                 {last ? (
-                  <WorkFinale
-                    work={last}
-                    entry={entry}
-                    progress={film}
-                    live={near}
-                  />
+                  <WorkFinale work={last} entry={entry} progress={film} />
                 ) : null}
               </div>
 

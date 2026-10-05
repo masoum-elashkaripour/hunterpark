@@ -14,16 +14,29 @@ import { setSoundEnabled, soundEnabled } from "@/lib/sound";
  * wire the real routes up on merge.
  */
 
-const MENU = [
+/**
+ * The menu, pointed at the real destinations.
+ *
+ * Every one of these used to go to `/work`, this prototype's only page — so
+ * the wordmark did nothing and "Works" went where you already were. They now
+ * address the merged site: the homepage at `/`, the index at `/work`.
+ *
+ * News has no page on either side yet. The repo's own data gives it no `href`
+ * at all and renders it as an inert button; `href: null` here does the same
+ * thing, rather than sending the reader somewhere that is not what they asked
+ * for.
+ */
+const MENU: { label: string; href: string | null }[] = [
   { label: "Works", href: "/work" },
-  { label: "About", href: "/work" },
-  { label: "News", href: "/work" },
+  { label: "About", href: "/about" },
+  { label: "News", href: null },
 ];
 
 const SOCIAL = [
   {
     label: "Instagram",
     href: "https://www.instagram.com/hunterparktv/",
+    filled: false,
     path: (
       <>
         <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
@@ -35,11 +48,12 @@ const SOCIAL = [
   {
     label: "LinkedIn",
     href: "https://www.linkedin.com/company/hunter-park-productions/",
+    /* The repo's own glyph — a FILLED mark, not the stroked box-and-stick this
+       stood in with. Next to Instagram's outline the two read as a pair there;
+       the outline version read as a different icon set. */
+    filled: true,
     path: (
-      <>
-        <rect x="3.5" y="3.5" width="17" height="17" rx="2.5" />
-        <path d="M8 10.5V17M8 7.6v.01M12 17v-3.6a2 2 0 0 1 4 0V17" />
-      </>
+      <path d="M6.94 8.5H3.56V20h3.38V8.5ZM5.25 3.5a1.96 1.96 0 1 0 0 3.92 1.96 1.96 0 0 0 0-3.92ZM20.44 13.4c0-3.1-1.65-5.15-4.4-5.15-1.6 0-2.62.86-3.05 1.62V8.5H9.72c.04.9 0 11.5 0 11.5h3.27v-6.42c0-1.62.72-2.72 2.1-2.72 1.3 0 1.98.9 1.98 2.72V20h3.37v-6.6Z" />
     ),
   },
 ];
@@ -49,12 +63,74 @@ const SOCIAL = [
  *  opposite — see its own comment. Two copies of this number drift apart and
  *  let both bars sit at the top at once. */
 
+/**
+ * Where the hero ends, as a fraction of the window — the repo's own figure.
+ *
+ * Below it the menu drops from the trigger; above it the menu runs sideways
+ * along the bar. On this page the reel never scrolls, so it is always the
+ * drop-down there, and the index gets the row — which is the same distinction
+ * the homepage draws, by the same measurement.
+ */
+const HERO_END = 0.35;
+
+/** Clearance the row must keep from the centred wordmark before it gives up. */
+const LOGO_CLEAR = 24;
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  /** This opening runs sideways, and if so whether it had to drop a line. */
+  const [shape, setShape] = useState<{ row: boolean; below: boolean }>({
+    row: false,
+    below: false,
+  });
   /** Mirrors the shared store so the button can render its pressed state. */
   const [sound, setSound] = useState(soundEnabled);
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const logoRef = useRef<HTMLAnchorElement>(null);
+
+  /**
+   * Decide the shape, once, at the moment it opens.
+   *
+   * Not on scroll: a menu left open while the reader scrolls would reshape
+   * itself under them, which is the one thing a menu must not do. The repo
+   * settles it the same way, in `layOut`.
+   */
+  const lay = () => {
+    const panel = menuRef.current;
+    const trigger = toggleRef.current;
+    if (!panel || !trigger) return;
+
+    /* Past the hero by either measure: scrolled clear of it, or — on /work,
+       where the reel never scrolls — the index has taken over. See the effect
+       that sets `data-work-index` in WorkCarousel. */
+    const row =
+      window.scrollY >= window.innerHeight * HERO_END ||
+      "workIndex" in document.documentElement.dataset;
+    if (!row) {
+      panel.style.removeProperty("--menu-row-left");
+      setShape({ row: false, below: false });
+      return;
+    }
+
+    /* The row starts just past the trigger. Measured rather than guessed: the
+       trigger is as wide as the word "Menu", so it moves with the font. */
+    const header = trigger.closest(".site-header") as HTMLElement | null;
+    const left = header
+      ? trigger.getBoundingClientRect().right -
+        header.getBoundingClientRect().left +
+        8
+      : 0;
+    panel.style.setProperty("--menu-row-left", `${left}px`);
+
+    /* …unless it would reach the centred wordmark, in which case it runs along
+       the line under the bar instead. Measured after the offset is applied, so
+       the panel's own width is the real one. */
+    const logo = logoRef.current?.getBoundingClientRect();
+    const reaches =
+      !!logo && panel.getBoundingClientRect().right > logo.left - LOGO_CLEAR;
+    setShape({ row: true, below: reaches });
+  };
 
   /* No scroll listener at all. The live header is `position: fixed` and
      nothing else — its stylesheet carries no hidden or scrolled state, so it
@@ -85,7 +161,12 @@ export function SiteHeader() {
     };
   }, [open]);
 
-  const className = ["site-header", open && "is-menu-open"]
+  const className = [
+    "site-header",
+    open && "is-menu-open",
+    open && shape.row && "is-menu-row",
+    open && shape.row && shape.below && "is-menu-below",
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -100,7 +181,10 @@ export function SiteHeader() {
           className="menu-toggle"
           aria-expanded={open}
           aria-controls="site-menu"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            if (!open) lay();
+            setOpen((v) => !v);
+          }}
         >
           <span className="menu-toggle__label" aria-hidden>
             <span className="menu-toggle__word">Menu</span>
@@ -115,7 +199,10 @@ export function SiteHeader() {
           </span>
         </button>
 
-        <Link href="/work" className="site-header__logo">
+        {/* Home. The repo's header points its wordmark at `/` and so does this
+            one now — in this prototype `/` redirects to `/work`, so it is a
+            short trip, but it is the right address once the two are one site. */}
+        <Link href="/" ref={logoRef} className="site-header__logo">
           <Image
             src="/brand/logo.svg"
             alt="HunterPark — home"
@@ -149,7 +236,16 @@ export function SiteHeader() {
             </span>
           </button>
 
-          <Link href="/work" className="header-cta">
+          {/* THE PAGE EXISTS NOW, so this is an ordinary link again.
+              It pointed at `/contact/` with no route behind it, which made
+              every page on the site render a link to a 404 — and because Next
+              prefetches every `Link` in the viewport, that 404 was the only
+              error in the console on both `/work` and `/about`. The fix then
+              was to switch the prefetch off; the fix now is that there is
+              something there, so it comes back on.
+              No trailing slash: `trailingSlash` is not set, so `/contact/`
+              would cost a redirect on the way to `/contact`. */}
+          <Link href="/contact" className="header-cta">
             <span className="header-cta__label">
               <span className="header-cta__roll" data-text="Contact Us">
                 <span>Contact Us</span>
@@ -180,20 +276,33 @@ export function SiteHeader() {
         <span className="menu-panel__rule" aria-hidden />
 
         <ul className="menu-panel__list" aria-label="Menu">
-          {MENU.map((item) => (
-            <li key={item.label} className="menu-panel__row">
-              <Link
-                href={item.href}
-                className="menu-panel__item"
-                onClick={() => setOpen(false)}
-              >
+          {MENU.map((item) => {
+            const inner = (
+              <>
                 <span className="menu-panel__dash" aria-hidden />
                 <span className="menu-panel__roll" data-text={item.label}>
                   <span>{item.label}</span>
                 </span>
-              </Link>
-            </li>
-          ))}
+              </>
+            );
+            return (
+              <li key={item.label} className="menu-panel__row">
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className="menu-panel__item"
+                    onClick={() => setOpen(false)}
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <button type="button" className="menu-panel__item">
+                    {inner}
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
 
         <ul className="menu-panel__social" aria-label="Social">
@@ -212,8 +321,8 @@ export function SiteHeader() {
                   viewBox="0 0 24 24"
                   width="18"
                   height="18"
-                  fill="none"
-                  stroke="currentColor"
+                  fill={item.filled ? "currentColor" : "none"}
+                  stroke={item.filled ? "none" : "currentColor"}
                   strokeWidth="1.5"
                   aria-hidden
                 >
