@@ -18,17 +18,16 @@ import { setSoundEnabled, soundEnabled } from "@/lib/sound";
  * The menu, pointed at the real destinations.
  *
  * Every one of these used to go to `/work`, this prototype's only page — so
- * the wordmark did nothing and "Works" went where you already were. They now
+ * the wordmark did nothing and "Work" went where you already were. They now
  * address the merged site: the homepage at `/`, the index at `/work`.
  *
  * The site's pages — the same list the homepage's header carries. `href: null`
  * still renders an inert entry if one is ever needed.
  */
 const MENU: { label: string; href: string | null }[] = [
-  { label: "Works", href: "/work" },
+  { label: "Work", href: "/work" },
   { label: "About", href: "/about" },
   { label: "News", href: "/news" },
-  { label: "Contact", href: "/contact" },
 ];
 
 const SOCIAL = [

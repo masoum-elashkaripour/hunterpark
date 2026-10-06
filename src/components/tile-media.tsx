@@ -20,7 +20,8 @@ export function TileMedia({
   sizes,
 }: {
   poster: string;
-  video: string;
+  /** Absent for a photo project: the still IS the work, so nothing plays. */
+  video?: string;
   sizes: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -30,6 +31,7 @@ export function TileMedia({
   const [playing, setPlaying] = useState(false);
 
   const enter = () => {
+    if (!video) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     // Coarse pointers scroll past tiles; they should not trigger playback.
     if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches)
@@ -88,7 +90,7 @@ export function TileMedia({
         className="object-cover"
       />
 
-      {armed ? (
+      {armed && video ? (
         <video
           ref={videoRef}
           src={video}

@@ -1,8 +1,8 @@
 /**
  * Site header — transparent over media, the wordmark does the talking.
  * Menu trigger (left) · centred wordmark · sound toggle + Contact Us CTA (right), at every size.
- * The trigger expands a short editorial list directly beneath it — Works, About,
- * News, Contact (the site's pages, from data/navigation) and the social icons.
+ * The trigger expands a short editorial list directly beneath it — Work, About,
+ * News (the site's pages, from data/navigation; Contact is the CTA) and the social icons.
  * The wordmark is where the preloader's logo lands.
  * Persistent and transparent on every section — it never changes with scroll.
  * Behaviour (menu only): scripts/header.ts.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   m,
   useMotionValueEvent,
@@ -32,12 +32,14 @@ import {
  */
 
 /**
- * Each label's own fade, and how far apart they start.
+ * Each label's own fade, and the window their starts are spread over.
  *
- * Five labels at 0.055 apart means the last one begins at 0.22 and is done by
- * 0.48 — which is the number `PLATE.from` has to clear.
+ * The last label begins at `spread` (0.22) and is done by 0.48 — which is the
+ * number `PLATE.from` has to clear. Spread over a fixed window rather than at a
+ * fixed step, so adding the Film / Photo pair to the five categories tightens
+ * the stagger instead of pushing the last label past the plate's exit.
  */
-const LABEL = { each: 0.26, stagger: 0.055 };
+const LABEL = { each: 0.26, spread: 0.22 };
 
 /**
  * The plate draws in and goes — and NOT UNTIL THE LABELS ARE OUT.
@@ -72,6 +74,36 @@ const IN = { from: 0.56, to: 0.9 };
  */
 const HANDOVER = 0.76;
 
+/** Glyphs for the Film / Photo pair: a strip of film, and a camera. */
+const KIND_ICON: Record<string, ReactNode> = {
+  Film: (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+    >
+      <rect x="2" y="2.5" width="12" height="11" rx="1.5" />
+      <path d="M5 2.5v11M11 2.5v11M2 6h3M2 10h3M11 6h3M11 10h3" />
+    </svg>
+  ),
+  Photo: (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+    >
+      <path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h1.6l1-1.5h3.8l1 1.5h1.6A1.5 1.5 0 0 1 14 5.5v6a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5z" />
+      <circle cx="8" cy="8.5" r="2.4" />
+    </svg>
+  ),
+};
+
 /**
  * One filter.
  *
@@ -87,15 +119,19 @@ function Option<T extends string>({
   morph,
   gone,
   onSelect,
+  icon,
 }: {
   value: T;
   active: boolean;
+  /** Position among ALL the labels, 0 to 1 — where its fade starts. */
   order: number;
   morph: MotionValue<number>;
   gone: boolean;
   onSelect: (v: T) => void;
+  /** Only the Film / Photo pair carries one — part of what sets it apart. */
+  icon?: ReactNode;
 }) {
-  const from = order * LABEL.stagger;
+  const from = order * LABEL.spread;
   const opacity = useTransform(morph, [from, from + LABEL.each], [1, 0]);
   const y = useTransform(morph, [from, from + LABEL.each], [0, -10]);
 
@@ -106,20 +142,30 @@ function Option<T extends string>({
       disabled={gone}
       tabIndex={gone ? -1 : undefined}
       onClick={() => onSelect(value)}
-      className="case-filter"
+      className={icon ? "case-filter case-filter--kind" : "case-filter"}
       /* Read back by `::after` to reserve the bold width. */
       data-label={value}
       style={{ opacity, y }}
     >
-      <span>{value}</span>
+      <span>
+        {icon ? (
+          <span className="case-filter__icon" aria-hidden>
+            {icon}
+          </span>
+        ) : null}
+        {value}
+      </span>
     </m.button>
   );
 }
 
-export function WorkControl<T extends string>({
+export function WorkControl<T extends string, K extends string>({
   options,
   active,
   onSelect,
+  kinds,
+  activeKind,
+  onKind,
   count,
   more,
   onMore,
@@ -129,6 +175,11 @@ export function WorkControl<T extends string>({
   options: readonly T[];
   active: T;
   onSelect: (value: T) => void;
+  /** The second group — Film / Photo — set off from the categories. */
+  kinds: readonly K[];
+  /** The live kind, or null when both are shown. */
+  activeKind: K | null;
+  onKind: (value: K) => void;
   /** Films the current filter matches — announced, not drawn. */
   count: number;
   /** How many films are left to load. Zero means there is no button. */
@@ -163,6 +214,9 @@ export function WorkControl<T extends string>({
    */
   const handed = past && more > 0;
 
+  /** Every label in the plate, both groups — what the stagger is spread over. */
+  const labels = Math.max(2, options.length + kinds.length);
+
   /* The plate withdraws: in, and out. Scale rather than width, so nothing
      relayouts and the whole exit is one composited transform. */
   const plateOpacity = useTransform(morph, [PLATE.from, PLATE.to], [1, 0]);
@@ -195,8 +249,10 @@ export function WorkControl<T extends string>({
   return (
     <div className="work-control">
       <m.div className="work-control__stack" style={{ opacity: fade }}>
+        {/* Two plates, side by side, that stand down as one: the categories,
+            and Film / Photo in a box of its own to their right. */}
         <m.div
-          className="work-control__plate"
+          className="work-control__plates"
           style={{
             opacity: plateOpacity,
             scale: plateScale,
@@ -207,22 +263,50 @@ export function WorkControl<T extends string>({
           {/* Client-side filtering that does not touch the URL, so these are
               buttons in a group with `aria-pressed` — not links, and not a
               tablist, since there are no panels to own. */}
-          <div
-            role="group"
-            aria-label="Filter work by category"
-            className="case-filters no-scrollbar"
-          >
-            {options.map((f, i) => (
-              <Option
-                key={f}
-                value={f}
-                active={f === active}
-                order={i}
-                morph={morph}
-                gone={handed}
-                onSelect={onSelect}
-              />
-            ))}
+          <div className="work-control__plate">
+            <div
+              role="group"
+              aria-label="Filter work by category"
+              className="case-filters no-scrollbar"
+            >
+              {options.map((f, i) => (
+                <Option
+                  key={f}
+                  value={f}
+                  active={f === active}
+                  order={i / (labels - 1)}
+                  morph={morph}
+                  gone={handed}
+                  onSelect={onSelect}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Film / Photo — a different question from the categories, so it
+              is a different control: its own plate, an icon per option, and
+              an outlined live state where the categories use a solid one. No
+              "All" of its own — neither pressed means both are shown, and
+              pressing the live one again lets it go. */}
+          <div className="work-control__plate">
+            <div
+              role="group"
+              aria-label="Filter work by type"
+              className="case-filters"
+            >
+              {kinds.map((k, i) => (
+                <Option
+                  key={k}
+                  value={k}
+                  active={k === activeKind}
+                  order={(options.length + i) / (labels - 1)}
+                  morph={morph}
+                  gone={handed}
+                  onSelect={onKind}
+                  icon={KIND_ICON[k]}
+                />
+              ))}
+            </div>
           </div>
         </m.div>
 

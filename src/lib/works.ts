@@ -16,6 +16,11 @@ export const CATEGORIES = ["Brand", "Healthcare", "Culture", "Impact"] as const;
 
 export type Category = (typeof CATEGORIES)[number];
 
+/** What a project IS on the index — the second filter, beside the categories. */
+export const KINDS = ["Film", "Photo"] as const;
+
+export type Kind = (typeof KINDS)[number];
+
 export type Work = {
   slug: string;
   client: string;
@@ -24,10 +29,16 @@ export type Work = {
   note?: string;
   category: Category;
   year: number;
-  /** Loop played when this card is hovered or centred. */
-  video: string;
-  /** Still shown until the clip has a frame. Taken from the clip itself. */
+  kind: Kind;
+  /**
+   * Loop played when this card is hovered or centred. Films only — a photo
+   * project has no clip, and its card is the photograph itself.
+   */
+  video?: string;
+  /** Still shown until the clip has a frame — or, for a photo, the picture. */
   poster: string;
+  /** A 4:5 / 2:3 photograph: belongs in the tall feature slot, like a 9:16 cut. */
+  tall?: boolean;
 };
 
 /**
@@ -185,14 +196,18 @@ export const REEL_CLIPS = [
  * its own middle.
  */
 export function oneWorkPerClip(works: Work[]): Work[] {
+  /* Keyed by the clip, or by the picture for a photo — every photograph is its
+     own file, so photos never collapse into one another. */
   const byClip = new Map<string, Work>();
   for (const work of works) {
-    if (!byClip.has(work.video)) byClip.set(work.video, work);
+    const key = work.video ?? work.poster;
+    if (!byClip.has(key)) byClip.set(key, work);
   }
 
   const unique = [...byClip.values()];
-  const portrait = unique.filter((w) => w.video.includes("/vertical-"));
-  const landscape = unique.filter((w) => !w.video.includes("/vertical-"));
+  const isTall = (w: Work) => w.tall || !!w.video?.includes("/vertical-");
+  const portrait = unique.filter(isTall);
+  const landscape = unique.filter((w) => !isTall(w));
 
   const ordered: Work[] = [];
   while (portrait.length > 0 || landscape.length > 0) {
@@ -206,7 +221,7 @@ export function oneWorkPerClip(works: Work[]): Work[] {
   return ordered.filter(Boolean);
 }
 
-const BASE_WORKS: Omit<Work, "video" | "poster">[] = [
+const BASE_WORKS: Omit<Work, "video" | "poster" | "kind">[] = [
   {
     slug: "old-dominion-ncaa",
     client: "Old Dominion",
@@ -456,12 +471,92 @@ const PINNED: Record<string, string> = {
   "andrea-miller": "sample-10",
 };
 
-export const WORKS: Work[] = BASE_WORKS.map((work, i) => {
+const FILMS: Work[] = BASE_WORKS.map((work, i) => {
   const pin = PINNED[work.slug];
   return {
     ...work,
+    kind: "Film" as const,
     ...(pin
       ? { video: `/video/${pin}.mp4`, poster: `/poster/${pin}.jpg` }
       : SAMPLES[i % SAMPLES.length]),
   };
 });
+
+/**
+ * Photography — stills series shot alongside the films.
+ *
+ * SAMPLE PHOTOGRAPHS, like the footage: picked from the image set supplied on
+ * Google Drive, and standing in until the real stills land. Each is paired with
+ * a project whose film it suits, and there is at least one per category so no
+ * filter combination comes up empty. The two upright frames are marked `tall`
+ * so they land in the feature slot rather than being cropped to a band.
+ */
+const PHOTOS: Work[] = (
+  [
+    {
+      slug: "saks-celebrate-pride-stills",
+      client: "Saks Off Fifth",
+      title: "Celebrate Pride — Stills",
+      category: "Brand",
+      year: 2021,
+      poster: "/photo/ali-pazani.jpg",
+    },
+    {
+      slug: "inside-outwards-stills",
+      client: "NAMI NYC",
+      title: "Inside & Outwards — Stills",
+      category: "Impact",
+      year: 2020,
+      poster: "/photo/ivan-kazlouskij.jpg",
+    },
+    {
+      slug: "anthem-stills",
+      client: "Ballet Company",
+      title: "Anthem — Stills",
+      category: "Culture",
+      year: 2022,
+      poster: "/photo/cleopas-monbest.jpg",
+      tall: true,
+    },
+    {
+      slug: "st-bernards-womens-health-stills",
+      client: "St. Bernards",
+      title: "Women's Health — Stills",
+      category: "Healthcare",
+      year: 2022,
+      poster: "/photo/marina-nazina.jpg",
+      tall: true,
+    },
+    {
+      slug: "stand-for-change-stills",
+      client: "Black Theatre United",
+      title: "Stand For Change — Stills",
+      category: "Culture",
+      year: 2021,
+      poster: "/photo/iris-avi.jpg",
+    },
+    {
+      slug: "scotch-soda-better-together-stills",
+      client: "Scotch & Soda",
+      title: "Better Together — Stills",
+      category: "Brand",
+      year: 2021,
+      poster: "/photo/carol-magalhaes.jpg",
+    },
+  ] satisfies Omit<Work, "kind">[]
+).map((photo) => ({ ...photo, kind: "Photo" as const }));
+
+/**
+ * Films and photos woven together — one photo after every three films — so
+ * the unfiltered index shows both from its first page rather than leaving the
+ * photographs at the far end behind "See more".
+ */
+export const WORKS: Work[] = (() => {
+  const out: Work[] = [];
+  const photos = [...PHOTOS];
+  FILMS.forEach((film, i) => {
+    out.push(film);
+    if (i % 3 === 2 && photos.length > 0) out.push(photos.shift()!);
+  });
+  return [...out, ...photos];
+})();

@@ -852,6 +852,9 @@ html[data-logo-handoff] .site-header__logo {
    --------------------------------------------------------------------------- */
 
 .site-header.is-menu-row .menu-panel {
+  /* Over the bar it now shares, explicitly — the row sits on top of the
+     header's own controls, and the links must be what a click lands on. */
+  z-index: 1;
   top: 0;
   left: var(--menu-row-left, calc(var(--hp-gutter) + 6.5rem));
   height: var(--hp-header-h);
@@ -885,12 +888,23 @@ html[data-logo-handoff] .site-header__logo {
   font-size: var(--hp-text-body);
   line-height: 1.2;
   letter-spacing: 0;
+  position: relative;
+}
+
+/* The hover dash is drawn in the gap BEFORE the word, out of the flow. In a
+   row, a dash that takes up width pushes every following link sideways, so a
+   link could slide out from under the pointer between press and release and
+   the click never landed on it. */
+.site-header.is-menu-row .menu-panel__dash {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 0.35em);
+  height: 1px;
 }
 .site-header.is-menu-row .menu-panel__item:hover .menu-panel__dash,
 .site-header.is-menu-row .menu-panel__item:focus-visible .menu-panel__dash {
   width: 0.6em;
-  height: 1px;
-  margin-right: 0.35em;
+  margin-right: 0;
 }
 
 /* Social: small cells after a hairline divider — "items | social". */
@@ -1159,8 +1173,19 @@ html[data-logo-handoff] .site-header__logo {
  * sitting outside it the line appeared to float within the box rather than to
  * edge it. One border, on the edge, is what it looks like.
  */
-.work-control__plate {
+/* Holds the two plates — categories, then Film / Photo — and carries their
+   shared exit. Wraps on a narrow screen rather than squeezing either. */
+.work-control__plates {
   grid-area: 1 / 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.work-control__plate {
+  min-width: 0;
   display: flex;
   align-items: center;
   height: 3rem;
@@ -1219,6 +1244,7 @@ html[data-logo-handoff] .site-header__logo {
   gap: 0.375rem;
   max-width: 100%;
 }
+
 
 .case-filter {
   /* Grid rather than flex, so the label and the width-reserving copy below can
@@ -1300,6 +1326,33 @@ html[data-logo-handoff] .site-header__logo {
   background-color: var(--hp-lime);
   color: var(--hp-night);
   font-weight: 600;
+}
+
+/* The Film / Photo options: smaller, set in caps with an icon, and live as an
+   OUTLINE — lime rule and lime type on a faint tint — where a category is a
+   solid lime pill. Two kinds of selection that cannot be mistaken for one. */
+.case-filter--kind {
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.case-filter--kind > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.case-filter__icon {
+  display: inline-flex;
+}
+.case-filter--kind[aria-pressed="true"] {
+  background-color: color-mix(in srgb, var(--hp-lime) 14%, transparent);
+  color: var(--hp-lime);
+  box-shadow: inset 0 0 0 1px var(--hp-lime);
+}
+.case-filter--kind[aria-pressed="true"]:focus-visible {
+  outline-color: var(--hp-lime);
+  outline-offset: 2px;
 }
 
 @media (max-width: 767px) {

@@ -488,20 +488,37 @@ export function WorkFinale({
              * same still, in the one place that cannot cause a second element
              * to appear.
              */}
-            <LazyVideo
-              onReady={(el) => {
-                videoRef.current = el;
-              }}
-              className="work__finale-frame object-cover"
-              src={work.video}
-              poster={work.poster}
-              tabIndex={-1}
-              onLoadedMetadata={(e) => {
-                const el = e.currentTarget;
-                if (el.videoWidth > 0 && el.videoHeight > 0)
-                  aspect.current = el.videoWidth / el.videoHeight;
-              }}
-            />
+            {work.video ? (
+              <LazyVideo
+                onReady={(el) => {
+                  videoRef.current = el;
+                }}
+                className="work__finale-frame object-cover"
+                src={work.video}
+                poster={work.poster}
+                tabIndex={-1}
+                onLoadedMetadata={(e) => {
+                  const el = e.currentTarget;
+                  if (el.videoWidth > 0 && el.videoHeight > 0)
+                    aspect.current = el.videoWidth / el.videoHeight;
+                }}
+              />
+            ) : (
+              /* A photo closes the page the same way, as a still: same frame,
+                 same push, nothing to play. Its own proportions are read back
+                 for the window the same way the clip's are. */
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="work__finale-frame object-cover"
+                src={work.poster}
+                alt=""
+                onLoad={(e) => {
+                  const el = e.currentTarget;
+                  if (el.naturalWidth > 0 && el.naturalHeight > 0)
+                    aspect.current = el.naturalWidth / el.naturalHeight;
+                }}
+              />
+            )}
           </m.div>
         </m.div>
       </m.div>

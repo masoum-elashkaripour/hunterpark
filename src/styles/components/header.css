@@ -364,6 +364,9 @@
    (just past the trigger) and, where the row would reach the centred logo, drops it to the
    line directly under the bar instead (.is-menu-below). */
 .site-header.is-menu-row .menu-panel {
+  /* Over the bar it now shares, explicitly — the row sits on top of the
+     header's own controls, and the links must be what a click lands on. */
+  z-index: 1;
   top: 0;
   left: var(--menu-row-left, calc(var(--hp-gutter) + 6.5rem));
   height: var(--hp-header-h);
@@ -393,13 +396,23 @@
   font-size: var(--hp-text-body);
   line-height: 1.2;
   letter-spacing: 0;
+  position: relative;
 }
 
+/* The hover dash is drawn in the gap BEFORE the word, out of the flow. In a
+   row, a dash that takes up width pushes every following link sideways, so a
+   link could slide out from under the pointer between press and release and
+   the click never landed on it. */
+.site-header.is-menu-row .menu-panel__dash {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 0.35em);
+  height: 1px;
+}
 .site-header.is-menu-row .menu-panel__item:hover .menu-panel__dash,
 .site-header.is-menu-row .menu-panel__item:focus-visible .menu-panel__dash {
   width: 0.6em;
-  height: 1px;
-  margin-right: 0.35em;
+  margin-right: 0;
 }
 
 /* Social: small cells after a hairline divider — "items | social" */

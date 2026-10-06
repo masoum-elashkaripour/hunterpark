@@ -1,9 +1,8 @@
 /** Header menu items — the site's pages. */
 export const primaryNav = [
-  { label: "Works", href: "/work" },
+  { label: "Work", href: "/work" },
   { label: "About", href: "/about" },
   { label: "News", href: "/news" },
-  { label: "Contact", href: "/contact" },
 ] as const;
 
 export const socialLinks = [

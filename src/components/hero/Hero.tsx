@@ -86,7 +86,7 @@ export default function Hero() {
           <span className="hero__row hero__row--2">
             <span className="hero__mask hero__small" data-hero-lead>
               <span data-hero-reveal>
-                we aren<span className="hero__apos">’</span>t the
+                we are not a
               </span>
             </span>
             <span className="hero__mask hero__big" data-hero-word="park">
