@@ -20,7 +20,8 @@ export function ProjectFilm({
   poster,
   label,
 }: {
-  video: string;
+  /** Absent for a photo project — the photograph is shown on its own. */
+  video?: string;
   poster: string;
   label: string;
 }) {
@@ -56,28 +57,32 @@ export function ProjectFilm({
         sizes="100vw"
         quality={90}
         priority
-        className={`object-cover transition-opacity duration-500 ease-hp-out ${
-          showing ? "opacity-0" : "opacity-100"
+        /* A photograph is shown whole — it is the work, not a stand-in for
+           a clip, so it is not cropped to the frame. */
+        className={`${video ? "object-cover" : "object-contain"} transition-opacity duration-500 ease-hp-out ${
+          showing && video ? "opacity-0" : "opacity-100"
         }`}
       />
-      <video
-        ref={videoRef}
-        src={video}
-        poster={poster}
-        muted
-        loop
-        playsInline
-        controls
-        preload="metadata"
-        aria-label={label}
-        /* Always visible. It used to be faded in on `canplay`, which meant a
+      {video ? (
+        <video
+          ref={videoRef}
+          src={video}
+          poster={poster}
+          muted
+          loop
+          playsInline
+          controls
+          preload="metadata"
+          aria-label={label}
+          /* Always visible. It used to be faded in on `canplay`, which meant a
            clip that never reported one — autoplay refused, or reduced motion
            skipping `play()` entirely — sat at zero opacity with its controls
            invisible, indistinguishable from a video that had failed to load.
            It needs no cover: the element paints its own `poster` until it has
            a frame, and the still below is the same image. */
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : null}
     </>
   );
 }

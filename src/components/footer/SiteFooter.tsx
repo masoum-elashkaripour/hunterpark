@@ -19,7 +19,6 @@ const index = [
   { label: "About", href: "/about" },
   { label: "Work", href: "/work" },
   { label: "News", href: "/news" },
-  { label: "Contact", href: "/contact" },
 ] as const;
 
 function Arrow() {

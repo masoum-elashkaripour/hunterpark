@@ -12,9 +12,11 @@ import {
 } from "motion/react";
 import {
   CATEGORIES,
+  KINDS,
   REEL_CLIPS,
   oneWorkPerClip,
   type Category,
+  type Kind,
   type Work,
 } from "@/lib/works";
 import { LazyStage3D } from "@/components/lazy-stage-3d";
@@ -198,14 +200,24 @@ export function WorkCarousel({ works }: { works: Work[] }) {
   const router = useRouter();
   const launch = useLaunch();
   const [filter, setFilter] = useState<Filter>("All");
+  /** Film / Photo — null shows both. Combines with the category. */
+  const [kind, setKind] = useState<Kind | null>(null);
   const [index, setIndex] = useState(0);
   /** Zoomed out = the overview grid; zoomed in = the 3D carousel. */
   const [zoomedOut, setZoomedOut] = useState(false);
 
-  const visible = useMemo(
+  /* The category alone — what the reel draws from. The reel is films only, so
+     the Film / Photo choice has nothing to say to it, and applying it there
+     would leave the reel empty the moment "Photo" was pressed. */
+  const inCategory = useMemo(
     () =>
       filter === "All" ? works : works.filter((w) => w.category === filter),
     [works, filter],
+  );
+
+  const visible = useMemo(
+    () => (kind ? inCategory.filter((w) => w.kind === kind) : inCategory),
+    [inCategory, kind],
   );
 
   /**
@@ -217,8 +229,9 @@ export function WorkCarousel({ works }: { works: Work[] }) {
    */
   const reel = useMemo(() => {
     const first = new Map<string, Work>();
-    for (const work of visible) {
-      if (!first.has(work.video)) first.set(work.video, work);
+    for (const work of inCategory) {
+      /* Films only: the reel's cards are moving pictures on a 3D arc. */
+      if (work.video && !first.has(work.video)) first.set(work.video, work);
     }
 
     const picked = REEL_CLIPS.map((clip) => first.get(clip)).filter(
@@ -228,7 +241,7 @@ export function WorkCarousel({ works }: { works: Work[] }) {
     /* A narrow filter can leave none of the chosen clips represented. Falling
        back to one-per-clip keeps the reel populated, still without repeats. */
     return picked.length > 0 ? picked : [...first.values()];
-  }, [visible]);
+  }, [inCategory]);
 
   /* The index shows each clip once too — with eleven stand-ins across
      thirty-one projects, anything else repeats footage card after card. */
@@ -607,6 +620,26 @@ export function WorkCarousel({ works }: { works: Work[] }) {
     };
   }, [zoomedOut]);
 
+  /** What every filter change does besides setting the filter. */
+  const refilter = () => {
+    setIndex(0);
+    /* A new filter is a new index; showing page four of the old one makes no
+       sense. */
+    setPages(1);
+
+    /* Back to the top of the index. A narrower filter makes the page
+       dramatically shorter, and holding the old scroll position leaves the
+       reader somewhere past the end of the new one — looking at the closing
+       transition instead of at the work they just asked for. */
+    const top = document.getElementById("work-index");
+    top?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "start",
+    });
+  };
+
   const handleReceded = useCallback(() => {
     setReceding(false);
     setZoomedOut(true);
@@ -822,25 +855,14 @@ export function WorkCarousel({ works }: { works: Work[] }) {
                   active={filter}
                   onSelect={(f) => {
                     setFilter(f);
-                    setIndex(0);
-                    /* A new filter is a new index; showing page four of the old
-                     one makes no sense. */
-                    setPages(1);
-
-                    /* Back to the top of the index. A narrower filter makes the
-                     page dramatically shorter, and holding the old scroll
-                     position leaves the reader somewhere past the end of the
-                     new one — looking at the closing transition instead of at
-                     the work they just asked for. */
-                    const top = document.getElementById("work-index");
-                    top?.scrollIntoView({
-                      behavior: window.matchMedia(
-                        "(prefers-reduced-motion: reduce)",
-                      ).matches
-                        ? "auto"
-                        : "smooth",
-                      block: "start",
-                    });
+                    refilter();
+                  }}
+                  kinds={KINDS}
+                  activeKind={kind}
+                  onKind={(k) => {
+                    /* Pressing the live one again lets it go — see WorkControl. */
+                    setKind((now) => (now === k ? null : k));
+                    refilter();
                   }}
                   count={shown.length}
                   more={more}

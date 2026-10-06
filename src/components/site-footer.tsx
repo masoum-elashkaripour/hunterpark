@@ -74,7 +74,6 @@ const INDEX = [
   { label: "About", href: "/about" },
   { label: "Work", href: "/work" },
   { label: "News", href: "/news" },
-  { label: "Contact", href: "/contact" },
 ];
 
 const SOCIAL = [
