@@ -20,3 +20,17 @@ export function markSiteReady(): void {
 
 export const prefersReducedMotion = (): boolean =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * An SVG shape's length, for drawing it with stroke-dashoffset.
+ * getTotalLength() throws in Chrome while the shape isn't rendered (e.g. a hidden
+ * ancestor at this breakpoint) — then normalise the path to a length of 1 instead.
+ */
+export function strokeLength(el: SVGGeometryElement): number {
+  try {
+    return el.getTotalLength();
+  } catch {
+    el.setAttribute("pathLength", "1");
+    return 1;
+  }
+}

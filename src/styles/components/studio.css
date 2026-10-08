@@ -87,11 +87,10 @@
   color: var(--hp-violet);
 }
 
-/* Small screens: the bottom edge belongs to the reel — tuck the marker under the header */
+/* Small screens: the marker stays on the bottom edge, a size smaller; the sections that
+   also use that edge (the hero's reel, the capability titles) leave it a line of room */
 @media (max-width: 1023px) {
   .chapter-index {
-    top: calc(var(--hp-header-h) + 0.6rem); /* just below the solid nav bar */
-    bottom: auto;
     font-size: 0.625rem;
   }
 }

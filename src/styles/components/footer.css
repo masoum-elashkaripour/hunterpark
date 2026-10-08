@@ -414,6 +414,67 @@ html.hp-motion .footer__mark {
   }
 }
 
+/* Phones turned sideways: barely 400px of height. The desktop arrangement (statement left,
+   links and the call to action right) at a smaller scale, and a shorter wordmark, so the
+   whole composition still fits one frame */
+@media (orientation: landscape) and (max-height: 520px) {
+  .footer__grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto 1fr auto auto;
+    padding-top: calc(var(--hp-header-h) + 0.5rem);
+    --mark-h: min(calc((100vw - 2 * var(--hp-gutter)) / 6.13), 22svh);
+  }
+
+  .footer__statement {
+    grid-column: 1 / span 6;
+    grid-row: 1 / span 2;
+    margin-bottom: 0;
+    font-size: clamp(1.125rem, 6svh, 1.5rem);
+  }
+
+  .footer__group--index {
+    grid-column: 8 / span 2;
+    grid-row: 1;
+  }
+
+  .footer__group--social {
+    grid-column: 10 / span 3;
+    grid-row: 1;
+    margin-top: 0;
+  }
+
+  .footer__label {
+    margin-bottom: 0.5rem;
+  }
+
+  .footer__contact {
+    grid-column: 8 / span 5;
+    grid-row: 2;
+    margin-top: 1rem;
+  }
+
+  .footer__say {
+    font-size: clamp(1.5rem, 8svh, 2.25rem);
+  }
+
+  .footer__tagline {
+    grid-column: 1 / span 6;
+    grid-row: 4;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer__base {
+    grid-column: 7 / -1;
+    grid-row: 4;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer__mark {
+    grid-row: 5;
+    width: min(100%, calc(22svh * 6.13));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .footer__link,
   .footer__roll > span,

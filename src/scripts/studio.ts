@@ -1,4 +1,5 @@
 import { gsap } from "gsap";
+import { strokeLength } from "./lifecycle";
 
 /**
  * Chapter 02 stage — tune here. Positions are shares of this beat (0–1).
@@ -192,7 +193,7 @@ export function studioTimeline(): gsap.core.Timeline | null {
   const lineEls = Array.from(all("[data-studio-line]")) as unknown as SVGGeometryElement[];
   const lineSpan = s.lines.drawEnd - s.lines.drawStart;
   lineEls.forEach((el) => {
-    const len = el.getTotalLength();
+    const len = strokeLength(el);
     gsap.set(el, { strokeDasharray: len, strokeDashoffset: len });
   });
   tl.set(lines, { autoAlpha: 1 }, s.lines.drawStart)

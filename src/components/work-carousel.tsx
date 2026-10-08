@@ -947,7 +947,7 @@ function Caption({ work }: { work?: Work }) {
   const launch = useLaunch();
 
   return (
-    <div className="relative z-10 shrink-0 px-gutter pt-2 pb-6 text-center sm:pb-8">
+    <div className="work-caption relative z-10 shrink-0 px-gutter pt-2 pb-6 text-center sm:pb-8">
       {/* No `initial={false}` here, unlike the reel ⇄ index swap below. That
           flag suppresses the entrance of whatever is present on the FIRST
           render — which is exactly the lockup the reader sees on load, so the

@@ -319,7 +319,7 @@ html.hp-motion .caps__title.is-active {
 
   .caps__list {
     top: auto;
-    bottom: calc(var(--hp-gutter) + 0.5rem);
+    bottom: calc(var(--hp-gutter) + 2rem); /* clear of the chapter marker on the bottom edge */
     translate: none;
   }
 
@@ -355,5 +355,35 @@ html.hp-motion .caps__title.is-active {
   .caps__label,
   .caps__line {
     transition-duration: 0.01ms;
+  }
+}
+
+/* Phones turned sideways: the stacked phone layout has no height for five titles under the
+   frame — go back to the wide arrangement (frame right, titles left over its edge), sized
+   to the height */
+@media (orientation: landscape) and (max-height: 520px) {
+  .caps {
+    --wt: 20%;
+    --wr: 5%;
+    --wb: 8%;
+    --wl: 50%;
+  }
+
+  .caps__stage {
+    min-height: 0;
+  }
+
+  .caps__list {
+    top: calc(50% + var(--hp-header-h) / 2);
+    bottom: auto;
+    translate: 0 -50%;
+  }
+
+  .caps__label {
+    font-size: min(4.2vw, 9svh);
+  }
+
+  .caps__caption {
+    bottom: calc(var(--wb) + 0.75rem);
   }
 }

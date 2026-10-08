@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { m, useTransform, type MotionValue } from "motion/react";
 import { useBeat, useEnter, type Cue } from "@/components/use-beat";
@@ -394,6 +394,25 @@ const beatWindow = (order: number): Cue => {
   return [at, at + each];
 };
 
+/**
+ * Below `lg` the split is one column, and a pinned frame one phone tall cannot
+ * hold the title, the subtitle, both paragraphs AND the founders stacked. So
+ * there the paragraphs share one cell (see `.about-studio__beats`) and the
+ * first makes way as the second arrives. Same breakpoint as the stylesheet.
+ */
+const SINGLE_COLUMN = "(max-width: 1023px)";
+const subscribeColumn = (change: () => void) => {
+  const mq = window.matchMedia(SINGLE_COLUMN);
+  mq.addEventListener("change", change);
+  return () => mq.removeEventListener("change", change);
+};
+const useSingleColumn = () =>
+  useSyncExternalStore(
+    subscribeColumn,
+    () => window.matchMedia(SINGLE_COLUMN).matches,
+    () => false,
+  );
+
 /* ---------------------------------------------------------------- parts --- */
 
 /** One paragraph, arriving on its own stretch of the beat. */
@@ -401,19 +420,27 @@ function Beat({
   text,
   order,
   p,
+  stacked,
 }: {
   text: string;
   order: number;
   p: MotionValue<number>;
+  /** Single column: the paragraphs share a cell, so each but the last leaves. */
+  stacked: boolean;
 }) {
   const [at, end] = beatWindow(order);
+  /* Leaves over the first half of the next paragraph's arrival — up and out,
+     the way the next one rises in. Never, when they stand in a column. */
+  const leaves = stacked && order < BODY.length - 1;
+  const [next, nextEnd] = leaves ? beatWindow(order + 1) : [2, 3];
+  const gone = next + (nextEnd - next) * 0.5;
 
   /* Opacity and travel share one window, so a paragraph is never visible
      anywhere but on its way up. 44px rather than 26: far enough that the rise
      is read as a rise, short enough that it is still the type settling rather
      than the type making an entrance. */
-  const opacity = useTransform(p, [at, end], [0, 1]);
-  const y = useTransform(p, [at, end], [44, 0]);
+  const opacity = useTransform(p, [at, end, next, gone], [0, 1, 1, 0]);
+  const y = useTransform(p, [at, end, next, gone], [44, 0, 0, -28]);
 
   return (
     <m.p className="hp-copy about-studio__body" style={{ opacity, y }}>
@@ -745,6 +772,7 @@ function Card({
 export function AboutStudio() {
   const [ref, p] = useBeat();
   const [headRef, headP] = useEnter(HEAD_ENTER[0], HEAD_ENTER[1]);
+  const singleColumn = useSingleColumn();
 
   /**
    * THE TITLE AND THE SUBTITLE NO LONGER SHARE A CLOCK.
@@ -1172,7 +1200,13 @@ export function AboutStudio() {
               style={{ opacity: claimOpacity, y: claimY }}
             >
               {BODY.map((text, i) => (
-                <Beat key={i} text={text} order={i} p={p} />
+                <Beat
+                  key={i}
+                  text={text}
+                  order={i}
+                  p={p}
+                  stacked={singleColumn}
+                />
               ))}
             </m.div>
           </div>

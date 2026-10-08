@@ -298,6 +298,29 @@ export function ContactReveal() {
   const mapIn = useTransform(p, [MAP.from, MAP.to], [0, 1]);
   const mapLift = useTransform(p, [MAP.from, MAP.to], [18, 0]);
 
+  /**
+   * THE PANEL SCROLLS ON ITS OWN when it is taller than the window — a phone,
+   * a short window — and Lenis must then leave the wheel to it: it otherwise
+   * takes every wheel event for the page, and the lower half of the form can
+   * never be reached. Only while it actually overflows, so on a desktop, where
+   * it fits, the wheel over it is still the page's smooth scroll.
+   */
+  const panelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const check = () => {
+      el.toggleAttribute(
+        "data-lenis-prevent",
+        el.scrollHeight > el.clientHeight + 1,
+      );
+    };
+    const sizes = new ResizeObserver(check);
+    sizes.observe(el);
+    if (el.firstElementChild) sizes.observe(el.firstElementChild);
+    return () => sizes.disconnect();
+  }, []);
+
   const hasMail = CONTACT.email.length > 0;
   const hasPhone = CONTACT.phone.length > 0;
   const hasCities = CONTACT.cities.length > 0;
@@ -400,6 +423,7 @@ export function ContactReveal() {
         />
 
         <m.div
+          ref={panelRef}
           className="contact-section contact-reveal__panel"
           /* Static under reduced motion: the run-out would otherwise fade the
              panel away in a layout where nothing replaces it. */
