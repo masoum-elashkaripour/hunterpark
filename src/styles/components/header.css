@@ -489,6 +489,76 @@ html.js:not([data-site-ready]) .menu-toggle {
   .header-cta__arrow {
     border-left: 0;
   }
+
+  /* Everything on the bar steps down a size on a phone — the trigger keeps its word, the
+     right-hand cells tighten and the wordmark scales with the width — so the centred logo
+     keeps clear air on both sides down to 320px */
+  .site-header .menu-toggle {
+    gap: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .site-header .menu-toggle__icon {
+    width: 1.375rem;
+  }
+
+  .site-header .site-header__actions {
+    gap: 0.3125rem;
+  }
+
+  .site-header .sound-toggle,
+  .site-header .header-cta {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .site-header .sound-toggle__bars {
+    height: 12px;
+  }
+
+  .site-header .site-header__logo {
+    width: clamp(6rem, 28vw, 8.25rem);
+  }
+
+  /* The row under the bar: tighter gaps so links + social fit inside the gutters down to
+     320px, with social cells still a comfortable touch target */
+  .site-header.is-menu-row .menu-panel {
+    gap: 0.875rem;
+    padding-left: calc(1rem + 0.5rem);
+  }
+
+  .site-header.is-menu-row .menu-panel__rule {
+    width: 1rem;
+  }
+
+  .site-header.is-menu-row .menu-panel__list {
+    gap: 0.875rem;
+  }
+
+  .site-header.is-menu-row .menu-panel__social {
+    padding-left: 0.875rem;
+  }
+
+  .site-header.is-menu-row .menu-panel__icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* Touch: the dropped list's links get a finger-sized hit area (the visual rhythm holds —
+   the padding replaces the list's gap) */
+@media (max-width: 1023px) and (pointer: coarse) {
+  .site-header:not(.is-menu-row) .menu-panel__list {
+    gap: 0;
+  }
+
+  .site-header:not(.is-menu-row) .menu-panel__item {
+    padding-block: 0.4rem;
+  }
+
+  .site-header:not(.is-menu-row) .menu-panel {
+    gap: 1rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

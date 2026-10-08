@@ -677,7 +677,7 @@ export function AboutHero({ reel }: { reel: Work[] }) {
             time, which is the same motion the next chapter's heading arrives
             on, run backwards. Only the one-off rise on load is a reduced-motion
             call; the departure is coupled to scroll, so the reader drives it. */}
-          <h1 className="hp-display mt-4 text-[clamp(2.75rem,8vw,7rem)]">
+          <h1 className="hp-display mt-4 text-[clamp(2.75rem,min(8vw,14svh),7rem)]">
             {/* Two motions on one line, so they are kept on separate elements:
                 the wrapper rises out of its mask once, on load; the glyphs
                 inside it are driven by scroll. Putting both on the same node

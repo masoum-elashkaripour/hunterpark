@@ -552,6 +552,11 @@ html.js:not([data-site-ready]) .view-project {
     align-items: flex-start;
     justify-self: start; /* caption row stays as wide as the photos, not the page */
   }
+
+  /* a line of room under the reel for the chapter marker on the bottom edge */
+  .hero__content {
+    padding-bottom: calc(var(--hp-gutter) + 1.75rem);
+  }
 }
 
 @media (max-width: 767px) {
@@ -594,5 +599,22 @@ html.js:not([data-site-ready]) .view-project {
   .view-project__arrow,
   .view-project__arrow::before {
     transition-duration: 0.01ms;
+  }
+}
+
+/* Phones turned sideways: barely 400px of height. The lockup sizes to the height and sits
+   high, under the bar; the reel shrinks to stay below it */
+@media (orientation: landscape) and (max-height: 520px) {
+  .hero {
+    --reel-h: 4rem;
+  }
+
+  .hero__title {
+    --big: min(10vw, 17svh);
+    inset: calc(var(--hp-header-h) + 0.25rem) 0 auto;
+  }
+
+  .hero__content {
+    gap: 0.75rem;
   }
 }

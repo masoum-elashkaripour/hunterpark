@@ -1378,6 +1378,66 @@ html[data-logo-handoff] .site-header__logo {
   }
 }
 
+/**
+ * Phones: ONE bar, inside the gutters.
+ *
+ * Two plates stacked took two rows over the grid, and the categories plate was
+ * wider than the screen — the stack is a grid track sized to its content, so
+ * `max-width` on it constrained nothing and the plate ran off the right edge
+ * with its border and its last option. The track is bounded now, the plates
+ * share one row, the categories scroll inside theirs, and Film / Photo stand as
+ * icons — the words are still there for a screen reader.
+ */
+@media (max-width: 599px) {
+  .work-control__stack {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .work-control__plates {
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 0.375rem;
+  }
+  .work-control__plate {
+    height: 2.75rem;
+  }
+  .work-control__plate:first-child {
+    flex: 1 1 auto;
+  }
+  .work-control__plate:last-child {
+    flex: none;
+  }
+  /* Clear of the 1rem edge fade at rest, so the live pill at the start (and
+     the last option once scrolled to) is drawn whole, not half-dissolved. */
+  .work-control__plate:first-child .case-filters {
+    padding-inline: 0.75rem;
+    scroll-padding-inline: 0.75rem;
+  }
+  /* Two icons need no scroll, and the edge fade would only dim them. */
+  .work-control__plate:last-child .case-filters {
+    overflow: visible;
+    mask-image: none;
+  }
+  .case-filter {
+    min-height: 2.25rem;
+    padding: 0.4rem 0.8rem;
+  }
+  .case-filter--kind {
+    padding: 0.4rem 0.6rem;
+  }
+  .case-filter--kind::after {
+    content: none;
+  }
+  .case-filter__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .case-filter {
     transition: none;
@@ -1453,7 +1513,10 @@ html[data-logo-handoff] .site-header__logo {
 /* Phones: the CTA folds down to its arrow cell so it clears the centred logo
    (the label stays in the accessibility tree). */
 @media (max-width: 599px) {
-  .header-cta__label {
+  /* The HEADER's CTA only. Unscoped, this folded every ticket on the page —
+     the contact hero's "Send a brief", the about hero's "See the work" — to a
+     bare arrow with nothing to say what it does. */
+  .site-header .header-cta__label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1462,8 +1525,50 @@ html[data-logo-handoff] .site-header__logo {
     white-space: nowrap;
   }
 
-  .header-cta__arrow {
+  .site-header .header-cta__arrow {
     border-left: 0;
+    width: 100%;
+  }
+
+  /* Everything on the bar steps down a size on a phone — the trigger keeps its word, the
+     right-hand cells tighten and the wordmark scales with the width — so the centred logo
+     keeps clear air on both sides down to 320px. */
+  .site-header .menu-toggle {
+    gap: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .site-header .menu-toggle__icon {
+    width: 1.375rem;
+  }
+
+  .site-header .site-header__actions {
+    gap: 0.3125rem;
+  }
+
+  .site-header .sound-toggle,
+  .site-header .header-cta {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .site-header .sound-toggle__bars {
+    height: 12px;
+  }
+
+  .site-header .site-header__logo {
+    width: clamp(6rem, 28vw, 8.25rem);
+  }
+}
+
+/* Touch: the dropped list's links get a finger-sized hit area. */
+@media (max-width: 1023px) and (pointer: coarse) {
+  .site-header:not(.is-menu-row) .menu-panel__list {
+    gap: 0;
+  }
+
+  .site-header:not(.is-menu-row) .menu-panel__item {
+    padding-block: 0.4rem;
   }
 }
 
@@ -2085,6 +2190,17 @@ html[data-logo-handoff] .site-header__logo {
   left: 0;
   width: 100dvw;
   height: 100dvh;
+  /**
+   * CLIPPED, and not for looks — the window's `clip-path` already hides
+   * anything past the edge. A clip-path does not stop a box counting as page
+   * overflow, and on a phone overflow WIDENS THE LAYOUT VIEWPORT: the push's
+   * last few percent of scale took the picture 1px past the edge, that grew
+   * `innerWidth`, the next frame sized the picture from it, and round it went
+   * — 375 → 1143px wide by the footer, with the fixed header stretched across
+   * it and its logo and buttons off-screen. `clip` contains it without
+   * becoming a scroll container.
+   */
+  overflow: clip;
   pointer-events: none;
   /* Promoted once. Both the window and the picture inside it change every
      frame of the push, and a layer that is re-promoted per frame is the whole
@@ -3096,6 +3212,156 @@ html[data-logo-handoff] .site-header__logo {
   }
 }
 
+/**
+ * Chapter 02 in ONE COLUMN — phones, tablets, anything under `lg`.
+ *
+ * Both acts are pinned in a frame exactly one window tall, and stacked into a
+ * single column neither fitted it: the founders ran off the foot of the frame
+ * and the title went up under the header, Talent's portrait pushed its last
+ * cards below the fold. Nothing in a pinned frame can be scrolled to, so what
+ * does not fit is simply lost.
+ *
+ * So the PICTURES give way, not the words: the type keeps its size and takes
+ * the room it needs, and each act's picture is sized to whatever height is left
+ * — a size container on its cell, and the picture fitted to it by both axes at
+ * its own aspect ratio. The paragraphs share one cell too and hand over to each
+ * other (see `Beat`), which is what makes the room in act one.
+ */
+@media (max-width: 1023px) {
+  .about-studio__split {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: clamp(1rem, 2.6svh, 2rem);
+  }
+  .about-studio__beats {
+    display: grid;
+  }
+  .about-studio__beats > * {
+    grid-area: 1 / 1;
+  }
+  /* A little less clearance over the header than on desktop — the header is
+     shorter here, and every pixel of it is picture. */
+  .about-studio__stage {
+    padding-block: clamp(4.75rem, 11svh, 6.5rem) clamp(1rem, 3svh, 2rem);
+  }
+  .about-studio__people {
+    min-height: 0;
+    container-type: size;
+  }
+  .about-cast__composition {
+    max-width: none;
+  }
+
+  /**
+   * The founders SIDE BY SIDE and across the full width — a square pair tucked
+   * in the right-hand corner left half the column empty at phone size. Each
+   * frame is 52% of the width (a 4% overlap, so they still read as one
+   * composition) and the second sits 10% lower. The height is written out
+   * rather than left to an aspect ratio because it carries the captions, which
+   * are a fixed band of type and not a share of the width; the width is then
+   * capped so the whole thing still fits the cell's height.
+   */
+  .about-cast__composition {
+    --cast-w: min(100cqw, (100cqh - 1.6rem) / 0.62);
+    width: var(--cast-w);
+    height: calc(var(--cast-w) * 0.62 + 1.6rem);
+    aspect-ratio: auto;
+  }
+  .about-cast__shot--lead {
+    width: 52%;
+  }
+  .about-cast__shot--follow {
+    left: 0;
+    width: 52%;
+  }
+
+  .talent-act {
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-content: stretch;
+    gap: clamp(1rem, 3svh, 2rem);
+    padding-top: clamp(4.75rem, 11svh, 6.5rem);
+  }
+  .talent-act__media {
+    min-height: 0;
+    max-width: none;
+    container-type: size;
+  }
+  /* As much of the cell as the picture can use: the full width, and every
+     pixel of height left — cropped wider than its 3:4 when the height is
+     short, but never past 4:3, and never taller than its own 3:4. */
+  .talent-act__media .talent-stack {
+    width: min(100cqw, 100cqh * 4 / 3);
+    height: min(100cqh, 100cqw * 4 / 3);
+    aspect-ratio: auto;
+    margin-inline: auto;
+  }
+  /* Cropped wider, the faces are in the upper half of every frame. */
+  .talent-act__media .talent-stack__img {
+    object-position: 50% 30%;
+  }
+  /* Room for the arriving title, at the title's own size here rather than the
+     desktop one — it is a third smaller at this width. */
+  .talent-act__body {
+    padding-top: clamp(2.75rem, 7svh, 4rem);
+  }
+  .talent-act__list {
+    margin-top: clamp(1rem, 3svh, 2rem);
+    gap: clamp(0.75rem, 2.4svh, 1.5rem);
+  }
+}
+
+/**
+ * A SHORT phone held upright (iPhone SE and its like). The cards' keyword rows
+ * are the detail under the detail, and at this height they are what the
+ * portrait would otherwise lose most of its size to — so they go, and the four
+ * titles stand on their own.
+ */
+@media (max-width: 1023px) and (orientation: portrait) and (max-height: 740px) {
+  .talent-card__tags {
+    display: none;
+  }
+}
+
+/**
+ * The same, on its side — a phone held landscape, a short window.
+ *
+ * A single column has no height to give a picture here at all, so both acts go
+ * back to the desktop's two columns, with the pictures still fitted to their
+ * cells. The Talent list is the one thing that still cannot stand four deep in
+ * that height, so it goes two by two and the staircase indents are dropped —
+ * they are a composition for a column, and there is no column.
+ */
+@media (max-width: 1023px) and (orientation: landscape) {
+  .about-studio__split {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+  }
+  .about-studio__people {
+    align-self: stretch;
+  }
+
+  .talent-act {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+  }
+  .talent-act__media {
+    align-self: stretch;
+  }
+  .talent-act__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.75rem, 3svh, 1.25rem) clamp(1rem, 3vw, 2rem);
+  }
+  .talent-card:nth-child(n) {
+    margin-inline-start: 0;
+  }
+}
+
 /* ---------------------------------------------------------------------------
    About — Chapter 03, What we do: the staircase.
 
@@ -3133,6 +3399,10 @@ html[data-logo-handoff] .site-header__logo {
 .caps-section {
   position: relative;
   z-index: 0;
+  /* The scattered step titles fly in from past the right edge; on a phone that
+     overflow widens the layout viewport and shrinks the whole page (header
+     included). `clip`, not `hidden`, so no scroll container is created. */
+  overflow-x: clip;
   margin-top: -62svh;
   padding-block: clamp(5rem, 14svh, 9rem);
 }
@@ -4027,10 +4297,40 @@ html[data-logo-handoff] .site-header__logo {
   position: absolute;
   inset: 0;
   display: grid;
-  align-content: center;
-  padding-block: calc(var(--hp-header-h) + clamp(1rem, 3svh, 2rem))
-    clamp(1.5rem, 4svh, 2.5rem);
+  /* SAFE centre. On a phone the two boxes stack taller than the window, and a
+     plain `center` pushes the overflow out of BOTH ends — the top half above
+     the scroll origin, where no amount of scrolling reaches it. The heading and
+     the email sat under the header for good. `safe` centres only while it
+     fits, and starts at the top once it does not. */
+  align-content: safe center;
+  /* The box starts UNDER the header rather than padding past it, so when it
+     scrolls the form is clipped at the header's edge instead of sliding up
+     behind its transparent bar. Same content box as before where it fits. */
+  top: var(--hp-header-h);
+  padding-block: clamp(1rem, 3svh, 2rem) clamp(1.5rem, 4svh, 2.5rem);
   overflow-y: auto;
+}
+/* Only while it scrolls (see `panelRef`): the clip at the top is a fade, not
+   a cut. */
+.contact-reveal__panel[data-lenis-prevent] {
+  mask-image: linear-gradient(to bottom, transparent, #000 1.25rem);
+}
+/**
+ * …and while it scrolls, what is timed off the PAGE's scroll is simply shown.
+ *
+ * The map and the heading's letters arrive on the page's progress, a little
+ * after the panel. Once the panel scrolls on its own the reader's swipes move
+ * the panel and not the page, so that progress stops where the panel landed —
+ * and the map sat at zero opacity, a blank box below the socials, for as long
+ * as anyone looked at it.
+ */
+.contact-reveal__panel[data-lenis-prevent] .contact-reveal__map,
+.contact-reveal__panel[data-lenis-prevent] .contact-reveal__line .chars__char {
+  opacity: 1 !important;
+  transform: none !important;
+}
+.contact-reveal__panel[data-lenis-prevent] .contact-reveal__line .chars__line {
+  filter: none !important;
 }
 /* Two boxes side by side, as flyward sets them: the same height, a narrow
    seam between. */
@@ -4488,6 +4788,32 @@ html[data-logo-handoff] .site-header__logo {
   line-height: 0.95;
 }
 
+/**
+ * /work's caption on a SHORT screen — a phone on its side. At its normal size
+ * the lockup took over half of a 390px window and the reel above it, which is
+ * the page, was left a strip. Tighter type and spacing hand that height back;
+ * the WebGL stage fits its cards to whatever it is given.
+ */
+@media (orientation: landscape) and (max-height: 520px) {
+  .work-caption {
+    padding-bottom: 0.75rem;
+  }
+  .work-caption .hp-eyebrow {
+    font-size: 0.7rem;
+  }
+  .work-caption h1 {
+    margin-top: 0.15rem;
+    font-size: clamp(1.4rem, 7svh, 2rem);
+  }
+  .work-caption .hp-sub {
+    margin-top: 0.15rem;
+    font-size: 0.95rem;
+  }
+  .work-caption .view-project {
+    margin-top: 0.5rem;
+  }
+}
+
 /* The filter: square chips on a hairline, a row that swipes on a phone. */
 .news-filter {
   display: flex;
@@ -4497,9 +4823,21 @@ html[data-logo-handoff] .site-header__logo {
   /* Bleeds to the screen edge on a phone so the row reads as scrollable. */
   margin-inline: calc(var(--hp-gutter) * -1);
   padding-inline: var(--hp-gutter);
+  scrollbar-width: none;
+  /* The last chips fade into the edge rather than being cut by it, which is
+     what says "there is more this way" on a row with no scrollbar. */
+  mask-image: linear-gradient(
+    to right,
+    #000 calc(100% - 3rem),
+    transparent
+  );
+}
+.news-filter::-webkit-scrollbar {
+  display: none;
 }
 @media (min-width: 1024px) {
   .news-filter {
+    mask-image: none;
     flex-wrap: wrap;
     justify-content: flex-end;
     margin-inline: 0;

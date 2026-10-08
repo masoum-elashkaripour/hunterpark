@@ -1,4 +1,5 @@
 import { gsap } from "gsap";
+import { strokeLength } from "./lifecycle";
 
 /**
  * The footer — the last beat of the homepage film. Tune here.
@@ -131,7 +132,7 @@ export function footerTimeline(): gsap.core.Timeline | null {
   const A = m.figure;
   // Drawn along each shape's real (measured) length, linear and overlapping, like WHO WE ARE
   lines.forEach((el) => {
-    const len = el.getTotalLength();
+    const len = strokeLength(el);
     gsap.set(el, { strokeDasharray: len, strokeDashoffset: len });
   });
   const L = A.lines;

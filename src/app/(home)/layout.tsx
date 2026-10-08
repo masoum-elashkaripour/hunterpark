@@ -28,7 +28,13 @@ export const viewport: Viewport = {
 
 // Runs before first paint: flags JS, and skips the preloader on repeat views this session.
 // Add ?preloader to the URL to force it to play again while reviewing.
+// The page is one pinned scroll "film": a restored scroll position (reload, repeat view)
+// would open mid-film or on the footer, so always start from the top.
 const bootScript = `document.documentElement.classList.add("js");
+try {
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  if (!location.hash) window.scrollTo(0, 0);
+} catch (e) {}
 try {
   var force = new URLSearchParams(location.search).has("preloader");
   if (!force && sessionStorage.getItem("hp:preloaded")) document.documentElement.classList.add("skip-preloader");

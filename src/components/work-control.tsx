@@ -153,7 +153,9 @@ function Option<T extends string>({
             {icon}
           </span>
         ) : null}
-        {value}
+        {/* Wrapped where there is an icon, so a phone can show the icon alone
+            and keep the word for screen readers — see `.case-filter__text`. */}
+        {icon ? <span className="case-filter__text">{value}</span> : value}
       </span>
     </m.button>
   );
