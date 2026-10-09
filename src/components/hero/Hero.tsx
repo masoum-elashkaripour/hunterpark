@@ -146,8 +146,9 @@ export default function Hero() {
           </ul>
 
           {/* View Project: kin to the Contact CTA (hairline rules, rolling label, arrow cell)
-              but its own shape. No destination yet — project pages don't exist. */}
-          <button type="button" className="view-project" data-view-project data-hero-fade>
+              but its own shape. The reel's films aren't project pages of their own, so it
+              opens the Work index. */}
+          <a href="/work" className="view-project" data-view-project data-hero-fade>
             <span className="view-project__roll" data-text="View Project">
               <span>View Project</span>
             </span>
@@ -155,7 +156,7 @@ export default function Hero() {
             <span className="view-project__arrow" aria-hidden="true" data-view-arrow>
               <ArrowIcon />
             </span>
-          </button>
+          </a>
         </div>
       </div>
     </section>

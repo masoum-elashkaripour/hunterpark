@@ -1,0 +1,349 @@
+/* ==========================================================================
+   404 (app/global-not-found.tsx)
+   One screen on the night ground: the site's bar, the homepage lockup turned on
+   itself over an outlined 404, a way home and the pages, the tagline at the foot.
+   ========================================================================== */
+.nf {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* the nowrap lockup never widens the page */
+  grid-template-rows: auto 1fr auto;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* A soft lime bloom low on the left, the way the hero's light falls */
+.nf::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -20vmax;
+  bottom: -30vmax;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(238 255 65 / 0.09), transparent);
+  pointer-events: none;
+}
+
+/* --- Bar ------------------------------------------------------------------ */
+.nf__bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: var(--hp-header-h);
+  padding-inline: var(--hp-gutter);
+}
+
+.nf__home {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  font-size: var(--hp-text-body);
+  font-weight: 500;
+  transition: color 0.45s var(--hp-ease-out);
+}
+
+.nf__home span {
+  color: var(--hp-lime);
+}
+
+.nf__home:hover,
+.nf__home:focus-visible {
+  color: var(--hp-lime);
+}
+
+.nf__logo {
+  display: block;
+  width: clamp(8.25rem, 6.25rem + 5.75vw, 11.5rem);
+}
+
+.nf__logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.nf__cta {
+  justify-self: end;
+}
+
+/* --- Main ----------------------------------------------------------------- */
+.nf__main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(2rem, 6svh, 4rem) var(--hp-gutter);
+}
+
+/* The numeral, outlined in the border gray, filling the frame behind the type */
+.nf__ghost {
+  position: absolute;
+  z-index: -1;
+  right: calc(var(--hp-gutter) * -0.5);
+  top: 50%;
+  translate: 0 -50%;
+  font-family: var(--hp-font-primary);
+  font-weight: 900;
+  font-size: clamp(10rem, min(38vw, 62svh), 34rem);
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--hp-off-white) 16%, transparent);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Eyebrow: the design system's label — lime caps behind a short rule */
+.nf__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  margin: 0 0 clamp(1.25rem, 3svh, 2rem);
+  font-size: clamp(0.75rem, 0.65rem + 0.3vw, 0.9375rem);
+  font-weight: 300;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+.nf__eyebrow::before {
+  content: "";
+  width: 2.25em;
+  height: 1px;
+  background: currentColor;
+}
+
+/* The lockup — the hero's: Extrafett keywords in lime, small lead-ins tucked
+   against them, row 2 stepped right */
+.nf__title {
+  --big: clamp(2.6rem, min(10.5vw, 17svh), 11rem);
+  --small: max(0.8125rem, calc(var(--big) * 0.135));
+
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-family: var(--hp-font-primary);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.nf__row {
+  display: flex;
+  gap: calc(var(--big) * 0.12);
+}
+
+.nf__row--1 {
+  align-items: flex-start;
+}
+
+.nf__row--2 {
+  align-items: baseline;
+  margin-top: calc(var(--big) * -0.02);
+  padding-left: calc(var(--big) * 1.15);
+}
+
+.nf__small {
+  font-size: var(--small);
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: var(--hp-off-white);
+}
+
+.nf__row--1 .nf__small {
+  padding-top: calc(var(--big) * 0.1);
+}
+
+.nf__big {
+  font-size: var(--big);
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--hp-lime);
+}
+
+.nf__copy {
+  max-width: 30rem;
+  margin: clamp(1.5rem, 4svh, 2.5rem) 0 0;
+  font-size: clamp(1rem, 0.9rem + 0.35vw, 1.25rem);
+  line-height: 1.5;
+  color: var(--hp-gray);
+}
+
+.nf__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem clamp(1.5rem, 3vw, 2.5rem);
+  margin-top: clamp(1.5rem, 4svh, 2.5rem);
+}
+
+.nf__pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nf__page {
+  position: relative;
+  display: inline-block;
+  padding-block: 0.6rem; /* touch target */
+  font-size: var(--hp-text-sm);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 0.45s var(--hp-ease-out);
+}
+
+/* A lime underline drawn from the left on hover */
+.nf__page::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.35rem;
+  height: 1px;
+  background: var(--hp-lime);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.5s var(--hp-ease-out);
+}
+
+.nf__page:hover,
+.nf__page:focus-visible {
+  color: var(--hp-lime);
+}
+
+.nf__page:hover::after,
+.nf__page:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* --- Foot ----------------------------------------------------------------- */
+.nf__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 0 var(--hp-gutter) clamp(1rem, 3svh, 2rem);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  line-height: 1.8;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--hp-off-white) 62%, transparent);
+}
+
+.nf__foot p {
+  margin: 0;
+}
+
+.nf__copyright {
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+
+/* --- Phones ------------------------------------------------------------------ */
+@media (max-width: 599px) {
+  /* The bar keeps "Home" and the wordmark; the ticket folds to its arrow
+     (header.css), sized like the site's phone bar */
+  .nf__home {
+    font-size: 0.875rem;
+  }
+
+  .nf__logo {
+    width: clamp(6rem, 28vw, 8.25rem);
+  }
+
+  .nf__cta {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .nf__cta .header-cta__arrow {
+    width: 100%;
+  }
+
+  /* The ghost numeral sits behind the top of the lockup instead of beside it */
+  .nf__ghost {
+    top: 38%;
+    font-size: 46vw;
+  }
+
+  /* Too narrow for lead-in and keyword side by side: each lead-in sits over
+     its keyword, row 2 still stepped right */
+  .nf__title {
+    --big: 12.5vw;
+    --small: 0.875rem;
+  }
+
+  .nf__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .nf__row--1 .nf__small {
+    padding-top: 0;
+  }
+
+  .nf__row--2 {
+    margin-top: 0.9rem;
+    padding-left: calc(var(--big) * 0.9);
+  }
+
+  /* The way home keeps its words on a phone — header.css folds every ticket
+     label at this width */
+  .nf__back .header-cta__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .nf__back .header-cta__arrow {
+    border-left: 1px solid var(--hp-lime);
+  }
+
+  .nf__foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* A phone on its side: the lockup sized to the height */
+@media (orientation: landscape) and (max-height: 520px) {
+  .nf__title {
+    --big: 13svh;
+  }
+
+  .nf__main {
+    padding-block: 0.5rem;
+  }
+
+  .nf__eyebrow {
+    margin-bottom: 0.75rem;
+  }
+
+  .nf__copy,
+  .nf__actions {
+    margin-top: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf__home,
+  .nf__page,
+  .nf__page::after {
+    transition-duration: 0.01ms;
+  }
+}
