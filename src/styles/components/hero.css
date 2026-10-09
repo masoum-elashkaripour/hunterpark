@@ -496,37 +496,40 @@ img.hero__bg:nth-child(even) {
   transition: clip-path 0.45s var(--hp-ease-out) 0.12s; /* starts as the line reaches the cell */
 }
 
-/* Hover — on the bar itself, or on the open project card above it */
-.view-project:hover .view-project__roll > span,
-.view-project:hover .view-project__roll::after,
-.view-project:focus-visible .view-project__roll > span,
-.view-project:focus-visible .view-project__roll::after,
-.hero__reel:has(.hero__thumb.is-active:hover) .view-project__roll > span,
-.hero__reel:has(.hero__thumb.is-active:hover) .view-project__roll::after {
-  transform: translateY(-100%);
-}
+/* Hover — on the bar itself, or on the open project card above it. Pointers that can
+   hover only, so a tap on a phone doesn't leave it stuck lit */
+@media (hover: hover) {
+  .view-project:hover .view-project__roll > span,
+  .view-project:hover .view-project__roll::after,
+  .view-project:focus-visible .view-project__roll > span,
+  .view-project:focus-visible .view-project__roll::after,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__roll > span,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__roll::after {
+    transform: translateY(-100%);
+  }
 
-.view-project:hover .view-project__line::after,
-.view-project:focus-visible .view-project__line::after,
-.hero__reel:has(.hero__thumb.is-active:hover) .view-project__line::after {
-  transform: scaleX(1);
-}
+  .view-project:hover .view-project__line::after,
+  .view-project:focus-visible .view-project__line::after,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__line::after {
+    transform: scaleX(1);
+  }
 
-.view-project:hover .view-project__arrow,
-.view-project:focus-visible .view-project__arrow,
-.hero__reel:has(.hero__thumb.is-active:hover) .view-project__arrow {
-  color: var(--hp-soft);
-}
+  .view-project:hover .view-project__arrow,
+  .view-project:focus-visible .view-project__arrow,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__arrow {
+    color: var(--hp-soft);
+  }
 
-.view-project:hover .view-project__arrow::before,
-.view-project:focus-visible .view-project__arrow::before,
-.hero__reel:has(.hero__thumb.is-active:hover) .view-project__arrow::before {
-  clip-path: inset(0 0 0 0);
-}
+  .view-project:hover .view-project__arrow::before,
+  .view-project:focus-visible .view-project__arrow::before,
+  .hero__reel:has(.hero__thumb.is-active:hover) .view-project__arrow::before {
+    clip-path: inset(0 0 0 0);
+  }
 
-.view-project:not(:hover, :focus-visible) .view-project__arrow,
-.view-project:not(:hover, :focus-visible) .view-project__arrow::before {
-  transition-delay: 0s;
+  .view-project:not(:hover, :focus-visible) .view-project__arrow,
+  .view-project:not(:hover, :focus-visible) .view-project__arrow::before {
+    transition-delay: 0s;
+  }
 }
 
 /* Before the preloader hands off, text + reel wait off-stage (JS only) */
@@ -561,7 +564,7 @@ html.js:not([data-site-ready]) .view-project {
 
 @media (max-width: 767px) {
   .hero {
-    --reel-h: 6rem;
+    --reel-h: 4.5rem; /* a slimmer strip on phones */
     --card-w: calc(var(--reel-h) * 1.7);
     --sliver: calc(var(--reel-h) * 0.3);
     --peek: calc(var(--reel-h) * 0.5);

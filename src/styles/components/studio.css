@@ -437,17 +437,17 @@ html.hp-motion .whatwedo__heading {
 
 @media (max-width: 767px) {
   .studio__heading {
-    font-size: 17vw;
+    font-size: 13vw;
   }
 
   .studio__story {
     max-width: none;
     margin-left: 0;
-    font-size: clamp(1.5rem, 7.2vw, 2.25rem);
+    font-size: clamp(1.25rem, 5.8vw, 1.75rem);
   }
 
   .whatwedo__heading {
-    font-size: 14vw;
+    font-size: 11vw;
   }
 
 }

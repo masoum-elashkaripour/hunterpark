@@ -338,7 +338,7 @@ html.hp-motion .caps__title.is-active {
   }
 
   .caps__label {
-    font-size: clamp(1.35rem, 6.6vw, 2.1rem);
+    font-size: clamp(1.2rem, 5.6vw, 1.9rem);
   }
 
   .caps__caption {

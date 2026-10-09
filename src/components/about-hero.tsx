@@ -677,7 +677,7 @@ export function AboutHero({ reel }: { reel: Work[] }) {
             time, which is the same motion the next chapter's heading arrives
             on, run backwards. Only the one-off rise on load is a reduced-motion
             call; the departure is coupled to scroll, so the reader drives it. */}
-          <h1 className="hp-display mt-4 text-[clamp(2.75rem,min(8vw,14svh),7rem)]">
+          <h1 className="hp-display about-hero__title mt-4 text-[clamp(1.75rem,min(8vw,14svh),7rem)] max-[599px]:text-[9vw]">
             {/* Two motions on one line, so they are kept on separate elements:
                 the wrapper rises out of its mask once, on load; the glyphs
                 inside it are driven by scroll. Putting both on the same node
@@ -714,7 +714,7 @@ export function AboutHero({ reel }: { reel: Work[] }) {
                   punchline and needed its own footnote; this one needs none, so
                   the room goes to the fact that two people walked out of the
                   agency world to be able to say it. */}
-              <p className="hp-copy mt-5 max-w-md">
+              <p className="hp-copy about-hero__copy mt-5 max-w-md">
                 Emmy-winning and female-founded. Two people left the agency
                 floor in 2018 and did not take the layers with them.
               </p>
@@ -734,7 +734,7 @@ export function AboutHero({ reel }: { reel: Work[] }) {
                * the space it takes is reclaimed by the same measurement. No new
                * animation, no new timing.
                */}
-              <div className="mt-7">
+              <div className="about-hero__cta mt-7">
                 <Link href="/work" className="header-cta">
                   <span className="header-cta__label">
                     <span className="header-cta__roll" data-text="See the work">
