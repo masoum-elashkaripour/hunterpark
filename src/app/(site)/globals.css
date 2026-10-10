@@ -549,13 +549,13 @@ body {
  * there with a hole in it for six tenths of a second, waiting on a rule that
  * belongs to the navigation.
  *
- * The grid placement below goes with it for the same reason: `grid-column: 3`
- * is a fact about the header's three-column bar, not about what a button is.
+ * The ticket now lives in `.site-header__actions` beside the sound toggle, so
+ * the rule is scoped there. Scoped to `.site-header__inner > .header-cta` it
+ * matched nothing once the ticket moved: the CTA stood on screen from the first
+ * frame while the rest of the bar was still waiting to come in.
  */
-.site-header__inner > .header-cta {
+.site-header__actions > .header-cta {
   animation: hp-header-in-right 1s var(--hp-ease-out) 0.6s both;
-  grid-column: 3;
-  justify-self: end;
 }
 @media (prefers-reduced-motion: reduce) {
   .site-header__logo,
@@ -4293,6 +4293,14 @@ html[data-logo-handoff] .site-header__logo {
   position: relative;
   z-index: 30;
   margin-top: calc(var(--overlap, 0svh) * -1);
+  /* The overlap (1.12 screens) is longer than the footer (one screen), so the
+     section behind used to end 0.12 of a screen BELOW it: at the end of the
+     page the footer stood that much too high — its statement under the
+     header, a strip of nothing under the wordmark. The difference is night
+     at the top of this box instead, so the footer still rises on the same
+     beat and comes to rest exactly on the frame. */
+  padding-top: max(0px, var(--overlap, 0svh) - 100svh);
+  background: var(--hp-night);
 }
 /* Its leading edge is a fade, not a line: the night it brings rises out of
    the picture rather than sliding over it. */
@@ -4314,6 +4322,7 @@ html[data-logo-handoff] .site-header__logo {
 @media (prefers-reduced-motion: reduce) {
   .contact-footer-rise {
     margin-top: 0;
+    padding-top: 0;
   }
 }
 .contact-reveal__panel {
@@ -4335,7 +4344,7 @@ html[data-logo-handoff] .site-header__logo {
 }
 /* Only while it scrolls (see `panelRef`): the clip at the top is a fade, not
    a cut. */
-.contact-reveal__panel[data-lenis-prevent] {
+.contact-reveal__panel[data-panel-scrolls] {
   mask-image: linear-gradient(to bottom, transparent, #000 1.25rem);
 }
 /**
@@ -4347,12 +4356,12 @@ html[data-logo-handoff] .site-header__logo {
  * and the map sat at zero opacity, a blank box below the socials, for as long
  * as anyone looked at it.
  */
-.contact-reveal__panel[data-lenis-prevent] .contact-reveal__map,
-.contact-reveal__panel[data-lenis-prevent] .contact-reveal__line .chars__char {
+.contact-reveal__panel[data-panel-scrolls] .contact-reveal__map,
+.contact-reveal__panel[data-panel-scrolls] .contact-reveal__line .chars__char {
   opacity: 1 !important;
   transform: none !important;
 }
-.contact-reveal__panel[data-lenis-prevent] .contact-reveal__line .chars__line {
+.contact-reveal__panel[data-panel-scrolls] .contact-reveal__line .chars__line {
   filter: none !important;
 }
 /* Two boxes side by side, as flyward sets them: the same height, a narrow

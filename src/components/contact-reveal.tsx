@@ -304,21 +304,40 @@ export function ContactReveal() {
    * takes every wheel event for the page, and the lower half of the form can
    * never be reached. Only while it actually overflows, so on a desktop, where
    * it fits, the wheel over it is still the page's smooth scroll.
+   *
+   * And only while the panel CAN still move that way. It covers the whole
+   * window, so a blanket `data-lenis-prevent` kept every wheel event from the
+   * page for good: once the form had scrolled to its end the page stopped
+   * there, and the footer below was never reached. Each wheel event is kept
+   * from Lenis (stopped before it bubbles to the window) only while the panel
+   * has room to scroll in its direction; at the end — or the top, going back
+   * up — it falls through and the page carries on. Touch is native scrolling
+   * here (Lenis does not take it), so it chains on its own.
    */
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = panelRef.current;
     if (!el) return;
-    const check = () => {
-      el.toggleAttribute(
-        "data-lenis-prevent",
-        el.scrollHeight > el.clientHeight + 1,
-      );
-    };
+    const overflows = () => el.scrollHeight > el.clientHeight + 1;
+    const check = () => el.toggleAttribute("data-panel-scrolls", overflows());
     const sizes = new ResizeObserver(check);
     sizes.observe(el);
     if (el.firstElementChild) sizes.observe(el.firstElementChild);
-    return () => sizes.disconnect();
+
+    const onWheel = (event: WheelEvent) => {
+      if (!overflows() || event.deltaY === 0) return;
+      const canGo =
+        event.deltaY > 0
+          ? el.scrollTop + el.clientHeight < el.scrollHeight - 1
+          : el.scrollTop > 0;
+      // Native scrolling moves the panel; Lenis never sees the event.
+      if (canGo) event.stopPropagation();
+    };
+    el.addEventListener("wheel", onWheel, { passive: true });
+    return () => {
+      sizes.disconnect();
+      el.removeEventListener("wheel", onWheel);
+    };
   }, []);
 
   const hasMail = CONTACT.email.length > 0;
