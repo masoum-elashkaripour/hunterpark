@@ -577,10 +577,11 @@ html.hp-motion .work__cta.is-live .work__cta-link {
   pointer-events: auto;
 }
 
-/* Phones: one word to a line, set larger */
-@media (max-width: 599px) {
+/* Phones: one word to a line, at the same size as the closing lockups on /work and
+   /about (globals.css, `.work__cta-title` under 768px) — every page ends on one size */
+@media (max-width: 767px) {
   .work__cta-title {
-    font-size: clamp(2.4rem, 12.5vw, 4rem);
+    font-size: clamp(1.9rem, 9.5vw, 3.25rem);
   }
 
   .work__cta-word {
