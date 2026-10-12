@@ -58,7 +58,7 @@ export function RelatedCarousel({ works }: { works: Work[] }) {
   return (
     <section aria-labelledby="more-films" className="mt-24 lg:mt-32">
       <div className="flex items-end justify-between gap-6 px-gutter">
-        <h2 id="more-films" className="hp-display text-h3">
+        <h2 id="more-films" className="hp-display related__title text-h3">
           More films
         </h2>
 

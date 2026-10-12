@@ -44,6 +44,12 @@ function Arrow() {
 export default function GlobalNotFound() {
   return (
     <html lang="en">
+      <head>
+        {/* The lockup's two Söhne Breit faces, fetched with the page: arriving late they
+            swapped in at a different width and the whole composition jumped (CLS 0.2). */}
+        <link rel="preload" href="/fonts/soehne-breit-400.woff2" as="font" type="font/woff2" crossOrigin="" />
+        <link rel="preload" href="/fonts/soehne-breit-900.woff2" as="font" type="font/woff2" crossOrigin="" />
+      </head>
       <body>
         <div className="nf">
           {/* The bar, as the site's: wordmark centred, Contact ticket right */}

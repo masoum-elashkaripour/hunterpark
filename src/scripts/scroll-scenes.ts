@@ -25,6 +25,17 @@ export function initScrollScenes(): void {
   });
 
   // Pins measure the page; re-measure once fonts and the preloader hand-off have settled.
-  document.fonts?.ready.then(() => ScrollTrigger.refresh());
-  onSiteReady(() => requestAnimationFrame(() => ScrollTrigger.refresh()));
+  // A refresh re-measures every pin in the film — a few hundred ms on a phone — so the two
+  // requests share one frame when they land together, and fonts that had already loaded
+  // before the scenes were measured ask for nothing.
+  let queued = 0;
+  const refreshSoon = () => {
+    if (queued) return;
+    queued = requestAnimationFrame(() => {
+      queued = 0;
+      ScrollTrigger.refresh();
+    });
+  };
+  if (document.fonts && document.fonts.status !== "loaded") document.fonts.ready.then(refreshSoon);
+  onSiteReady(refreshSoon);
 }

@@ -77,8 +77,8 @@ export default async function WorkDetailPage({
           {work.year}
         </p>
 
-        <h1 className="hp-display mt-3 text-h1">{work.client}</h1>
-        <p className="hp-sub mt-2 text-h4">{work.title}</p>
+        <h1 className="hp-display work-detail__title mt-3 text-h1">{work.client}</h1>
+        <p className="hp-sub work-detail__sub mt-2 text-h4">{work.title}</p>
 
         {/* Credits block, as on the reference. The real crew is not in the data
             yet, so only what we actually know is printed. */}

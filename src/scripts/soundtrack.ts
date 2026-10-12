@@ -59,13 +59,44 @@ function saveMuted(muted: boolean): void {
   }
 }
 
-/** A long, dark synthetic room: decaying stereo noise. */
+/**
+ * White noise for the buffers below: an xorshift32 generator, in [-1, 1).
+ * Math.random() per sample was the single most expensive thing the homepage did on
+ * load — the room alone is ~576k samples — and noise has no need of its quality.
+ */
+function noise(): () => number {
+  let s = (Math.random() * 0xffffffff) | 0 || 1;
+  return () => {
+    s ^= s << 13;
+    s ^= s >>> 17;
+    s ^= s << 5;
+    return s / 2147483648;
+  };
+}
+
+/**
+ * A long, dark synthetic room: decaying stereo noise. The decay curve is taken every
+ * 64 samples and stepped linearly between (an error of ~1e-8) rather than a Math.pow
+ * per sample.
+ */
 function impulse(ctx: AudioContext, seconds: number, decay: number): AudioBuffer {
   const length = Math.floor(ctx.sampleRate * seconds);
   const buffer = ctx.createBuffer(2, length, ctx.sampleRate);
+  const STEP = 64;
+  const curve = new Float32Array(Math.ceil(length / STEP) + 1);
+  for (let k = 0; k < curve.length; k++) curve[k] = Math.pow(Math.max(0, 1 - (k * STEP) / length), decay);
+  const rand = noise();
   for (let c = 0; c < 2; c++) {
     const data = buffer.getChannelData(c);
-    for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    for (let k = 0; k < curve.length - 1; k++) {
+      const end = Math.min(length, (k + 1) * STEP);
+      const slope = (curve[k + 1] - curve[k]) / STEP;
+      let env = curve[k];
+      for (let i = k * STEP; i < end; i++) {
+        data[i] = rand() * env;
+        env += slope;
+      }
+    }
   }
   return buffer;
 }
@@ -75,9 +106,10 @@ function airBuffer(ctx: AudioContext): AudioBuffer {
   const length = ctx.sampleRate * 6;
   const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
   const data = buffer.getChannelData(0);
+  const rand = noise();
   let last = 0;
   for (let i = 0; i < length; i++) {
-    last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+    last = (last + 0.02 * rand()) / 1.02;
     data[i] = last * 3.5;
   }
   // fade the ends into each other so the loop has no click
@@ -363,11 +395,14 @@ export function initSoundtrack(): void {
     reflect();
   }
 
-  // Ready before the preloader ends: the engine (and its audio context) is built now, so the
-  // piece can begin the instant the hero appears. It begins as the preloader hands over —
-  // at once where the browser allows sound, otherwise at the first interaction it accepts.
+  // Ready before the preloader ends: the engine (and its audio context) is built while the
+  // browser is idle — off the page's first, busiest moments, still well before the hero
+  // appears — so the piece can begin the instant it does. It begins as the preloader hands
+  // over — at once where the browser allows sound, otherwise at the first interaction it
+  // accepts. An earlier play() simply builds it then (prepare() is idempotent).
   if (!muted) {
-    prepare();
+    const idle = window.requestIdleCallback ?? ((fn: () => void) => window.setTimeout(fn, 1));
+    idle(() => prepare(), { timeout: 1500 });
     listen();
   }
   onSiteReady(() => {

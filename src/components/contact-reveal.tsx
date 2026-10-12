@@ -326,6 +326,10 @@ export function ContactReveal() {
 
     const onWheel = (event: WheelEvent) => {
       if (!overflows() || event.deltaY === 0) return;
+      // Not while the panel is still arriving (or leaving): the page's own scroll drives
+      // that, and taking the wheel mid-fade scrolled the card away from its heading
+      // while it was still half transparent.
+      if (Number(getComputedStyle(el).opacity) < 0.99) return;
       const canGo =
         event.deltaY > 0
           ? el.scrollTop + el.clientHeight < el.scrollHeight - 1
