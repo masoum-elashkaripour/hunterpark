@@ -2353,18 +2353,22 @@ html[data-logo-handoff] .site-header__logo {
   /**
    * The reel's call to action.
    *
-   * `.view-project` is the one control on the hero, and its arrow cell is
-   * 2.25rem — 36px, under both platforms' minimum (44 on iOS, 48 on Android).
-   * The link has no height of its own either, so the cell WAS the target. On a
-   * phone this is the control a reader actually reaches for, and it was the
-   * smallest one on the page.
+   * `.view-project` is the one control on the hero. Its arrow cell is the
+   * header's cell — 2.25rem, 36px, with the same 14px arrow — so the two read
+   * as one family on a phone (grown to 44px it was the biggest thing in the
+   * lockup). The TARGET is the link, not the cell: the link keeps a 44px
+   * minimum height (iOS 44, Android 48) and its hit area is the whole row.
    */
   .view-project {
     min-height: 2.75rem;
   }
   .view-project__arrow {
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .view-project__arrow svg {
+    width: 14px;
+    height: 14px;
   }
 
   /* 0.6875rem is 11px — below the floor everything else on this site respects,
@@ -4345,7 +4349,7 @@ html[data-logo-handoff] .site-header__logo {
   );
   pointer-events: none;
 }
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce), (max-width: 1023px) {
   .contact-reveal__foot {
     opacity: 1;
   }
@@ -4389,7 +4393,9 @@ html[data-logo-handoff] .site-header__logo {
   );
   pointer-events: none;
 }
-@media (prefers-reduced-motion: reduce) {
+/* …and not at all where the reveal plays still — reduced motion, and every
+   phone and tablet (see `ContactReveal`): the footer simply follows the card. */
+@media (prefers-reduced-motion: reduce), (max-width: 1023px) {
   .contact-footer-rise {
     margin-top: 0;
     padding-top: 0;
@@ -4638,7 +4644,9 @@ html[data-logo-handoff] .site-header__logo {
   gap: clamp(0.7rem, 1.6svh, 1.1rem);
 }
 
-@media (prefers-reduced-motion: reduce) {
+/* THE REVEAL, STILL: under reduced motion, and on every phone and tablet —
+   the pinned, finger-flung version lost the form (see `ContactReveal`). */
+@media (prefers-reduced-motion: reduce), (max-width: 1023px) {
   .contact-reveal {
     height: auto;
     margin-top: 0;
@@ -4665,8 +4673,28 @@ html[data-logo-handoff] .site-header__logo {
   }
   .contact-reveal__panel {
     position: relative;
+    /* Its pinned-state offsets (`inset: 0`, `top: header`) would move a
+       relative box; in the flow it needs neither, nor an inner scroll. */
+    inset: auto;
+    min-height: 0;
+    overflow: visible;
     opacity: 1;
     transform: none;
+    pointer-events: auto;
+    padding-block: clamp(2rem, 6svh, 3.5rem);
+  }
+  /* "Send a brief" lands with the card's top clear of the fixed bar. */
+  .contact-reveal__anchor {
+    scroll-margin-top: var(--hp-header-h);
+  }
+  /* The letters and the map stand finished; nothing waits on a progress. */
+  .contact-reveal__line .chars__char,
+  .contact-reveal__map {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .contact-reveal__line .chars__line {
+    filter: none !important;
   }
 }
 
@@ -4960,12 +4988,16 @@ html[data-logo-handoff] .site-header__logo {
   .work-caption h1 {
     font-size: clamp(1.5rem, 7.5vw, 1.875rem);
   }
+  /* One gap between all four parts — eyebrow, name, line, link. */
+  .work-caption h1 {
+    margin-top: 0.5rem;
+  }
   .work-caption .hp-sub {
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
     font-size: 1rem;
   }
   .work-caption .view-project {
-    margin-top: 1rem;
+    margin-top: 0.5rem;
   }
   /* The same step down on a project's own page, and for the headings below it */
   .work-detail__title {
@@ -4991,6 +5023,12 @@ html[data-logo-handoff] .site-header__logo {
   /* Bleeds to the screen edge on a phone so the row reads as scrollable. */
   margin-inline: calc(var(--hp-gutter) * -1);
   padding-inline: var(--hp-gutter);
+  /* The chips snap to the row's start, and without this they snapped to the
+     scrollport's edge — the row came up already scrolled by one gutter, "All"
+     flush against the side of the screen while the heading above it stood at
+     the margin. Snapping to the padded edge keeps the first chip on the
+     heading's line. */
+  scroll-padding-inline: var(--hp-gutter);
   scrollbar-width: none;
   /* The last chips fade into the edge rather than being cut by it, which is
      what says "there is more this way" on a row with no scrollbar. */

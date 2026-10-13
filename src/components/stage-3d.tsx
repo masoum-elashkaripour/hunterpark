@@ -659,10 +659,20 @@ export default function Stage3D({
     let hovered = -1;
 
     const canvas = renderer.domElement;
-    canvas.style.touchAction = "pan-y";
+    /* A FINGER TURNS THE RING ALONG EITHER AXIS. With `pan-y` the browser took
+       every vertical touch for the page — and there is no page under the reel
+       to pan to: the index only exists once the ring has receded, which the
+       ring itself triggers after enough cards have been seen. So a reader on
+       a phone had to find the sideways swipe, and a scroll did nothing. With
+       the touch kept, an up-swipe is the next card, a down-swipe the one
+       before, the same travel per card as a sideways drag. A mouse keeps its
+       horizontal drag; the wheel already turns the ring on either axis. */
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    canvas.style.touchAction = coarse ? "none" : "pan-y";
 
     let dragging = false;
     let startX = 0;
+    let startY = 0;
     let startTarget = 0;
     let moved = 0;
 
@@ -671,6 +681,7 @@ export default function Stage3D({
       dragging = true;
       moved = 0;
       startX = e.clientX;
+      startY = e.clientY;
       startTarget = targetRef.current;
       canvas.setPointerCapture(e.pointerId);
     };
@@ -681,10 +692,14 @@ export default function Stage3D({
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
       if (dragging) {
-        moved = Math.abs(e.clientX - startX);
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        /* A touch follows whichever way it is mostly going; a mouse only sideways. */
+        const touch = e.pointerType === "touch" || e.pointerType === "pen";
+        const travel = touch && Math.abs(dy) > Math.abs(dx) ? dy : dx;
+        moved = Math.max(Math.abs(dx), touch ? Math.abs(dy) : 0);
 
-        targetRef.current =
-          startTarget - (e.clientX - startX) / (rect.width * DRAG_SPAN);
+        targetRef.current = startTarget - travel / (rect.width * DRAG_SPAN);
         return;
       }
 
