@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   m,
   useMotionValue,
@@ -108,6 +108,27 @@ const DARK = { from: 4.34, to: 5.53 };
 export const FOOTER_OVERLAP = SCREENS - 5.88;
 
 
+/**
+ * A PHONE OR TABLET PLAYS THIS SECTION STILL — the same path as reduced motion.
+ *
+ * Pinned, the card arrives by scroll progress and then scrolls on its own inside
+ * a window shorter than it is. Driven by a finger that is one fling: the whole
+ * card shoots past under the first swipe, the form is on screen for barely a
+ * screen of travel, and the next fling carries the page into the exit — so the
+ * form was, for most readers, never seen. Below the desktop breakpoint the
+ * card simply follows the hero in the flow, at its own height, and the footer
+ * follows it. Mirrored in CSS under the same query (globals.css, the
+ * reduced-motion block for `.contact-reveal`).
+ */
+const STILL_QUERY = "(max-width: 1023px)";
+const subscribeStill = (onChange: () => void) => {
+  const mq = window.matchMedia(STILL_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+const readStill = () => window.matchMedia(STILL_QUERY).matches;
+const readStillServer = () => false;
+
 export function ContactReveal() {
   const [ref, scrolled] = useBeat();
   /* The section's progress through a soft spring: every move here trails the
@@ -120,6 +141,10 @@ export function ContactReveal() {
     restDelta: 0.0002,
   });
   const reduced = useReducedMotion();
+  const small = useSyncExternalStore(subscribeStill, readStill, readStillServer);
+  /* Nothing scrubbed: the panel stands at its end state and the page flows. */
+  const still = !!reduced || small;
+  const done = useMotionValue(1);
 
 
   /**
@@ -219,7 +244,7 @@ export function ContactReveal() {
   /* First pixel of scroll from the top: pick. Back at the top: forget, so the
      next scroll picks afresh. */
   useMotionValueEvent(p, "change", (v) => {
-    if (reduced) return;
+    if (still) return;
     if (v > 0 && !picked.current) pick();
     else if (v <= 0 && picked.current) {
       picked.current = false;
@@ -342,7 +367,8 @@ export function ContactReveal() {
       sizes.disconnect();
       el.removeEventListener("wheel", onWheel);
     };
-  }, []);
+    // the section remounts when the mode flips (see its `key`): bind to the new panel
+  }, [still]);
 
   const hasMail = CONTACT.email.length > 0;
   const hasPhone = CONTACT.phone.length > 0;
@@ -350,9 +376,17 @@ export function ContactReveal() {
 
   return (
     <section
+      /* KEYED ON THE MODE. The server knows no media query and renders the
+         scrubbed branch, so the panel's opacity 0 and its lift are in the
+         markup; a `style` prop that then changes shape on the client does not
+         clear what hydration left on the element — the still card stayed at
+         opacity 0 (measured). A new key remounts the subtree with the still
+         styles alone. It flips once, after hydration, below the fold. */
+      key={still ? "still" : "film"}
       ref={ref}
       className="contact-reveal"
       aria-labelledby="reveal-head"
+      data-still={still ? "" : undefined}
       style={{ "--reveal-h": `${Math.round(SCREENS * 100)}svh` } as React.CSSProperties}
     >
       {/* Where the hero's "Send a brief" lands: the scroll position at which
@@ -371,7 +405,7 @@ export function ContactReveal() {
           /* Under reduced motion there is no zoom: the picture is simply the
              section's ground. */
           style={
-            reduced
+            still
               ? { inset: 0, opacity: 1 }
               : {
                   left: boxLeft,
@@ -407,7 +441,7 @@ export function ContactReveal() {
                 the blur, so the blurred ground arrives already dark. */}
             <m.div
               className="contact-reveal__shade"
-              style={reduced ? undefined : { opacity: shade }}
+              style={still ? { opacity: 1 } : { opacity: shade }}
               aria-hidden
             />
             {/* The blur — see `blur` above: a pre-blurred file faded in, so
@@ -436,23 +470,26 @@ export function ContactReveal() {
 
         <m.div
           className="contact-reveal__foot"
-          style={reduced ? undefined : { opacity: footFade }}
+          style={still ? { opacity: 1 } : { opacity: footFade }}
           aria-hidden
         />
         <m.div
           className="contact-reveal__dark"
-          style={reduced ? { opacity: 0 } : { opacity: exitDark }}
+          style={still ? { opacity: 0 } : { opacity: exitDark }}
           aria-hidden
         />
 
         <m.div
           ref={panelRef}
           className="contact-section contact-reveal__panel"
-          /* Static under reduced motion: the run-out would otherwise fade the
-             panel away in a layout where nothing replaces it. */
+          /* Still (reduced motion, phones, tablets): the run-out would otherwise
+             fade the panel away in a layout where nothing replaces it. EXPLICIT
+             end values, not `undefined`: the server renders the scrubbed branch
+             (no media query there), so its opacity 0 is in the markup, and a
+             style prop that merely goes away leaves that 0 on the element. */
           style={
-            reduced
-              ? undefined
+            still
+              ? { opacity: 1, y: 0, pointerEvents: "auto" }
               : { opacity: panel, y: lift, pointerEvents: panelHit }
           }
         >
@@ -460,13 +497,13 @@ export function ContactReveal() {
             {/* Column one — the information. */}
             <m.div
               className="contact-reveal__info"
-              style={reduced ? undefined : { opacity: infoOut, y: infoUp }}
+              style={still ? { opacity: 1, y: 0 } : { opacity: infoOut, y: infoUp }}
             >
               {/* Built letter by letter on scroll, the way /about's headings
                   arrive — same component, same motion. The breaks are the
                   ones the line already took at this size. */}
               <h2 id="reveal-head" className="hp-display contact-reveal__line">
-                <ScrollChars lines={HEAD} progress={headIn} />
+                <ScrollChars lines={HEAD} progress={still ? done : headIn} />
               </h2>
 
               {/* Each fact on its own row: a lime-ruled icon box (the
@@ -545,7 +582,7 @@ export function ContactReveal() {
                   never a located pin — unless `CONTACT.cities` is filled. */}
               <m.div
                 className="contact-reveal__map"
-                style={{ opacity: mapIn, y: mapLift }}
+                style={still ? { opacity: 1, y: 0 } : { opacity: mapIn, y: mapLift }}
               >
                 <p className="label-xs contact-reveal__label">Where we are</p>
                 {hasCities ? (
@@ -565,7 +602,7 @@ export function ContactReveal() {
             {/* Column two — the form, imported unchanged. */}
             <m.div
               className="contact-reveal__form"
-              style={reduced ? undefined : { opacity: formOut, y: formUp }}
+              style={still ? { opacity: 1, y: 0 } : { opacity: formOut, y: formUp }}
             >
               {/* A heading, in the display face — as a `label-xs` it read as
                   just another field label. */}

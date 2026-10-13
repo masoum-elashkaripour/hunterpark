@@ -646,3 +646,47 @@ html.hp-motion .work__cta.is-live .work__cta-link {
     display: none;
   }
 }
+
+/* Phones: the type around a card steps down with the card. The caption under the image
+   and the invitation beneath it were set at their desktop sizes against a picture a third
+   as wide, and read louder than the project itself; the rolling title and its meta line
+   come down a step with them so the whole lockup keeps its proportions. */
+@media (max-width: 599px) {
+  .work__title {
+    font-size: clamp(1.6rem, 8vw, 2.6rem);
+  }
+
+  .work__meta {
+    font-size: 0.625rem;
+  }
+
+  .work__caption {
+    gap: 0.6em;
+    padding-top: 0.7rem;
+    font-size: 0.6875rem;
+  }
+
+  .work__more {
+    gap: 0.6rem;
+    margin-top: 0.7rem;
+    font-size: 0.8125rem;
+  }
+
+  .work__more-label {
+    padding-bottom: 0.25rem;
+  }
+
+  .work__more-arrow {
+    width: 1.625rem;
+    height: 1.625rem;
+  }
+
+  html.hp-motion .work__more {
+    top: calc(100% + 0.7rem);
+  }
+
+  html.hp-motion .work__card--below .work__more,
+  html.hp-motion .work__card--side .work__more {
+    top: calc(100% + 2.2rem);
+  }
+}
