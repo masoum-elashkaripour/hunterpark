@@ -602,6 +602,23 @@ html.hp-motion .work__cta.is-live .work__cta-link {
   .work__cta-link .header-cta__arrow {
     border-left: 1px solid var(--hp-lime);
   }
+
+  /* The closing CTA, a step down on a phone and the same on every page: 40px
+     tall (the header's 36 plus a little, it is the page's last word), a square
+     arrow cell, and the label at the size the header's own sits at. */
+  .work__cta-link {
+    height: 2.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .work__cta-link .header-cta__label {
+    padding-inline: 0.9rem 0.85rem;
+  }
+
+  /* Square inside the 1px rule: 40 less the top and bottom borders. */
+  .work__cta-link .header-cta__arrow {
+    width: calc(2.5rem - 2px);
+  }
 }
 
 /* --- Responsive ------------------------------------------------------------ */
@@ -661,32 +678,51 @@ html.hp-motion .work__cta.is-live .work__cta-link {
   }
 
   .work__caption {
-    gap: 0.6em;
-    padding-top: 0.7rem;
-    font-size: 0.6875rem;
+    gap: 0.5em;
+    padding-top: 0.55rem;
+    font-size: 0.625rem;
+  }
+
+  /* Over the picture: a shorter wash and a tighter inset, so the label sits in
+     the corner instead of taking a band across the foot of a small card. */
+  .work__card--inside .work__caption {
+    padding: 1.75rem 0.7rem 0.6rem;
   }
 
   .work__more {
-    gap: 0.6rem;
-    margin-top: 0.7rem;
-    font-size: 0.8125rem;
+    gap: 0.5rem;
+    margin-top: 0.55rem;
+    font-size: 0.75rem;
+    /* Drawn small, but still a thumb's target: the hit area reaches past the
+       type and the cell without moving either. */
+    position: relative;
+  }
+  .work__more::before {
+    content: "";
+    position: absolute;
+    inset: -0.6rem -0.4rem;
   }
 
   .work__more-label {
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.2rem;
   }
 
   .work__more-arrow {
-    width: 1.625rem;
-    height: 1.625rem;
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  .work__more-arrow svg {
+    width: 10px;
+    height: 10px;
   }
 
   html.hp-motion .work__more {
-    top: calc(100% + 0.7rem);
+    top: calc(100% + 0.55rem);
   }
 
   html.hp-motion .work__card--below .work__more,
   html.hp-motion .work__card--side .work__more {
-    top: calc(100% + 2.2rem);
+    top: calc(100% + 1.85rem);
   }
 }

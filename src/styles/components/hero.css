@@ -532,6 +532,31 @@ img.hero__bg:nth-child(even) {
   }
 }
 
+/* A finger has no hover, so the same move plays while it is PRESSED: the label
+   rolls, the line runs into the cell and the cell floods — feedback on the
+   tap, and nothing left lit after it. `.is-pressed` is set by hero.ts for the
+   length of the touch; `:active` covers a browser that applies it anyway. */
+@media (hover: none) {
+  .view-project:is(:active, .is-pressed) .view-project__roll > span,
+  .view-project:is(:active, .is-pressed) .view-project__roll::after {
+    transform: translateY(-100%);
+  }
+
+  .view-project:is(:active, .is-pressed) .view-project__line::after {
+    transform: scaleX(1);
+  }
+
+  .view-project:is(:active, .is-pressed) .view-project__arrow {
+    color: var(--hp-soft);
+    transition-delay: 0s;
+  }
+
+  .view-project:is(:active, .is-pressed) .view-project__arrow::before {
+    clip-path: inset(0 0 0 0);
+    transition-delay: 0s;
+  }
+}
+
 /* Before the preloader hands off, text + reel wait off-stage (JS only) */
 html.js:not([data-site-ready]) .hero__mask > span {
   transform: translateY(110%);
@@ -564,18 +589,54 @@ html.js:not([data-site-ready]) .view-project {
 
 @media (max-width: 767px) {
   .hero {
-    --reel-h: 4.5rem; /* a slimmer strip on phones */
-    --card-w: calc(var(--reel-h) * 1.7);
-    --sliver: calc(var(--reel-h) * 0.3);
-    --peek: calc(var(--reel-h) * 0.5);
+    --reel-h: 3.75rem; /* a lower strip on phones */
+    --card-w: calc(var(--reel-h) * 1.8);
+    --peek: calc(var(--reel-h) * 0.9);
+  }
+
+  /* The idle cards wider than the 0.3 slivers they were — a picture, not a
+     seam — but never so wide the strip leaves the screen: each takes at most
+     its share of what the open card and the gaps leave inside the gutters.
+     Declared here, where `--count` is set, so the arithmetic can read it. */
+  .hero__reel {
+    --sliver: min(
+      calc(var(--reel-h) * 0.62),
+      calc(
+        (100vw - 2 * var(--hp-gutter) - var(--card-w)) / (var(--count) - 1) -
+          var(--reel-gap)
+      )
+    );
   }
 
   .hero__title {
     bottom: 8%; /* centres at 46%: the optical middle of the space above the reel */
+    /* The keywords a step up on a phone — they are the line's whole point —
+       still inside the gutters (see the row widths in the notes) */
+    --big: clamp(3.4rem, 15.5vw, 5rem);
   }
 
+  /* Air between the two rows: on desktop they nest tight at -0.02, which at a
+     phone's size read as one block of yellow */
   .hero__row--2 {
+    margin-top: calc(var(--big) * 0.08);
     padding-left: calc(var(--big) * 0.55);
+  }
+
+  /* View Project: the line ran the full width of the reel, so the arrow cell
+     stood at the far edge, a long way from the words it belongs to. A short
+     fixed run here keeps the three together. */
+  .view-project {
+    width: auto;
+    gap: 0.75rem;
+  }
+
+  .view-project__line {
+    flex: 0 0 2.75rem;
+    margin-right: -0.75rem;
+  }
+
+  .view-project__line::before {
+    transform: scaleX(0.4);
   }
 
   .hero__content {

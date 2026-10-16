@@ -4,6 +4,7 @@ import { WORKS } from "@/lib/works";
 import { RelatedCarousel } from "@/components/related-carousel";
 import { ProjectFilm } from "@/components/project-film";
 import { Reveal } from "@/components/reveal";
+import { StillFooter } from "@/components/still-footer";
 
 /**
  * Project page, after the reference (schemeengine.com/work/…): the film and its
@@ -37,7 +38,7 @@ export default async function WorkDetailPage({
   ].slice(0, 12);
 
   return (
-    <main className="pt-header pb-24">
+    <main className="pt-header">
       {/* Everything but the film arrives after it, staggered. The delays are
           measured from the start of the navigation and all of them clear
           `--hp-morph-ms` (900ms), so the tile has finished becoming the film
@@ -104,6 +105,9 @@ export default async function WorkDetailPage({
       <Reveal delay={0.88}>
         <RelatedCarousel works={related} />
       </Reveal>
+
+      {/* The page ends the way /contact does: the still footer, fading up. */}
+      <StillFooter />
     </main>
   );
 }

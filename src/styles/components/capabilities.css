@@ -337,8 +337,24 @@ html.hp-motion .caps__title.is-active {
     --wl: 5%;
   }
 
+  /* The list sets the frame's foot, not a share of the window: five rows at
+     the label's size, the gaps between them and the room left for the chapter
+     marker — and the picture ends a fixed step above that, however tall the
+     phone. A percentage left a band of dead screen between the two that grew
+     with every extra pixel of height. */
+  .caps {
+    --cap-fs: clamp(1.3rem, 6vw, 2.1rem);
+    --cap-gap: 0.6rem;
+    --cap-list: calc(5 * var(--cap-fs) + 4 * var(--cap-gap));
+    --wb: calc(var(--hp-gutter) + 2rem + var(--cap-list) + 1.75rem);
+  }
+
+  .caps__list {
+    gap: var(--cap-gap);
+  }
+
   .caps__label {
-    font-size: clamp(1.2rem, 5.6vw, 1.9rem);
+    font-size: var(--cap-fs);
   }
 
   .caps__caption {

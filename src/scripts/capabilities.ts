@@ -1,6 +1,7 @@
 import { gsap } from "gsap";
 import { chapterIndicatorTo } from "./chapter-indicator";
 import { frameSubject, win, STUDIO_MOTION } from "./studio";
+import { capsWindow, type CapsWindow } from "./caps-window";
 
 /**
  * What We Do — the capabilities beat of the homepage film. Tune here.
@@ -25,6 +26,10 @@ const EDGES = ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 100%)", "inset(100% 0% 0%
 const SHIFTS = [[0, -1], [1, 0], [0, 1], [-1, 0], [0, -1]]; // matching direction of travel
 
 const cssVar = (el: HTMLElement, name: string) => getComputedStyle(el).getPropertyValue(name).trim() || "0%";
+const edge = (side: keyof CapsWindow, name: string) => {
+  const box = capsWindow();
+  return box ? `${box[side]}%` : cssVar(document.querySelector<HTMLElement>(".caps") ?? document.body, name);
+};
 
 export interface CapabilitiesBeat {
   timeline: gsap.core.Timeline;
@@ -145,7 +150,14 @@ export function capabilitiesTimeline(): CapabilitiesBeat | null {
     .to(one("[data-caps-folio]"), { autoAlpha: 0, duration: span * 0.3 }, h.start)
     .fromTo(
       frame,
-      { top: () => cssVar(root, "--wt"), right: () => cssVar(root, "--wr"), bottom: () => cssVar(root, "--wb"), left: () => cssVar(root, "--wl") },
+      // The resting window, resolved off the stylesheet (a phone's foot is a calc() — see
+      // caps-window.ts); the raw custom property only if the stage cannot be measured
+      {
+        top: () => edge("top", "--wt"),
+        right: () => edge("right", "--wr"),
+        bottom: () => edge("bottom", "--wb"),
+        left: () => edge("left", "--wl"),
+      },
       { top: "0%", right: "0%", bottom: "0%", left: "0%", duration: span, ease: "power3.inOut", immediateRender: false },
       h.start,
     )
