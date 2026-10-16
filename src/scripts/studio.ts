@@ -1,5 +1,6 @@
 import { gsap } from "gsap";
 import { strokeLength } from "./lifecycle";
+import { capsInset } from "./caps-window";
 
 /**
  * Chapter 02 stage — tune here. Positions are shares of this beat (0–1).
@@ -78,17 +79,23 @@ export const STUDIO_MOTION = {
 export type WindowKey = keyof typeof STUDIO_MOTION.windows.desktop;
 type Subject = { focusX: number; focusY: number; keep: number };
 
-const windows = () =>
+const windowSet = () =>
   window.matchMedia("(max-width: 767px)").matches
     ? STUDIO_MOTION.windows.mobile
     : window.matchMedia("(max-width: 1023px)").matches
       ? STUDIO_MOTION.windows.tablet
       : STUDIO_MOTION.windows.desktop;
-export const win = (key: WindowKey) => () => windows()[key];
+/** One window as an inset. `caps` is read off capabilities.css itself (see caps-window.ts) —
+    the table's copy is only the fallback — so the film always lands exactly in the frame. */
+const inset = (key: WindowKey) => {
+  const set = windowSet();
+  return key === "caps" ? capsInset(set.caps) : set[key];
+};
+export const win = (key: WindowKey) => () => inset(key);
 
 /** A window's box in stage pixels. */
 function windowBox(key: WindowKey, stage: HTMLElement) {
-  const [, top, right, bottom, left] = windows()[key].match(/inset\(([\d.]+)% ([\d.]+)% ([\d.]+)% ([\d.]+)%\)/)!.map(Number);
+  const [, top, right, bottom, left] = inset(key).match(/inset\(([\d.]+)% ([\d.]+)% ([\d.]+)% ([\d.]+)%\)/)!.map(Number);
   const w = stage.clientWidth;
   const h = stage.clientHeight;
   return { x: (left / 100) * w, y: (top / 100) * h, w: ((100 - left - right) / 100) * w, h: ((100 - top - bottom) / 100) * h };

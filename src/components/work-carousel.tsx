@@ -789,7 +789,7 @@ export function WorkCarousel({ works }: { works: Work[] }) {
           The patterned index is a document — it is taller than a screen and has
           to grow the page. Trapping it in the stage's box is what left it with
           an inner scrollport showing two cards and no way down. */}
-      <div className={flows ? "relative" : "relative min-h-0 flex-1"}>
+      <div className={flows ? "relative" : "work-stage relative min-h-0 flex-1"}>
         {/* `mode="wait"` so the reel has finished leaving before the index
             arrives: crossfading a WebGL canvas against a grid of films reads
             as a glitch, one handing over to the other reads as a move.

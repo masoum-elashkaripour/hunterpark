@@ -31,6 +31,20 @@ export function initHero(): void {
   const bars = Array.from(thumbs).map((t) => t.querySelector<HTMLElement>(".hero__progress"));
   const count = hero.querySelector<HTMLElement>("[data-hero-count]");
   const thumbRow = hero.querySelector<HTMLElement>(".hero__thumbs");
+
+  // View Project, pressed by a finger: a touch has no hover and `:active` is not dependable
+  // on one (iOS only applies it with a listener), so the press is a class the CSS keys on
+  const viewProject = hero.querySelector<HTMLElement>("[data-view-project]");
+  if (viewProject) {
+    const press = (on: boolean) => viewProject.classList.toggle("is-pressed", on);
+    viewProject.addEventListener("pointerdown", (e) => e.pointerType !== "mouse" && press(true));
+    for (const end of ["pointerup", "pointercancel", "pointerleave"] as const) {
+      viewProject.addEventListener(end, () => press(false));
+    }
+    // Coming back from the project with the browser's back button: never left lit
+    window.addEventListener("pageshow", () => press(false));
+  }
+
   const isFilm = (el: Element): el is HTMLVideoElement => el instanceof HTMLVideoElement;
 
   let active = 0;

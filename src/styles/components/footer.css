@@ -307,6 +307,72 @@
   color: var(--hp-lime);
 }
 
+/**
+ * THE FOOTER UNDER A FINGER.
+ *
+ * A touch screen keeps `:hover` on whatever was last tapped, so a link stayed
+ * lime and rolled over after the tap — on /news it read as if "About" were the
+ * page you were on. Hover is a pointer's state, so without one it is undone;
+ * keyboard focus keeps its treatment.
+ *
+ * And the targets: the links were 20px tall and "Back to top" 14, well under a
+ * thumb (44px). Each reaches past its type with an invisible `::before`, so the
+ * layout and the look are exactly as they were.
+ */
+@media (hover: none) {
+  .footer__link:hover:not(:focus-visible),
+  .footer__say:hover:not(:focus-visible),
+  .footer__top:hover:not(:focus-visible) {
+    color: var(--hp-off-white);
+  }
+  .footer__top:hover:not(:focus-visible) {
+    color: var(--hp-gray);
+  }
+  .footer__link:hover:not(:focus-visible) .footer__roll > span,
+  .footer__link:hover:not(:focus-visible) .footer__roll::after {
+    transform: none;
+  }
+  .footer__say:hover:not(:focus-visible) .footer__say-arrow {
+    background: transparent;
+    color: var(--hp-lime);
+  }
+  .footer__say:hover:not(:focus-visible) .footer__say-arrow svg {
+    transform: none;
+  }
+}
+@media (max-width: 767px) {
+  .footer__link,
+  .footer__say,
+  .footer__top {
+    position: relative;
+  }
+  .footer__link::before,
+  .footer__say::before,
+  .footer__top::before {
+    content: "";
+    position: absolute;
+    inset: -0.75rem -0.5rem;
+  }
+  .footer__say::before {
+    inset: -0.4rem -0.5rem;
+  }
+  /* The Index / Follow links stand 7px apart: reach sideways freely, but only
+     as far up and down as stops short of the neighbour's own reach. */
+  .footer__link::before {
+    inset: -0.2rem -0.75rem;
+  }
+  /* Here "Back to top" carries the reveal's `clip-path` on itself, which cuts
+     a `::before` back to the type. So its reach is padding, paid back by an
+     equal negative margin — inside its own box, where the clip leaves it. */
+  .footer__top::before {
+    content: none;
+  }
+  .footer__top {
+    padding: 0.75rem 0.5rem;
+    margin: -0.75rem -0.5rem;
+  }
+}
+
 /* --- The wordmark: the page's signature ----------------------------------- */
 .footer__mark {
   grid-column: 1 / -1;

@@ -306,7 +306,7 @@ export function WorkCta({
              get the same from `.work__cta-char`. */
           className="inline-block"
         >
-          <Link href="/work" className="header-cta work__cta-link">
+          <Link href="/contact" className="header-cta work__cta-link">
             <span className="header-cta__label">
               <span className="header-cta__roll" data-text={action}>
                 <span>{action}</span>

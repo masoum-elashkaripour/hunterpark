@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   m,
   useMotionValue,
@@ -76,7 +76,7 @@ const FALLBACK_W = 16;
  */
 /* Ends as the map reaches the header — the footer is a plain one that simply
    follows, so there is no hand-over to keep the picture pinned for. */
-const SCREENS = 7;
+const SCREENS = 6;
 const SPAN = SCREENS - 1;
 /** A point in screens → the section's own 0→1, as `useBeat` measures it. */
 const at = (s: number) => s / SPAN;
@@ -87,7 +87,7 @@ const OPEN = at(2.24);
 const PANEL = { from: at(1.99), to: at(2.73) };
 /** Just past the panel's arrival, in screens — the "Send a brief" target. */
 const ANCHOR = 2.8;
-const MAP = { from: at(2.94), to: at(3.5) };
+const MAP = { from: at(2.55), to: at(3) };
 /** The heading builds itself across the panel's arrival. */
 const HEAD_RUN = { from: at(2.1), to: at(2.94) };
 const HEAD = ["Let’s make", "something", "together."];
@@ -95,39 +95,27 @@ const HEAD = ["Let’s make", "something", "together."];
  * THE EXIT, still pinned: each column lifts away faster than the wheel and
  * fades — the information first, the form a beat behind — the picture goes to
  * night, and the footer comes up over it all. No plain scroll-away.
+ *
+ * TWO SCREENS from the panel landing (2.73) to the footer having the frame
+ * (4.95): a little over one held — long enough that a swipe or two does not
+ * carry the form away before it has been seen — and one for the exit, with the
+ * footer rising AS the columns lift (from 3.95), not most of a screen after the
+ * form had gone. That gap was the long run of empty blurred picture; a hold of
+ * barely half a screen, tried next, lost the form under a single fling.
  */
-const EXIT_INFO = { from: 4.06, fade: 4.69, to: 4.83 };
-const EXIT_FORM = { from: 4.27, fade: 4.9, to: 5.04 };
+const EXIT_INFO = { from: 3.9, fade: 4.4, to: 4.5 };
+const EXIT_FORM = { from: 4.05, fade: 4.55, to: 4.65 };
 /** How far a column travels as it leaves, in px. */
 const EXIT_LIFT = 170;
-const DARK = { from: 4.34, to: 5.53 };
+const DARK = { from: 4.1, to: 4.9 };
 /**
- * How far the footer is pulled up over this section, in screens: its top
- * enters at the foot of the window at 3.2 and it has the frame by 4.2.
+ * How far the footer is pulled up over this section, in screens: its top sits
+ * at 4.95 in the document, so it enters at the foot of the window at 3.95 and
+ * has the frame by 4.95 — just before the stage lets go (SCREENS − 1).
  */
-export const FOOTER_OVERLAP = SCREENS - 5.88;
+export const FOOTER_OVERLAP = SCREENS - 4.95;
 
 
-/**
- * A PHONE OR TABLET PLAYS THIS SECTION STILL — the same path as reduced motion.
- *
- * Pinned, the card arrives by scroll progress and then scrolls on its own inside
- * a window shorter than it is. Driven by a finger that is one fling: the whole
- * card shoots past under the first swipe, the form is on screen for barely a
- * screen of travel, and the next fling carries the page into the exit — so the
- * form was, for most readers, never seen. Below the desktop breakpoint the
- * card simply follows the hero in the flow, at its own height, and the footer
- * follows it. Mirrored in CSS under the same query (globals.css, the
- * reduced-motion block for `.contact-reveal`).
- */
-const STILL_QUERY = "(max-width: 1023px)";
-const subscribeStill = (onChange: () => void) => {
-  const mq = window.matchMedia(STILL_QUERY);
-  mq.addEventListener("change", onChange);
-  return () => mq.removeEventListener("change", onChange);
-};
-const readStill = () => window.matchMedia(STILL_QUERY).matches;
-const readStillServer = () => false;
 
 export function ContactReveal() {
   const [ref, scrolled] = useBeat();
@@ -141,9 +129,11 @@ export function ContactReveal() {
     restDelta: 0.0002,
   });
   const reduced = useReducedMotion();
-  const small = useSyncExternalStore(subscribeStill, readStill, readStillServer);
-  /* Nothing scrubbed: the panel stands at its end state and the page flows. */
-  const still = !!reduced || small;
+  /* Nothing scrubbed under reduced motion: the panel stands at its end state
+     and the page flows. Phones and tablets play the film like the desktop —
+     the panel scrolls inside itself when it is taller than the window (see
+     `panelRef`), so the form is reachable without giving up the zoom. */
+  const still = !!reduced;
   const done = useMotionValue(1);
 
 

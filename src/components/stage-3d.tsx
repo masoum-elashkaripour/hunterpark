@@ -76,10 +76,19 @@ const WINDOW = 2;
  * competes harder for the eye than a large one, because it reads as a bright
  * edge rather than as part of a run.
  */
+/**
+ * `fov` is the camera's vertical angle, and on a phone it is what makes the ring
+ * read as a ring. At the desktop's 38° the camera stands far back, the arc is
+ * flattened to almost a straight row, and with the centre card at 0.8 of the
+ * width the neighbours were slivers — the reel looked like a flat slider. A
+ * wider angle brings the camera in close, so the neighbours visibly swing
+ * toward the reader and the cards' own bend shows; a slightly smaller centre
+ * card leaves enough of them on screen for the curve to be seen.
+ */
 const TUNING = {
-  phone: { fit: 0.8, shade: 0.68 },
-  tablet: { fit: 0.7, shade: 0.6 },
-  desktop: { fit: 0.62, shade: 0.55 },
+  phone: { fit: 0.64, shade: 0.45, fov: 74 },
+  tablet: { fit: 0.7, shade: 0.6, fov: 38 },
+  desktop: { fit: 0.62, shade: 0.55, fov: 38 },
 };
 
 /** Matched to the stylesheet's own breakpoints, not to device names. */
@@ -533,6 +542,7 @@ export default function Stage3D({
       tune = tuningFor(w);
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
+      camera.fov = tune.fov;
 
       const halfFov = Math.tan((camera.fov * DEG) / 2);
 
@@ -676,8 +686,25 @@ export default function Stage3D({
     let startTarget = 0;
     let moved = 0;
 
+    /* Which card is under this point — the hover's raycast, callable on its own. */
+    const pick = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(ndc, camera);
+      const hit = raycaster.intersectObjects(
+        meshes.filter((m) => m.visible),
+        false,
+      )[0];
+      hovered = hit ? meshes.indexOf(hit.object as THREE.Mesh) : -1;
+    };
+
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      /* Picked HERE as well as on hover. A finger has no hover: the tap's first
+         event is this one, so `hovered` was still -1 at its release and a tap on
+         the picture did nothing — only the caption's button opened a film. */
+      pick(e);
       dragging = true;
       moved = 0;
       startX = e.clientX;
@@ -703,12 +730,7 @@ export default function Stage3D({
         return;
       }
 
-      raycaster.setFromCamera(ndc, camera);
-      const hit = raycaster.intersectObjects(
-        meshes.filter((m) => m.visible),
-        false,
-      )[0];
-      hovered = hit ? meshes.indexOf(hit.object as THREE.Mesh) : -1;
+      pick(e);
 
       // Only the centred card opens, so only it gets the pointer; the others
       // would be promising a link they do not follow.
@@ -725,7 +747,8 @@ export default function Stage3D({
       if (canvas.hasPointerCapture(e.pointerId)) {
         canvas.releasePointerCapture(e.pointerId);
       }
-      if (moved < 6 && hovered >= 0) {
+      /* A cancelled touch (the browser took the gesture) is never a tap. */
+      if (e.type !== "pointercancel" && moved < 6 && hovered >= 0) {
         const offset = wrap(hovered, targetRef.current);
         // A tap, not a drag. On the card already at centre that means "open
         // it"; on any other it means "bring it here", by the short way round.

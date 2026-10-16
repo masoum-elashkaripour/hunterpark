@@ -597,6 +597,8 @@ html[data-logo-handoff] .site-header__logo {
   border: 1px solid var(--hp-lime);
   border-radius: var(--hp-radius-control);
   color: var(--hp-off-white);
+  /* Its own face — see the same rule in styles/components/header.css. */
+  font-family: var(--hp-font-secondary);
   font-size: 0.9375rem;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -1389,6 +1391,17 @@ html[data-logo-handoff] .site-header__logo {
  * icons — the words are still there for a screen reader.
  */
 @media (max-width: 599px) {
+  /* Off the foot of the window by the same margin as off its sides — the
+     page gutter — so the bar sits in an even frame rather than higher up. */
+  .work-control {
+    bottom: var(--hp-gutter);
+  }
+  /* The plate (38px here) shares a cell with the taller "See more" (44px) and
+     was centred in it, 3px up off the cell's foot — bottomed instead, so the
+     gutter IS the gap. */
+  .work-control__plates {
+    align-self: end;
+  }
   .work-control__stack {
     width: 100%;
     grid-template-columns: minmax(0, 1fr);
@@ -1984,6 +1997,62 @@ html[data-logo-handoff] .site-header__logo {
   color: var(--hp-lime);
 }
 
+/**
+ * THE FOOTER UNDER A FINGER.
+ *
+ * A touch screen keeps `:hover` on whatever was last tapped, so a link stayed
+ * lime and rolled over after the tap — on /news it read as if "About" were the
+ * page you were on. Hover is a pointer's state, so without one it is undone;
+ * keyboard focus keeps its treatment.
+ *
+ * And the targets: the links were 20px tall and "Back to top" 14, well under a
+ * thumb (44px). Each reaches past its type with an invisible `::before`, so the
+ * layout and the look are exactly as they were.
+ */
+@media (hover: none) {
+  .footer__link:hover:not(:focus-visible),
+  .footer__say:hover:not(:focus-visible),
+  .footer__top:hover:not(:focus-visible) {
+    color: var(--hp-off-white);
+  }
+  .footer__top:hover:not(:focus-visible) {
+    color: var(--hp-gray);
+  }
+  .footer__link:hover:not(:focus-visible) .footer__roll > span,
+  .footer__link:hover:not(:focus-visible) .footer__roll::after {
+    transform: none;
+  }
+  .footer__say:hover:not(:focus-visible) .footer__say-arrow {
+    background: transparent;
+    color: var(--hp-lime);
+  }
+  .footer__say:hover:not(:focus-visible) .footer__say-arrow svg {
+    transform: none;
+  }
+}
+@media (max-width: 767px) {
+  .footer__link,
+  .footer__say,
+  .footer__top {
+    position: relative;
+  }
+  .footer__link::before,
+  .footer__say::before,
+  .footer__top::before {
+    content: "";
+    position: absolute;
+    inset: -0.75rem -0.5rem;
+  }
+  .footer__say::before {
+    inset: -0.4rem -0.5rem;
+  }
+  /* The Index / Follow links stand 7px apart: reach sideways freely, but only
+     as far up and down as stops short of the neighbour's own reach. */
+  .footer__link::before {
+    inset: -0.2rem -0.75rem;
+  }
+}
+
 .footer__mark {
   grid-area: 5 / 1 / auto / -1;
   width: min(100%, 196.16svh);
@@ -2217,6 +2286,19 @@ html[data-logo-handoff] .site-header__logo {
   }
   .work__cta-link .header-cta__arrow {
     border-left: 1px solid var(--hp-lime);
+  }
+
+  /* The closing CTA a step down, the same as the homepage's (see work.css):
+     40px tall, the header's label size, a square arrow cell. */
+  .work__cta-link {
+    height: 2.5rem;
+    font-size: 0.8125rem;
+  }
+  .work__cta-link .header-cta__label {
+    padding-inline: 0.9rem 0.85rem;
+  }
+  .work__cta-link .header-cta__arrow {
+    width: calc(2.5rem - 2px);
   }
 }
 
@@ -4349,7 +4431,7 @@ html[data-logo-handoff] .site-header__logo {
   );
   pointer-events: none;
 }
-@media (prefers-reduced-motion: reduce), (max-width: 1023px) {
+@media (prefers-reduced-motion: reduce) {
   .contact-reveal__foot {
     opacity: 1;
   }
@@ -4362,6 +4444,28 @@ html[data-logo-handoff] .site-header__logo {
   opacity: 0;
   pointer-events: none;
 }
+/* The still footer on a page that simply ends (see `StillFooter`): in the
+   flow after the content, its leading edge a fade like /contact's, not a line. */
+.still-footer {
+  position: relative;
+  margin-top: clamp(4rem, 12svh, 8rem);
+}
+.still-footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: clamp(4rem, 12svh, 8rem);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--hp-night) 70%, transparent) 60%,
+    var(--hp-night)
+  );
+  pointer-events: none;
+}
+
 /* The footer, pulled up over the section's exit and stacked above it. */
 .contact-footer-rise {
   position: relative;
@@ -4393,9 +4497,9 @@ html[data-logo-handoff] .site-header__logo {
   );
   pointer-events: none;
 }
-/* …and not at all where the reveal plays still — reduced motion, and every
-   phone and tablet (see `ContactReveal`): the footer simply follows the card. */
-@media (prefers-reduced-motion: reduce), (max-width: 1023px) {
+/* …and not at all where the reveal plays still — under reduced motion (see
+   `ContactReveal`): the footer simply follows the card. */
+@media (prefers-reduced-motion: reduce) {
   .contact-footer-rise {
     margin-top: 0;
     padding-top: 0;
@@ -4644,9 +4748,9 @@ html[data-logo-handoff] .site-header__logo {
   gap: clamp(0.7rem, 1.6svh, 1.1rem);
 }
 
-/* THE REVEAL, STILL: under reduced motion, and on every phone and tablet —
-   the pinned, finger-flung version lost the form (see `ContactReveal`). */
-@media (prefers-reduced-motion: reduce), (max-width: 1023px) {
+/* THE REVEAL, STILL: under reduced motion only. Phones and tablets keep the
+   pinned film; their panel scrolls inside itself (see `ContactReveal`). */
+@media (prefers-reduced-motion: reduce) {
   .contact-reveal {
     height: auto;
     margin-top: 0;
@@ -4981,23 +5085,88 @@ html[data-logo-handoff] .site-header__logo {
 /* /work's caption on a phone held upright: the name was set at the site's full
    H1 (36px) and the line under it at H5 (20px) — louder than the film above it
    on a narrow screen. A step down each, the lockup's proportions kept. */
+/**
+ * /work's reel on a phone held upright: the stage, then the caption, as ONE
+ * group in the middle of the window.
+ *
+ * The stage took all the height the caption left (`flex-1`), and a 16:9 card
+ * sits in the middle of whatever it is given — so on a tall phone the film
+ * floated a third of a screen above its own name. Here the stage is sized to
+ * the cards instead (the centred card is 0.8 of the width, so 0.45 of it tall;
+ * the swung neighbours need the rest), and the spare height goes above the
+ * group and below it, not between the film and its caption.
+ */
 @media (max-width: 599px) and (orientation: portrait) {
+  .work-stage {
+    flex: 0 0 auto;
+    height: min(60vw, 52svh);
+    margin-top: auto;
+  }
+  /* The caption's wrapper — the stage's next sibling — takes the other half. */
+  .work-stage + div {
+    margin-bottom: auto;
+  }
+  /* …and when there is no caption — it is taken away the moment the reel starts
+     to recede into the index — something has to stand in its place. Without it
+     the stage's own `margin-top: auto` had the whole spare height to itself and
+     dropped the receding ring to the foot of the screen. A spacer the caption's
+     height keeps the ring exactly where it was while it withdraws. */
+  :has(> .work-stage:last-child)::after {
+    content: "";
+    flex: none;
+    height: 8.75rem;
+    margin-bottom: auto;
+  }
+  .work-stage + div .work-caption {
+    padding-top: 0.75rem;
+  }
+}
+
+@media (max-width: 599px) and (orientation: portrait) {
+  /**
+   * ONE GAP between all four parts — eyebrow, name, line, link — and one that
+   * reads as one. The margins were already equal; what was not equal was the
+   * air INSIDE each box: the eyebrow on the body's tall leading, the name on
+   * the display's tight one, and the link at a 44px minimum around a 32px cell.
+   * Every box now hugs its type, so the margin is the gap the eye sees. The
+   * link keeps its thumb-sized target as an invisible reach (`::before`).
+   */
+  .work-caption {
+    --caption-gap: 0.625rem;
+  }
   .work-caption .hp-eyebrow {
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
+    line-height: 1;
   }
   .work-caption h1 {
-    font-size: clamp(1.5rem, 7.5vw, 1.875rem);
-  }
-  /* One gap between all four parts — eyebrow, name, line, link. */
-  .work-caption h1 {
-    margin-top: 0.5rem;
+    margin-top: var(--caption-gap);
+    font-size: clamp(1.3rem, 6.4vw, 1.6rem);
+    line-height: 0.92;
   }
   .work-caption .hp-sub {
-    margin-top: 0.5rem;
-    font-size: 1rem;
+    margin-top: var(--caption-gap);
+    font-size: 0.875rem;
+    line-height: 1.15;
   }
   .work-caption .view-project {
-    margin-top: 0.5rem;
+    position: relative;
+    margin-top: var(--caption-gap);
+    min-height: 0;
+    gap: 0.6rem;
+    font-size: 0.625rem;
+  }
+  .work-caption .view-project::before {
+    content: "";
+    position: absolute;
+    inset: -0.5rem -0.75rem;
+  }
+  .work-caption .view-project__arrow {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+  .work-caption .view-project__arrow svg {
+    width: 12px;
+    height: 12px;
   }
   /* The same step down on a project's own page, and for the headings below it */
   .work-detail__title {
