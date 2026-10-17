@@ -622,21 +622,14 @@ html.js:not([data-site-ready]) .view-project {
     padding-left: calc(var(--big) * 0.55);
   }
 
-  /* View Project: the line ran the full width of the reel, so the arrow cell
-     stood at the far edge, a long way from the words it belongs to. A short
-     fixed run here keeps the three together. */
+  /* View Project spans the thumbnail strip exactly, so its arrow cell stands
+     on the strip's right edge: the strip is a fixed width (`.hero__thumbs`),
+     and the reel column it sits in can be wider than that on a phone. */
   .view-project {
-    width: auto;
-    gap: 0.75rem;
-  }
-
-  .view-project__line {
-    flex: 0 0 2.75rem;
-    margin-right: -0.75rem;
-  }
-
-  .view-project__line::before {
-    transform: scaleX(0.4);
+    width: calc(
+      var(--card-w) + (var(--count) - 1) * (var(--sliver) + var(--reel-gap))
+    );
+    max-width: 100%;
   }
 
   .hero__content {

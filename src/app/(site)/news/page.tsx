@@ -73,7 +73,7 @@ export default function NewsPage() {
       {/* The featured picture's flight from the opening into its box. */}
       <NewsFlight src={FEATURED.image.src} href={FEATURED.href} />
       <NewsHub />
-      <PageFooter overlap={1} />
+      <PageFooter overlap={1} playFrom=".news-more" />
     </main>
   );
 }

@@ -243,7 +243,10 @@ const HOLDS: [number, number][] = [
      away, the title becoming What we do. On the scroll it was nearly three
      screens of a chapter half-gone; one swipe now plays it through, and the
      staircase's heading takes the title over as it would have. */
-  [CUE.outFrom, 1],
+  /* Stopping where the stage itself starts to clear (`CUE.out`): its last
+     stretch shrinks the stage, title included, and a title handed over at 97%
+     of its size is a title that jumps. That stretch stays on the scroll. */
+  [CUE.outFrom, CUE.out[0]],
 ];
 /**
  * Screens of scroll a hold takes on a phone: one — a swipe. Shorter, and a
@@ -1035,6 +1038,24 @@ export function AboutStudio() {
       if (!self || restAt) return;
       if (morph2.get() < 0.995) return;
       restAt = self.getBoundingClientRect().top;
+      /**
+       * ON A PHONE the pin is shorter (see `HOLDS`), so it lets go before the
+       * staircase's heading has risen to this title — both then travel up
+       * together a fixed distance apart, and the swap is a jump. So there the
+       * staircase is pulled up by exactly what puts its heading at this
+       * height on the frame the pin lets go: from then on the two are one
+       * line moving, and the swap cannot be seen.
+       */
+      if (playing) {
+        const head = document.querySelector<HTMLElement>(".caps-section__head");
+        const caps = head?.closest<HTMLElement>(".caps-section");
+        if (head && caps) {
+          const headOffset =
+            head.getBoundingClientRect().top - caps.getBoundingClientRect().top;
+          caps.style.marginTop = `${restAt - window.innerHeight - headOffset}px`;
+          measure();
+        }
+      }
     };
 
     const read = () => {
@@ -1079,7 +1100,7 @@ export function AboutStudio() {
       window.removeEventListener("scroll", read);
       window.removeEventListener("resize", read);
     };
-  }, [morph2]);
+  }, [morph2, playing]);
   /* The first exchange's INCOMING band, remapped to 0→1 — see above. */
   const talentIn = useTransform(morph, [0.38, 1], [0, 1]);
 
@@ -1157,7 +1178,9 @@ export function AboutStudio() {
   );
 
   const stageOpacity = useTransform(p, CUE.out, [1, 0]);
-  const stageScale = useTransform(p, CUE.out, [1, 0.97]);
+  /* Not on a phone: there the pin lets go at the very end of this stretch,
+     and the title is handed over at that instant — at 97% it would jump. */
+  const stageScale = useTransform(p, CUE.out, playing ? [1, 1] : [1, 0.97]);
 
   return (
     <section

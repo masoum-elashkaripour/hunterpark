@@ -9,7 +9,12 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import { useBeat } from "@/components/use-beat";
+import {
+  PLAY_SECONDS_PER_SCREEN,
+  carryTo,
+  useBeat,
+  usePlayMode,
+} from "@/components/use-beat";
 import { ContactForm } from "@/components/contact-form";
 import { ScrollChars } from "@/components/scroll-chars";
 import { ContactMap } from "@/components/contact-map";
@@ -129,6 +134,41 @@ export function ContactReveal() {
     restDelta: 0.0002,
   });
   const reduced = useReducedMotion();
+
+  /**
+   * ON A PHONE THE OPENING PLAYS: the first scroll off the top carries the page
+   * by itself to where the panel has landed (`ANCHOR`) — linearly, a second a
+   * screen, so the picture's zoom, its blur and the panel's arrival move exactly
+   * as the scroll would have moved them — and the first scroll back up off that
+   * point carries it home again. Each is a crossing, so a carry never sets off
+   * the other, and the page is locked while it runs (see `carryTo`). Past the
+   * panel — its own inner scroll, the exit, the footer — nothing changes.
+   */
+  const playing = usePlayMode();
+  useEffect(() => {
+    if (!playing || reduced) return;
+    const SLACK = 12;
+    let lastY = window.scrollY;
+    const anchorY = () => {
+      const a = document.getElementById("contact-form");
+      return a ? a.getBoundingClientRect().top + window.scrollY : 0;
+    };
+    const onScroll = () => {
+      const y = window.scrollY;
+      const prev = lastY;
+      lastY = y;
+      const anchor = anchorY();
+      if (!anchor) return;
+      const seconds = (d: number) => (d / window.innerHeight) * PLAY_SECONDS_PER_SCREEN;
+      if (prev <= SLACK && y > SLACK && y < anchor) {
+        carryTo(anchor, seconds(anchor - y), true);
+      } else if (prev >= anchor - SLACK && y < anchor - SLACK && y > 0) {
+        carryTo(0, seconds(y), true);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [playing, reduced]);
   /* Nothing scrubbed under reduced motion: the panel stands at its end state
      and the page flows. Phones and tablets play the film like the desktop —
      the panel scrolls inside itself when it is taller than the window (see

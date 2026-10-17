@@ -3,6 +3,12 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 
+/** The page's Lenis, while it has one — for code that must MOVE the page (see
+    `carryTo` in use-beat.ts): a plain `window.scrollTo` is overruled by Lenis on
+    its next frame, which holds its own idea of where the page is. */
+let current: Lenis | null = null;
+export const getLenis = () => current;
+
 /**
  * One Lenis instance for the whole site — the same smoothing the live build
  * runs (its stylesheet carries `.lenis-smooth` and `.lenis-stopped`).
@@ -26,6 +32,7 @@ export function SmoothScroll() {
        apply to programmatic `scrollTo`, so they were never doing anything for
        a reader turning a wheel. */
     const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1 });
+    current = lenis;
 
     let frame = 0;
     const raf = (time: number) => {
@@ -36,6 +43,7 @@ export function SmoothScroll() {
 
     return () => {
       cancelAnimationFrame(frame);
+      if (current === lenis) current = null;
       lenis.destroy();
     };
   }, []);
