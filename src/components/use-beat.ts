@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { animate, useMotionValue, type MotionValue } from "motion/react";
+import { getLenis } from "@/components/smooth-scroll";
 
 /**
  * A chapter of the film: a section that PINS and plays as the reader scrolls.
@@ -350,7 +351,16 @@ export function useGated(
     holds,
     screens,
     enabled,
-  }: { holds: [number, number][]; screens: number; enabled: boolean },
+    backOnScroll = false,
+  }: {
+    holds: [number, number][];
+    screens: number;
+    enabled: boolean;
+    /** Going BACK follows the scroll exactly, as on a desktop — for a move the
+        page is carried through going forward (see `carryTo`), whose way back
+        is the reader's own scroll. */
+    backOnScroll?: boolean;
+  },
 ): MotionValue<number> {
   const out = useMotionValue(raw.get());
   const key = JSON.stringify(holds);
@@ -381,11 +391,23 @@ export function useGated(
 
     let frame = 0;
     let last = 0;
+    let lastRaw = raw.get();
     const tick = (now: number) => {
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
       last = now;
-      const t = target(raw.get());
+      const r = raw.get();
       const q = out.get();
+      /* Only while the scroll is actually going BACK: going forward the page
+         is being carried, and its eased start trails the clock. */
+      const goingBack = r < lastRaw;
+      lastRaw = r;
+      if (backOnScroll && goingBack && r < q) {
+        out.set(r);
+        frame = 0;
+        last = 0;
+        return;
+      }
+      const t = target(r);
       const zq = zone(q);
       if (t !== 0 && zq.startsWith("s") && zq === zone(t)) {
         out.set(t);
@@ -415,7 +437,7 @@ export function useGated(
       stop();
       cancelAnimationFrame(frame);
     };
-  }, [raw, out, enabled, screens, key]);
+  }, [raw, out, enabled, screens, key, backOnScroll]);
 
   return out;
 }
@@ -474,4 +496,43 @@ export function usePlayToggle(
     });
     return () => controls.stop();
   }, [value, on, enabled, screens]);
+}
+
+/**
+ * Carries the page to `to` over `seconds`, the way the reader's own scroll
+ * would — through Lenis when the page has one, so the two do not fight over
+ * the position.
+ */
+export function carryTo(to: number, seconds: number, linear = false) {
+  /* `linear` when what the page carries is itself driven by the scroll and has
+     to run at the scroll's even pace — the footer — rather than ease in and
+     out like a camera move. */
+  const ease = linear
+    ? (t: number) => t
+    : (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+  const lenis = getLenis();
+  if (lenis) {
+    /* LOCKED for its run: the gesture that armed it is still arriving (wheel
+       momentum, a thumb finishing its swipe) and would otherwise cancel the
+       carry a few pixels in. It is two seconds; the page is the reader's again
+       the moment it lands. */
+    lenis.scrollTo(to, {
+      duration: seconds,
+      easing: ease,
+      lock: true,
+      force: true,
+    });
+    return;
+  }
+  const run = animate(window.scrollY, to, {
+    duration: seconds,
+    ease: linear ? "linear" : [0.45, 0, 0.25, 1],
+    onUpdate: (y) => window.scrollTo(0, y),
+  });
+  const stop = () => {
+    run.stop();
+    window.removeEventListener("touchstart", stop);
+  };
+  window.addEventListener("touchstart", stop, { passive: true });
+  run.then(stop);
 }

@@ -8,6 +8,7 @@ import {
   AnimatePresence,
   m,
   useMotionValue,
+  useMotionValueEvent,
   useTransform,
 } from "motion/react";
 import {
@@ -29,6 +30,12 @@ import { WorkFinale } from "@/components/work-finale";
 import { useLaunch } from "@/components/launch";
 import { WorkControl } from "@/components/work-control";
 import { useInView } from "@/components/use-in-view";
+import {
+  PLAY_SECONDS_PER_SCREEN,
+  carryTo,
+  useGated,
+  usePlayMode,
+} from "@/components/use-beat";
 
 type Filter = Category | "All";
 
@@ -373,7 +380,69 @@ export function WorkCarousel({ works }: { works: Work[] }) {
    * The lockup, the blur and the wash ride this; the parting and the whole
    * footer still ride `film`.
    */
-  const entry = useMotionValue(0);
+  const entryScroll = useMotionValue(0);
+
+  /**
+   * ON A PHONE THE PUSH PLAYS, as on /about (see `AboutClosing`): once the last
+   * film starts to lift out of the grid, the zoom, the focus pull and the lockup
+   * run on by themselves until the call to action stands whole, and the page is
+   * carried down to it over the same time. Back above the trigger, it runs back.
+   */
+  const playing = usePlayMode();
+  const [pushScreens, setPushScreens] = useState(2.8);
+  const entry = useGated(entryScroll, {
+    holds: [[0, 1]],
+    screens: pushScreens,
+    enabled: playing,
+    backOnScroll: true,
+  });
+  const ctaTop = useRef(0);
+  const footEnd = useRef(0);
+  const triggerY = useRef(0);
+
+  /**
+   * The CARRIES, both ways, as on /about (see `AboutClosing`) — each set off by
+   * crossing a resting point, the page locked while it runs:
+   *
+   *   down off the call to action  → to the footer's foot (the footer plays)
+   *   up off the footer's foot     → back to the call to action
+   *   up off the call to action    → back above the push (the zoom unwinds)
+   *
+   * The way down into the push is armed off its own progress, below.
+   */
+  useEffect(() => {
+    if (!playing) return;
+    const SLACK = 12;
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const prev = lastY;
+      lastY = y;
+      const cta = ctaTop.current;
+      const foot = footEnd.current;
+      if (!cta || !foot) return;
+      const crossed = (at: number, down: boolean) =>
+        down ? prev <= at && y > at : prev >= at && y < at;
+      if (crossed(cta + SLACK, true) && foot > y) {
+        carryTo(foot, ((foot - y) / window.innerHeight) * PLAY_SECONDS_PER_SCREEN, true);
+      } else if (crossed(foot - SLACK, false)) {
+        carryTo(cta, ((y - cta) / window.innerHeight) * PLAY_SECONDS_PER_SCREEN, true);
+      } else if (crossed(cta - SLACK, false) && triggerY.current < y) {
+        carryTo(triggerY.current - 2, pushScreens * PLAY_SECONDS_PER_SCREEN);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [playing, pushScreens]);
+
+  useMotionValueEvent(entryScroll, "change", (v) => {
+    const prev = entryScroll.getPrevious() ?? 0;
+    if (!playing || prev > 0 || v <= 0) return;
+    const from = window.scrollY;
+    const to = ctaTop.current;
+    if (to <= from) return;
+    carryTo(to, pushScreens * PLAY_SECONDS_PER_SCREEN);
+  });
 
   /**
    * How far the index has been pulled back towards the reel, 0–1.
@@ -438,6 +507,7 @@ export function WorkCarousel({ works }: { works: Work[] }) {
 
       const box = filmEl.getBoundingClientRect();
       const view = window.innerHeight;
+      ctaTop.current = box.top + window.scrollY;
 
       /**
        * Nothing to turn into when the index is complete — the control simply
@@ -462,7 +532,10 @@ export function WorkCarousel({ works }: { works: Work[] }) {
       }
 
       const span = box.height - view;
-      if (span > 0) film.set(Math.min(1, Math.max(0, -box.top / span)));
+      if (span > 0) {
+        film.set(Math.min(1, Math.max(0, -box.top / span)));
+        footEnd.current = ctaTop.current + span;
+      }
 
       /**
        * Zero until the last card's top edge reaches the bottom of the header,
@@ -484,10 +557,27 @@ export function WorkCarousel({ works }: { works: Work[] }) {
           mark +
           Math.min(row.height, view * ENTRY.cap) * ENTRY.tail +
           view * ENTRY.hold;
-        entry.set(Math.min(1, Math.max(0, (mark - row.top) / travel)));
+        entryScroll.set(Math.min(1, Math.max(0, (mark - row.top) / travel)));
+        triggerY.current = row.top + window.scrollY - mark;
+        /* On a phone the push runs from the trigger to the call to action
+           itself — where the page is carried to and comes back to — so the
+           lockup stands whole there in either direction. */
+        if (playing && ctaTop.current > triggerY.current) {
+          entryScroll.set(
+            Math.min(
+              1,
+              Math.max(
+                0,
+                (window.scrollY - triggerY.current) /
+                  (ctaTop.current - triggerY.current),
+              ),
+            ),
+          );
+        }
+        if (playing) setPushScreens(Math.round((travel / view) * 10) / 10);
       } else {
         const travel = view * (FALL.from + FALL.hold);
-        entry.set(
+        entryScroll.set(
           Math.min(1, Math.max(0, (view * FALL.from - box.top) / travel)),
         );
       }
@@ -509,7 +599,7 @@ export function WorkCarousel({ works }: { works: Work[] }) {
        under these measurements — and so does "See more" — so the values have
        to be taken again against the new layout rather than left describing the
        old one. */
-  }, [filmEl, film, entry, morph, paged]);
+  }, [filmEl, film, entryScroll, playing, morph, paged]);
 
   /* The work goes out beneath the footer rather than sliding away, on exactly
      the stretch the footer's own ground rises over it — `night`, 0.233 → 0.451

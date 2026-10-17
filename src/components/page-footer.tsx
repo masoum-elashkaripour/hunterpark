@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import { useMotionValue } from "motion/react";
 import { SiteFooter } from "@/components/site-footer";
+import {
+  PLAY_SECONDS_PER_SCREEN,
+  carryTo,
+  usePlayMode,
+} from "@/components/use-beat";
 
 /**
  * The site's footer for a page with no closing lockup of its own (/contact,
@@ -52,7 +57,13 @@ import { SiteFooter } from "@/components/site-footer";
  */
 export function PageFooter({
   overlap = 0,
+  playFrom,
 }: {
+  /** On a phone, the footer's automatic run starts only once the element this
+      selects has reached the middle of the window (the page's last control —
+      /news's "See more") and the reader scrolls on, not as soon as the footer's
+      overlap begins. */
+  playFrom?: string;
   /**
    * How many screens the footer is pulled up over the section before it, so
    * its arrival starts while that section is still on screen rather than
@@ -62,6 +73,7 @@ export function PageFooter({
 }) {
   const [el, setEl] = useState<HTMLDivElement | null>(null);
   const film = useMotionValue(0);
+  const playing = usePlayMode();
 
   useEffect(() => {
     if (!el) return;
@@ -85,6 +97,36 @@ export function PageFooter({
     measure();
     update();
 
+    /**
+     * ON A PHONE THE FOOTER PLAYS, as on /about and /work: crossing its start
+     * carries the page by itself to the foot of it — linearly, a second a
+     * screen, so every part of it moves exactly as the scroll would have moved
+     * it — and crossing back up off the foot carries it to where it began.
+     */
+    const SLACK = 12;
+    let lastY = window.scrollY;
+    const carry = () => {
+      if (!playing || doc.height <= 0) return;
+      const y = window.scrollY;
+      const prev = lastY;
+      lastY = y;
+      const vh = window.innerHeight;
+      let start = doc.top - vh;
+      const end = doc.top + doc.height - vh;
+      const mark = playFrom ? document.querySelector<HTMLElement>(playFrom) : null;
+      if (mark) {
+        const r = mark.getBoundingClientRect();
+        start = Math.max(start, r.top + y + r.height / 2 - vh / 2);
+      }
+      const seconds = (d: number) => (d / vh) * PLAY_SECONDS_PER_SCREEN;
+      if (prev <= start + SLACK && y > start + SLACK && y < end) {
+        carryTo(end, seconds(end - y), true);
+      } else if (prev >= end - SLACK && y < end - SLACK && y > start) {
+        carryTo(start - 2, seconds(y - start), true);
+      }
+    };
+    window.addEventListener("scroll", carry, { passive: true });
+
     const onResize = () => {
       measure();
       update();
@@ -98,9 +140,10 @@ export function PageFooter({
     return () => {
       sizes.disconnect();
       window.removeEventListener("scroll", update);
+      window.removeEventListener("scroll", carry);
       window.removeEventListener("resize", onResize);
     };
-  }, [el, film]);
+  }, [el, film, playing, playFrom]);
 
   /* Pulled up by `overlap` screens. The measuring above reads the box where it
      actually sits, so the progress arithmetic needs no change. */

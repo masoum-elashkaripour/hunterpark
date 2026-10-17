@@ -1,9 +1,9 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { heroToStudioTimeline } from "./hero-to-studio";
-import { studioTimeline } from "./studio";
+import { STUDIO_MOTION, studioTimeline } from "./studio";
 import { CAPS_MOTION, capabilitiesTimeline, markActive, setCapabilityJump } from "./capabilities";
-import { workTimeline } from "./work";
+import { WORK_MOTION, workTimeline } from "./work";
 import { footerTimeline } from "./footer";
 import { pauseHero } from "./hero";
 import { lenis } from "./smooth-scroll";
@@ -111,6 +111,54 @@ export function initFilm(): void {
     if (lenis) lenis.scrollTo(0, { duration: 2.4 });
     else window.scrollTo(0, 0);
   });
+
+  // On a phone some stretches of the film PLAY rather than scrub (as /about, /work and /contact
+  // do): crossing a resting point carries the page on to the next by itself — linearly, so
+  // every part moves exactly as the scroll would have moved it — and the same way back.
+  //   the hero → Chapter 02 settled (the story in, its phrases lit) → What We Do's first capability
+  //   — slower, it is the opening
+  //   the last project's opening → the call to action → the footer's foot
+  // Each is a crossing, so a carry passing a point on its way never sets off another, and the
+  // page is locked while it runs so the gesture that armed it can't cut it short.
+  if (lenis && matchMedia("(max-width: 767px) and (prefers-reduced-motion: no-preference)").matches) {
+    const studioRest = studioAt + b.studio * (STUDIO_MOTION.story.emphasisAt + 0.02);
+    /** [from, to, seconds per screen] on the film's own clock. */
+    const runs: [number, number, number][] = [[0, studioRest, 1.4]];
+    // …the story film's zoom to the full frame, WHAT WE DO, and the film settling into the
+    // capability window with the first capability lit (the end of its `settle`)
+    if (capsBeat) runs.push([studioRest, capsAt + CAPS_MOTION.settle.end * capsLen + 0.02, 1.4]);
+    // …and out of it: the window opening full-bleed, WORK announced and taken apart letter by
+    // letter, the space arriving — to the first project standing in front (`travel.start`)
+    if (capsBeat && workBeat)
+      runs.push([capsAt + CAPS_MOTION.handoff.start * capsLen, workAt + WORK_MOTION.travel.start * workLen, 1.4]);
+    if (workBeat && footerBeat) {
+      const finaleAt = workAt + workLen * WORK_MOTION.finale.expand[0];
+      runs.push([finaleAt, workAt + workLen, 1], [workAt + workLen, total, 1]);
+    }
+    const yAt = (time: number) => {
+      const st = master.scrollTrigger!;
+      return st.start + (time / total) * (st.end - st.start);
+    };
+    const SLACK = 12;
+    let lastY = window.scrollY;
+    const carry = (from: number, to: number, pace: number) => {
+      const st = master.scrollTrigger!;
+      const screens = (Math.abs(to - from) / (st.end - st.start)) * total;
+      lenis!.scrollTo(to, { duration: screens * pace, easing: (t) => t, lock: true, force: true });
+    };
+    lenis.on("scroll", () => {
+      const y = window.scrollY;
+      const prev = lastY;
+      lastY = y;
+      const crossed = (at: number, down: boolean) => (down ? prev <= at && y > at : prev >= at && y < at);
+      for (const [from, to, pace] of runs) {
+        const a = yAt(from);
+        const z = yAt(to);
+        if (crossed(a + SLACK, true) && y < z) return carry(y, z, pace);
+        if (crossed(z - SLACK, false) && y > a) return carry(y, a > 0 ? a - 2 : 0, pace);
+      }
+    });
+  }
 
   // Films only load/decode when they're about to be seen, and only play while on screen.
   let loaded = false;

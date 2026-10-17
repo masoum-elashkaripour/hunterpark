@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
-import { usePlayMode, usePlayToggle } from "@/components/use-beat";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  animate,
+  useMotionValue,
+  useMotionValueEvent,
+  useTransform,
+} from "motion/react";
+import {
+  PLAY_SECONDS_PER_SCREEN,
+  carryTo,
+  useGated,
+  usePlayMode,
+  usePlayToggle,
+} from "@/components/use-beat";
 import { AboutFinale } from "@/components/about-finale";
 import { CAPABILITIES } from "@/components/about-capabilities";
 import { WorkCta, type CtaLine } from "@/components/work-cta";
@@ -121,9 +132,9 @@ export function AboutClosing({ children }: { children: ReactNode }) {
   const [filmEl, setFilmEl] = useState<HTMLDivElement | null>(null);
 
   /** The footer's beat. The lockup parts on it and the closing layer leaves. */
-  const film = useMotionValue(0);
-  /** The closing run. The zoom, the blur and the lockup's arrival ride this. */
-  const entry = useMotionValue(0);
+  const filmScroll = useMotionValue(0);
+  /** The closing run, as the scroll measures it. */
+  const entryScroll = useMotionValue(0);
 
   /**
    * The lockup's own window on the closing run, remapped to 0–1.
@@ -142,6 +153,83 @@ export function AboutClosing({ children }: { children: ReactNode }) {
    * and take themselves apart again if the reader scrolls back above it.
    */
   const playing = usePlayMode();
+
+  /**
+   * ON A PHONE THE PUSH PLAYS TOO. The moment the picture starts to lift out
+   * of the staircase, the zoom, the focus pull and the lockup run on by
+   * themselves until the call to action stands whole — and the page is carried
+   * down to it over the same time, so nothing below has to be scrolled to. It
+   * runs back the same way if the reader scrolls up above the trigger. The
+   * pace is the scroll's: the push's length in screens, read as seconds.
+   */
+  const [pushScreens, setPushScreens] = useState(2.8);
+  /** The closing run. The zoom, the blur and the lockup's arrival ride this. */
+  const entry = useGated(entryScroll, {
+    holds: [[0, 1]],
+    screens: pushScreens,
+    enabled: playing,
+    backOnScroll: true,
+  });
+  const ctaTop = useRef(0);
+
+  /**
+   * And the FOOTER: the moment the reader moves on from the call to action,
+   * the page CARRIES ITSELF to the footer's foot — linearly, at a second a
+   * screen. The footer itself is left exactly as it is, on the scroll: the
+   * wordmark's flight is measured off where things really are on screen, so
+   * it has to be the page that moves, not a clock beside it.
+   */
+  const film = filmScroll;
+  const footEnd = useRef(0);
+  const triggerY = useRef(0);
+
+  /**
+   * The CARRIES, both ways, as the reader crosses a resting point:
+   *
+   *   down off the call to action  → to the footer's foot (the footer plays)
+   *   up off the footer's foot     → back to the call to action (it unplays)
+   *   up off the call to action    → back above the push (the zoom unwinds,
+   *                                  following the page — see `backOnScroll`)
+   *
+   * The way down INTO the push is armed off its own progress, below. Each is a
+   * crossing, not a position, so a carry passing a threshold on its own way
+   * through can never set another one off; and the page is locked while it
+   * runs (see `carryTo`), so the reader's next gesture is never half-heard.
+   */
+  useEffect(() => {
+    if (!playing) return;
+    const SLACK = 12;
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const prev = lastY;
+      lastY = y;
+      const cta = ctaTop.current;
+      const foot = footEnd.current;
+      if (!cta || !foot) return;
+      const crossed = (at: number, down: boolean) =>
+        down ? prev <= at && y > at : prev >= at && y < at;
+      if (crossed(cta + SLACK, true) && foot > y) {
+        carryTo(foot, ((foot - y) / window.innerHeight) * PLAY_SECONDS_PER_SCREEN, true);
+      } else if (crossed(foot - SLACK, false)) {
+        carryTo(cta, ((y - cta) / window.innerHeight) * PLAY_SECONDS_PER_SCREEN, true);
+      } else if (crossed(cta - SLACK, false) && triggerY.current < y) {
+        carryTo(triggerY.current - 2, pushScreens * PLAY_SECONDS_PER_SCREEN);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [playing, pushScreens]);
+  useMotionValueEvent(entryScroll, "change", (v) => {
+    const prev = entryScroll.getPrevious() ?? 0;
+    if (!playing || prev > 0 || v <= 0) return;
+    /* Armed going DOWN: carry the page to the lockup while the push plays. */
+    const from = window.scrollY;
+    const to = ctaTop.current;
+    if (to <= from) return;
+    carryTo(to, pushScreens * PLAY_SECONDS_PER_SCREEN);
+  });
+
   const [lockupOn, setLockupOn] = useState(false);
   useMotionValueEvent(entry, "change", (v) => setLockupOn(v > LOCKUP_AT));
   const played = useMotionValue(0);
@@ -187,6 +275,7 @@ export function AboutClosing({ children }: { children: ReactNode }) {
     const measure = () => {
       const f = filmEl.getBoundingClientRect();
       doc.film = { top: f.top + window.scrollY, height: f.height };
+      ctaTop.current = doc.film.top;
       const step = document.querySelector<HTMLElement>("[data-about-finale]");
       const cue = document.querySelector<HTMLElement>(
         "[data-about-finale-mark]",
@@ -205,7 +294,10 @@ export function AboutClosing({ children }: { children: ReactNode }) {
       const top = doc.film.top - window.scrollY;
 
       const span = doc.film.height - view;
-      if (span > 0) film.set(Math.min(1, Math.max(0, -top / span)));
+      if (span > 0) {
+        filmScroll.set(Math.min(1, Math.max(0, -top / span)));
+        footEnd.current = doc.film.top + span;
+      }
 
       /* The header, plus the lead — see `ENTRY.lead`. The zoom is timed off
          this line rather than off the header itself, so it begins while the
@@ -222,10 +314,27 @@ export function AboutClosing({ children }: { children: ReactNode }) {
           mark +
           Math.min(step.height, view * ENTRY.cap) * ENTRY.tail +
           view * ENTRY.hold;
-        entry.set(Math.min(1, Math.max(0, (mark - cue.top) / travel)));
+        entryScroll.set(Math.min(1, Math.max(0, (mark - cue.top) / travel)));
+        triggerY.current = doc.cue - mark;
+        if (playing) setPushScreens(Math.round((travel / view) * 10) / 10);
+        /* On a phone the push runs from the trigger to the call to action
+           itself — where the page is carried to and comes back to — so the
+           lockup stands whole there in either direction. */
+        if (playing && ctaTop.current > triggerY.current) {
+          entryScroll.set(
+            Math.min(
+              1,
+              Math.max(
+                0,
+                (window.scrollY - triggerY.current) /
+                  (ctaTop.current - triggerY.current),
+              ),
+            ),
+          );
+        }
       } else {
         const travel = view * (FALL.from + FALL.hold);
-        entry.set(Math.min(1, Math.max(0, (view * FALL.from - top) / travel)));
+        entryScroll.set(Math.min(1, Math.max(0, (view * FALL.from - top) / travel)));
       }
     };
 
@@ -255,7 +364,7 @@ export function AboutClosing({ children }: { children: ReactNode }) {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", onResize);
     };
-  }, [filmEl, film, entry]);
+  }, [filmEl, filmScroll, entryScroll, playing]);
 
   const last = CAPABILITIES[CAPABILITIES.length - 1];
 
