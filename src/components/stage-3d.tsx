@@ -793,6 +793,50 @@ export default function Stage3D({
     canvas.addEventListener("pointerleave", onPointerLeave);
     canvas.addEventListener("wheel", onWheel, { passive: false });
 
+    /* A FINGER ANYWHERE ON THE PAGE turns the ring, not only one on the
+       picture. The reel is the whole page and it does not scroll, so a swipe
+       over the caption or the empty dark above the cards did nothing at all —
+       and the reader, finding the page dead, had to discover that only the
+       strip of film answered. Same travel per card as on the canvas; the canvas
+       keeps its own handling (it also knows taps), so touches that start on it
+       are left to it. A swipe that ends on a link is still a swipe: the browser
+       does not fire a click after a moving touch. */
+    let swipeY = 0;
+    let swipeX = 0;
+    let swipeFrom = 0;
+    let swiping = false;
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t || e.touches.length > 1 || canvas.contains(e.target as Node)) {
+        swiping = false;
+        return;
+      }
+      swiping = true;
+      swipeY = t.clientY;
+      swipeX = t.clientX;
+      swipeFrom = targetRef.current;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!swiping || !t) return;
+      const dx = t.clientX - swipeX;
+      const dy = t.clientY - swipeY;
+      const travel = Math.abs(dy) > Math.abs(dx) ? dy : dx;
+      const width = canvas.getBoundingClientRect().width || window.innerWidth;
+      targetRef.current = swipeFrom - travel / (width * DRAG_SPAN);
+    };
+    const onTouchEnd = () => {
+      if (!swiping) return;
+      swiping = false;
+      targetRef.current = Math.round(targetRef.current);
+    };
+    if (coarse) {
+      window.addEventListener("touchstart", onTouchStart, { passive: true });
+      window.addEventListener("touchmove", onTouchMove, { passive: true });
+      window.addEventListener("touchend", onTouchEnd);
+      window.addEventListener("touchcancel", onTouchEnd);
+    }
+
     /* ----------------------------------------------------------- loop -- */
 
     const timer = new THREE.Timer();
@@ -865,6 +909,10 @@ export default function Stage3D({
       gate.disconnect();
       observer.disconnect();
 
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);

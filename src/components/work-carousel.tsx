@@ -46,7 +46,15 @@ const FILTERS: Filter[] = ["All", ...CATEGORIES];
  * distinct film and the reader never got round to it. Tied to the list, a clip
  * added to `REEL_CLIPS` is always a clip that can actually be seen.
  */
-const autoOpenAfter = (reelLength: number) => Math.max(1, reelLength);
+const autoOpenAfter = (reelLength: number) =>
+  /* On a phone, four: the reel is one film at a time there, and having to turn
+     through every one before the index is offered read as being stuck in it. */
+  Math.max(
+    1,
+    typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches
+      ? Math.min(4, reelLength)
+      : reelLength,
+  );
 
 /** One timing for the whole reel ⇄ index change, so the two halves agree. */
 const SWAP = { duration: 0.75, ease: [0.19, 1, 0.22, 1] } as const;

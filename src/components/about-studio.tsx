@@ -3,7 +3,14 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { m, useTransform, type MotionValue } from "motion/react";
-import { useBeat, useEnter, type Cue } from "@/components/use-beat";
+import {
+  compressHolds,
+  useBeat,
+  useEnter,
+  useGated,
+  usePlayMode,
+  type Cue,
+} from "@/components/use-beat";
 import { ScrollChars } from "@/components/scroll-chars";
 import { ScrollMorph } from "@/components/scroll-morph";
 import { TalentStack, REVEAL } from "@/components/talent-stack";
@@ -217,6 +224,35 @@ const CUE = {
   out: [0.96, 1] as Cue,
 };
 
+/**
+ * The LOADING stretches, for a phone (see `useGated`): act one from the pin to
+ * the second founder's name; then Talent — the founders leaving, the title
+ * turning into TALENT, the portrait arriving, the line and the cards — from
+ * there to just before the first card leaves. The two touch, so the moment act
+ * one has loaded, the next scroll plays Talent in whole.
+ *
+ * Talent's way IN is part of its loading on purpose. Left on the scroll it was
+ * almost two screens of a stage half-way between two things — a portrait
+ * stalled at an angle, a title blurred mid-word — wherever the thumb stopped.
+ * Only the way on to What we do, the chapter's exit, stays on the scroll.
+ */
+const HOLDS: [number, number][] = [
+  [0, CUE.secondName[1]],
+  [CUE.secondName[1], CUE.outFrom],
+  /* And the way OUT, played too: the cards leaving, the portrait turning
+     away, the title becoming What we do. On the scroll it was nearly three
+     screens of a chapter half-gone; one swipe now plays it through, and the
+     staircase's heading takes the title over as it would have. */
+  [CUE.outFrom, 1],
+];
+/**
+ * Screens of scroll a hold takes on a phone: one — a swipe. Shorter, and a
+ * single flick back up crossed both acts at once and dropped the reader into
+ * the hero with the stage still unwinding; at one screen each act is one swipe
+ * to leave, in either direction.
+ */
+const PLAY_HOLD = 1;
+
 /** How many things leave in act three, newest first — see `outFrom`. */
 const LEAVE_ORDER = { cards: 4, line: 4, media: 5 };
 
@@ -395,12 +431,17 @@ const beatWindow = (order: number): Cue => {
 };
 
 /**
- * Below `lg` the split is one column, and a pinned frame one phone tall cannot
- * hold the title, the subtitle, both paragraphs AND the founders stacked. So
- * there the paragraphs share one cell (see `.about-studio__beats`) and the
- * first makes way as the second arrives. Same breakpoint as the stylesheet.
+ * On a TABLET the split is one column at full type size, and a pinned frame one
+ * screen tall cannot hold the title, the subtitle, both paragraphs AND the
+ * founders stacked — so there the paragraphs share one cell (see
+ * `.about-studio__beats`) and the first makes way as the second arrives.
+ *
+ * NOT on a phone. There the copy loads on a clock (see `useGated`), and a
+ * paragraph swapped for the next before it can be read is a paragraph lost; the
+ * type is set a step down instead so both stand, one after the other, with the
+ * founders under them. Same breakpoints as the stylesheet.
  */
-const SINGLE_COLUMN = "(max-width: 1023px)";
+const SINGLE_COLUMN = "(min-width: 768px) and (max-width: 1023px)";
 const subscribeColumn = (change: () => void) => {
   const mq = window.matchMedia(SINGLE_COLUMN);
   mq.addEventListener("change", change);
@@ -770,8 +811,31 @@ function Card({
 /* -------------------------------------------------------------- chapter --- */
 
 export function AboutStudio() {
-  const [ref, p] = useBeat();
-  const [headRef, headP] = useEnter(HEAD_ENTER[0], HEAD_ENTER[1]);
+  /**
+   * ON A PHONE the two acts' ELEMENTS load on a clock (see `useGated`): once the
+   * scroll is inside an act, its paragraphs and founders — or its line, cards
+   * and portrait turns — arrive in their order at the beat's own pace, however
+   * the thumb moves. Everything between the acts, and the way in and out of the
+   * chapter, still runs on the scroll as on a desktop. Each act takes only a
+   * sliver of scroll there (`PLAY_HOLD`), so the pin is shorter by what used to
+   * be scrubbing — see the section's height below.
+   */
+  const playing = usePlayMode();
+  const [ref, scrollP] = useBeat();
+  const phoneBeat = compressHolds(HOLDS, BEATS, PLAY_HOLD);
+  const mapped = useTransform(scrollP, (v) =>
+    playing ? phoneBeat.map(v) : v,
+  );
+  const p = useGated(mapped, { holds: HOLDS, screens: BEATS, enabled: playing });
+  /* The heading and the subtitle are act one's first elements: on a phone they
+     too load on a clock once they have started — the same span the scroll gave
+     them (`HEAD_ENTER`, a screen and a bit), as one hold. */
+  const [headRef, headScroll] = useEnter(HEAD_ENTER[0], HEAD_ENTER[1]);
+  const headP = useGated(headScroll, {
+    holds: [[0, 1]],
+    screens: HEAD_ENTER[0] - HEAD_ENTER[1],
+    enabled: playing,
+  });
   const singleColumn = useSingleColumn();
 
   /**
@@ -1118,7 +1182,12 @@ export function AboutStudio() {
        * `useEnter`, the closing run — so the offset costs no arithmetic
        * anywhere else. It is a position, not a parameter.
        */
-      style={{ height: `${(BEATS + 1) * 100}svh`, marginTop: "-100svh" }}
+      style={{
+        /* On a phone the acts' scrubbing is played instead, so the pin is
+           only as long as the transitions it still carries — see `HOLDS`. */
+        height: `${Math.round(((playing ? phoneBeat.total : BEATS) + 1) * 100)}svh`,
+        marginTop: "-100svh",
+      }}
       aria-labelledby="studio-heading"
       /**
        * KEPT, and load-bearing — but no longer for a marker.

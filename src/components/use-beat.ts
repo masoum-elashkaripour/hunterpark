@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useMotionValue, type MotionValue } from "motion/react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { animate, useMotionValue, type MotionValue } from "motion/react";
 
 /**
  * A chapter of the film: a section that PINS and plays as the reader scrolls.
@@ -292,4 +292,186 @@ export function useScrollY(): MotionValue<number> {
   }, [y]);
 
   return y;
+}
+
+/* ----------------------------------------------------------------- play --- */
+
+/**
+ * PLAY MODE — a phone, with motion welcome.
+ *
+ * The chapters still ENTER and LEAVE on the scroll, exactly as on a desktop:
+ * the pins, the hand-overs, the title crossing from one chapter to the next.
+ * What changes is what happens once the reader is IN a chapter: its elements
+ * no longer wait to be scrubbed into place — they load, in their order, on a
+ * clock. See `useGated`.
+ *
+ * The rate is one screen of the original scroll to one second, so every part
+ * keeps its proportion to the others; only the unit changes.
+ */
+export const PLAY_QUERY =
+  "(max-width: 767px) and (prefers-reduced-motion: no-preference)";
+/** Seconds of play per screen of the scroll it replaces. */
+export const PLAY_SECONDS_PER_SCREEN = 1;
+
+const subscribePlay = (change: () => void) => {
+  const mq = window.matchMedia(PLAY_QUERY);
+  mq.addEventListener("change", change);
+  return () => mq.removeEventListener("change", change);
+};
+
+export function usePlayMode(): boolean {
+  return useSyncExternalStore(
+    subscribePlay,
+    () => window.matchMedia(PLAY_QUERY).matches,
+    () => false,
+  );
+}
+
+/**
+ * A beat whose LOADING stretches play and whose TRANSITIONS scroll.
+ *
+ * `raw` is the beat's scroll progress on its original 0→1. `holds` are the
+ * stretches of it where a chapter's elements arrive. On a phone, once the
+ * scroll is inside a hold the output plays — on a clock, at the beat's own pace
+ * (`screens` seconds for the whole 0→1) — to the END of that hold, whatever the
+ * thumb does inside it; between holds it follows the scroll, so the moves that
+ * carry one chapter into the next are the desktop's. With the beat not yet
+ * reached (`raw` at 0) it plays back to 0: scroll back up past a chapter and its
+ * elements leave, in reverse, and load again the next time.
+ *
+ * It never jumps: when the output and the scroll are in different stretches —
+ * a hold still loading as the thumb runs on, or scrolling back into one — it
+ * travels between them at the play pace, and takes the scroll directly only
+ * once both are in the same transitional stretch.
+ */
+export function useGated(
+  raw: MotionValue<number>,
+  {
+    holds,
+    screens,
+    enabled,
+  }: { holds: [number, number][]; screens: number; enabled: boolean },
+): MotionValue<number> {
+  const out = useMotionValue(raw.get());
+  const key = JSON.stringify(holds);
+
+  useEffect(() => {
+    if (!enabled) {
+      out.set(raw.get());
+      return raw.on("change", (v) => out.set(v));
+    }
+
+    const spans: [number, number][] = JSON.parse(key);
+    const EPS = 0.0005;
+    const speed = 1 / (screens * PLAY_SECONDS_PER_SCREEN);
+    /* The stretch a value is in: inside hold i, or the open stretch after `n`
+       holds. A hold's end belongs to the stretch after it. */
+    const zone = (v: number) => {
+      for (let i = 0; i < spans.length; i++) {
+        const [a, b] = spans[i];
+        if (v > a && v < b) return `h${i}`;
+      }
+      return `s${spans.filter(([, b]) => v >= b).length}`;
+    };
+    const target = (r: number) => {
+      if (r <= EPS) return 0;
+      for (const [a, b] of spans) if (r > a && r < b) return b;
+      return r;
+    };
+
+    let frame = 0;
+    let last = 0;
+    const tick = (now: number) => {
+      const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
+      last = now;
+      const t = target(raw.get());
+      const q = out.get();
+      const zq = zone(q);
+      if (t !== 0 && zq.startsWith("s") && zq === zone(t)) {
+        out.set(t);
+      } else if (q !== t) {
+        /* Backwards is quicker than forwards. Going back to an act already
+           seen is undoing, not presenting — three times the pace, so the act
+           being returned to is there by the time the reader looks for it; and
+           leaving the chapter altogether is a reset, four times. At the play
+           pace a chapter left from its last act was still unwinding when the
+           reader was already back in the hero. */
+        const step = speed * dt * (t === 0 ? 4 : q > t ? 3 : 1);
+        out.set(q < t ? Math.min(t, q + step) : Math.max(t, q - step));
+      }
+      if (out.get() === target(raw.get())) {
+        frame = 0;
+        last = 0;
+        return;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    const wake = () => {
+      if (!frame) frame = requestAnimationFrame(tick);
+    };
+    wake();
+    const stop = raw.on("change", wake);
+    return () => {
+      stop();
+      cancelAnimationFrame(frame);
+    };
+  }, [raw, out, enabled, screens, key]);
+
+  return out;
+}
+
+/**
+ * Maps a SHORTENED scroll onto a beat's original 0→1, for a phone.
+ *
+ * A hold plays on a clock, so on a phone it needs only a sliver of scroll to be
+ * entered — the screens a desktop spends scrubbing it would be dead thumb
+ * travel. Each hold is given `holdScreens` of scroll instead; the stretches
+ * between keep their full length, so every transition scrolls at the desktop's
+ * rate. Returns the map and the shortened beat's scroll length in screens.
+ */
+export function compressHolds(
+  holds: [number, number][],
+  screens: number,
+  holdScreens: number,
+) {
+  type Seg = { from: number; to: number; len: number };
+  const segs: Seg[] = [];
+  let at = 0;
+  for (const [a, b] of holds) {
+    if (a > at) segs.push({ from: at, to: a, len: (a - at) * screens });
+    segs.push({ from: a, to: b, len: holdScreens });
+    at = b;
+  }
+  if (at < 1) segs.push({ from: at, to: 1, len: (1 - at) * screens });
+  const total = segs.reduce((n, sg) => n + sg.len, 0);
+  const map = (r: number) => {
+    let d = Math.min(1, Math.max(0, r)) * total;
+    for (const sg of segs) {
+      if (d <= sg.len) return sg.from + (sg.len ? (d / sg.len) * (sg.to - sg.from) : 0);
+      d -= sg.len;
+    }
+    return 1;
+  };
+  return { map, total };
+}
+
+/**
+ * Plays `value` toward 1 while `on` is true and back toward 0 while it is false,
+ * at the same rate either way — for a set of elements that loads when its
+ * chapter is reached and unloads when the reader scrolls back above it.
+ */
+export function usePlayToggle(
+  value: MotionValue<number>,
+  on: boolean,
+  { enabled, screens }: { enabled: boolean; screens: number },
+) {
+  useEffect(() => {
+    if (!enabled) return;
+    const to = on ? 1 : 0;
+    const controls = animate(value, to, {
+      duration: Math.abs(to - value.get()) * screens * PLAY_SECONDS_PER_SCREEN,
+      ease: "linear",
+    });
+    return () => controls.stop();
+  }, [value, on, enabled, screens]);
 }
