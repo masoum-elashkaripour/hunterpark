@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { useMotionValue, useTransform } from "motion/react";
+import { useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
+import { usePlayMode, usePlayToggle } from "@/components/use-beat";
 import { AboutFinale } from "@/components/about-finale";
 import { CAPABILITIES } from "@/components/about-capabilities";
 import { WorkCta, type CtaLine } from "@/components/work-cta";
@@ -82,6 +83,11 @@ const FALL = { from: 1.2, hold: 1.85 };
  */
 const RUNWAY = "100svh";
 
+/** Where on the push the lockup starts to assemble, and — on a phone, where it
+    plays (see `AboutClosing`) — how many screens' worth of the push it took. */
+const LOCKUP_AT = 0.57;
+const LOCKUP_SCREENS = 1.2;
+
 /**
  * THIS PAGE'S CLOSING, which is not the work page's.
  *
@@ -127,7 +133,25 @@ export function AboutClosing({ children }: { children: ReactNode }) {
    * the last stretch of it, but still want the whole of 0–1 to lay themselves
    * out over.
    */
-  const reveal = useTransform(entry, [0.57, 1], [0, 1]);
+  /**
+   * ON A PHONE the lockup is this chapter's ELEMENTS, and they load on a clock
+   * (see `useGated` in use-beat.ts): the push that carries the picture out of
+   * the staircase and over the screen stays on the scroll, as on a desktop, and
+   * the moment it reaches the point where the lockup used to start assembling,
+   * the words and the button assemble in their order at the scroll's own pace —
+   * and take themselves apart again if the reader scrolls back above it.
+   */
+  const playing = usePlayMode();
+  const [lockupOn, setLockupOn] = useState(false);
+  useMotionValueEvent(entry, "change", (v) => setLockupOn(v > LOCKUP_AT));
+  const played = useMotionValue(0);
+  usePlayToggle(played, lockupOn, { enabled: playing, screens: LOCKUP_SCREENS });
+
+  const revealScroll = useTransform(entry, [LOCKUP_AT, 1], [0, 1]);
+  const reveal = useTransform(() =>
+    playing ? played.get() : revealScroll.get(),
+  );
+
 
   useEffect(() => {
     if (!filmEl) return;

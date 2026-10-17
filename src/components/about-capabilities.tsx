@@ -3,13 +3,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import {
+  animate,
   cubicBezier,
   m,
   useMotionValue,
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { useRun } from "@/components/use-beat";
+import {
+  PLAY_SECONDS_PER_SCREEN,
+  usePlayMode,
+  useRun,
+} from "@/components/use-beat";
 import { LazyVideo } from "@/components/lazy-video";
 import { ScatterChars } from "@/components/scatter-chars";
 
@@ -532,8 +537,59 @@ export function AboutCapabilities() {
   }, [measure]);
 
   /** Walk the point along the route and hand each piece its own share. */
+  /**
+   * PLAYED ON A PHONE: each step on its own, when it comes into view.
+   *
+   * The scroll walked one run down the whole staircase; on a clock that would
+   * open every step at once, most of them below the fold. So here each step
+   * plays its own segment — the same `len` the walk gave it, at one second per
+   * screen of it — the moment its picture is a quarter of the way into the
+   * window, and plays it back out if the reader scrolls back up past it. The
+   * steps still open in order, because the reader meets them in order.
+   */
+  const playing = usePlayMode();
+
   useEffect(() => {
-    if (!route || route.total <= 0) return;
+    if (!playing) return;
+    const els = frames.current;
+    const view = window.innerHeight || 1;
+    const runs: ReturnType<typeof animate>[][] = [];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const i = els.indexOf(entry.target as HTMLElement);
+          if (i < 0) return;
+          /* In: load. Out BELOW the window — the reader has scrolled back up
+             past it — unload, in reverse, so it loads again on the way down.
+             Out above (scrolled on past it) it simply stays loaded. */
+          const to = entry.isIntersecting
+            ? 1
+            : entry.boundingClientRect.top > 0
+              ? 0
+              : null;
+          if (to === null) return;
+          const len = route?.img[i]?.len ?? view * 1.5;
+          const full = (len / view) * PLAY_SECONDS_PER_SCREEN;
+          runs[i]?.forEach((r) => r.stop());
+          runs[i] = [reveals[i], texts[i]].map((v) =>
+            animate(v, to, {
+              duration: Math.abs(to - v.get()) * full,
+              ease: "linear",
+            }),
+          );
+        });
+      },
+      { rootMargin: "0px 0px -25% 0px" },
+    );
+    els.forEach((el) => el && observer.observe(el));
+    return () => {
+      observer.disconnect();
+      runs.forEach((pair) => pair?.forEach((r) => r.stop()));
+    };
+  }, [playing, route, reveals, texts]);
+
+  useEffect(() => {
+    if (playing || !route || route.total <= 0) return;
 
     const paint = (v: number) => {
       const d = v * route.total;
@@ -544,7 +600,7 @@ export function AboutCapabilities() {
 
     paint(run.get());
     return run.on("change", paint);
-  }, [run, route, reveals, texts]);
+  }, [playing, run, route, reveals, texts]);
 
   return (
     <section className="caps-section px-gutter" aria-labelledby="caps-heading">
