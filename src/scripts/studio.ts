@@ -10,7 +10,14 @@ import { capsInset } from "./caps-window";
 export const STUDIO_MOTION = {
   open: { end: 0.13 }, // the story film opens out of the hero's shutter line…
   name: { start: 0.03, end: 0.15 }, // HUNTERPARK's letters lift out…
-  heading: { start: 0.07, end: 0.23, charRise: 110, charTilt: 8 }, // …as WHO WE ARE rises into the same place
+  heading: {
+    start: 0.07,
+    end: 0.23,
+    charRise: 110,
+    charTilt: 8,
+    // phone only: ARE's letters, E first, out of depth (shares of the heading's span; px)
+    are: { start: 0.35, each: 0.55, stagger: 0.14, from: -2600 },
+  }, // …as WHO WE ARE rises into the same place
   reframe: { start: 0.22, end: 0.36 }, // the film steps aside to make room for the story
   // Editorial masked reveal, word by word and scrubbed: each word rises out of its own mask
   // from just below its baseline and settles. Sharp, controlled easing — no overshoot,
@@ -54,9 +61,13 @@ export const STUDIO_MOTION = {
     mobile: {
       line: "inset(50% 18% 50% 18%)",
       hero: "inset(14% 18% 18% 18%)",
-      column: "inset(70% 52% 5% 5%)",
-      stripFrom: "inset(76% 5% 5% 52%)",
-      stripTo: "inset(70% 5% 5% 52%)",
+      // the pair under the story: two portrait windows filling the lower half of the frame
+      // gutter to gutter, clear of the chapter marker — the right one a little smaller and
+      // hung at its own height — the What We Do film rising into its place from lower down
+      // (fallbacks: the live values are read from the layout, see `inset`)
+      column: "inset(52% 51.5% 7% 5%)",
+      stripFrom: "inset(66% 5% 10% 54%)",
+      stripTo: "inset(54% 5% 10% 54%)",
       full: "inset(0% 0% 0% 0%)",
       caps: "inset(13% 5% 45% 5%)",
     },
@@ -87,9 +98,60 @@ const windowSet = () =>
       : STUDIO_MOTION.windows.desktop;
 /** One window as an inset. `caps` is read off capabilities.css itself (see caps-window.ts) —
     the table's copy is only the fallback — so the film always lands exactly in the frame. */
+/**
+ * On a phone the pair under the story starts just below the story's last line rather than
+ * at a fixed share of the frame: how far down the story ends depends on the phone's
+ * height, and a fixed top either ran into the words on a short screen or left a gap on a
+ * tall one. Read from the layout (offsets ignore the words' own rise), kept within reason,
+ * and the What We Do film still rises into its place from lower down.
+ */
+const PAIR_KEYS: Partial<Record<WindowKey, true>> = { column: true, stripFrom: true, stripTo: true };
+function phonePairTop(): number | null {
+  const stage = document.querySelector<HTMLElement>("[data-studio-stage]");
+  const story = document.querySelector<HTMLElement>(".studio__story");
+  if (!stage || !story || !stage.clientHeight) return null;
+  let top = 0;
+  let n: HTMLElement | null = story;
+  while (n && n !== stage) {
+    top += n.offsetTop;
+    n = n.offsetParent as HTMLElement | null;
+  }
+  if (n !== stage) return null;
+  const bottom = top + story.offsetHeight + 20;
+  return Math.min(62, Math.max(40, (bottom / stage.clientHeight) * 100));
+}
+
+/**
+ * …and ends clear of the running chapter marker ("02 — STUDIO") in the bottom-left corner:
+ * the pair's foot sits a breath above the marker's top edge, read from the marker's own box
+ * (its offset from the bottom and its height), so the two never touch on any phone.
+ */
+function phonePairBottom(): number {
+  const stage = document.querySelector<HTMLElement>("[data-studio-stage]");
+  const marker = document.querySelector<HTMLElement>(".chapter-index");
+  if (!stage || !marker || !stage.clientHeight) return 7;
+  const css = getComputedStyle(marker);
+  const fromBottom = parseFloat(css.bottom) + marker.offsetHeight + 18;
+  return Math.min(12, Math.max(5, (fromBottom / stage.clientHeight) * 100));
+}
+
 const inset = (key: WindowKey) => {
   const set = windowSet();
-  return key === "caps" ? capsInset(set.caps) : set[key];
+  if (set === STUDIO_MOTION.windows.mobile && PAIR_KEYS[key]) {
+    const t = phonePairTop();
+    if (t !== null) {
+      const r = (v: number) => Math.round(v * 100) / 100;
+      const b = phonePairBottom();
+      if (key === "column") return `inset(${r(t)}% 51.5% ${r(b)}% 5%)`;
+      // the right-hand film a touch smaller than the left and hung at its own height:
+      // a little narrower (its inner edge just past the seam), starting lower and ending higher
+      const rt = t + 2;
+      const rb = b + 3;
+      const top = key === "stripFrom" ? r(rt + (100 - rb - rt) * 0.12) : r(rt);
+      return `inset(${top}% 5% ${r(rb)}% 54%)`;
+    }
+  }
+  return key === "caps" ? capsInset(set.caps, document.querySelector<HTMLElement>("[data-whatwedo-anchor]")) : set[key];
 };
 export const win = (key: WindowKey) => () => inset(key);
 
@@ -178,12 +240,36 @@ export function studioTimeline(): gsap.core.Timeline | null {
     s.name.start,
   );
   const hd = s.heading.end - s.heading.start;
+  // On a phone ARE — the outlined word hung off WE — comes in apart from WHO WE: as the
+  // home page's closing TOGETHER. does, a letter at a time out of depth, but from the right
+  const phone = window.matchMedia("(max-width: 767px)").matches;
+  const areChars = phone ? Array.from(heading.querySelectorAll(".split__word:last-child [data-split-char]")) : [];
+  const riseChars = Array.from(heading.querySelectorAll("[data-split-char]")).filter((c) => !areChars.includes(c));
   tl.fromTo(
-    heading.querySelectorAll("[data-split-char]"),
+    riseChars,
     { yPercent: s.heading.charRise, rotate: s.heading.charTilt },
     { yPercent: 0, rotate: 0, duration: hd * 0.6, stagger: (hd * 0.4) / 8, ease: "power3.out" },
     s.heading.start,
   );
+  if (areChars.length) {
+    const A = s.heading.are;
+    const at = s.heading.start + hd * A.start;
+    const each = hd * A.each;
+    const step = hd * A.stagger;
+    // (depth drawn in 2D: a letter at `A.from` behind a 900px perspective stands at
+    // 900 / (900 − from) of its size, so it grows from there. A real 3D `translateZ` here —
+    // inside the letters' clip-path masks, on outlined (text-stroke) glyphs — is what Safari on
+    // iOS fails to paint: letters of ARE went missing or were cut on an iPhone)
+    const far = 900 / (900 - A.from);
+    gsap.set(areChars, { scale: far, autoAlpha: 0, transformOrigin: "50% 55%" });
+    [...areChars].reverse().forEach((char, i) => {
+      tl.to(char, { scale: 1, duration: each, ease: "power3.out" }, at + i * step).to(
+        char,
+        { autoAlpha: 1, duration: each * 0.45 },
+        at + i * step,
+      );
+    });
+  }
 
   // 3 · The film steps aside into a column — reframed on the subject, not a random slice;
   //     the heading eases up

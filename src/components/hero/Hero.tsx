@@ -147,14 +147,25 @@ export default function Hero() {
 
           {/* View Project: kin to the Contact CTA (hairline rules, rolling label, arrow cell)
               but its own shape. The reel's films aren't project pages of their own, so it
-              opens the Work index. */}
-          <a href="/work" className="view-project" data-view-project data-hero-fade>
+              opens the Work index. On a PHONE it is the plate instead (view-project-plate.css):
+              the hairline and the arrow cell stand down for the plate's own arrow, `__orb`,
+              which is not shown on a larger screen. */}
+          <a href="/work" className="view-project view-project--plate" data-view-project data-hero-fade>
             <span className="view-project__roll" data-text="View Project">
               <span>View Project</span>
             </span>
             <span className="view-project__line" aria-hidden="true"></span>
             <span className="view-project__arrow" aria-hidden="true" data-view-arrow>
               <ArrowIcon />
+            </span>
+            <span className="view-project__progress" aria-hidden="true" />
+            <span className="view-project__orb" aria-hidden="true">
+              <svg className="view-project__go" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M4 12L12 4M5.5 4H12v6.5" />
+              </svg>
+              <svg className="view-project__go view-project__go--next" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M4 12L12 4M5.5 4H12v6.5" />
+              </svg>
             </span>
           </a>
         </div>

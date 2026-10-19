@@ -79,16 +79,40 @@ export function PageFooter({
     if (!el) return;
 
     /* The footer's own box, in document space. */
-    const doc = { top: 0, height: 0 };
+    const doc = { top: 0, height: 0, mark: Number.NaN };
     const measure = () => {
       const box = el.getBoundingClientRect();
       doc.top = box.top + window.scrollY;
       doc.height = box.height;
+      // (the `playFrom` element's centre, in document space)
+      const mark = playFrom ? document.querySelector<HTMLElement>(playFrom) : null;
+      const r = mark?.getBoundingClientRect();
+      doc.mark = r ? r.top + window.scrollY + r.height / 2 : Number.NaN;
+    };
+
+    /** Where the phone's played run starts: the footer's own start, or — with `playFrom` —
+        once that element has reached the middle of the window, whichever is later. */
+    const playStart = () => {
+      const vh = window.innerHeight;
+      const start = doc.top - vh;
+      return Number.isNaN(doc.mark) ? start : Math.max(start, doc.mark - vh / 2);
     };
 
     const update = () => {
       if (doc.height <= 0) return;
       const vh = window.innerHeight;
+      if (playing && playFrom) {
+        /* ON A PHONE, with a page control to reach first (/news's "See more"): the footer is
+           NOTHING until the reader has gone past it — not half risen over the last stories
+           while they scroll toward it by hand — and from there its whole run plays across the
+           carry to its foot (below), reversed the same way. */
+        const start = playStart();
+        const end = doc.top + doc.height - vh;
+        // (a hair above 0, never 0 itself: the footer only takes up its scrubbed — hidden —
+        // state once it has SEEN its progress move, and until then shows itself finished)
+        film.set(Math.min(1, Math.max(1e-4, (window.scrollY - start) / Math.max(1, end - start))));
+        return;
+      }
       /* The lead-in the lockup would have occupied — see the note above. */
       const travelled = window.scrollY - doc.top + vh;
       film.set(Math.min(1, Math.max(0, travelled / doc.height)));
@@ -111,13 +135,8 @@ export function PageFooter({
       const prev = lastY;
       lastY = y;
       const vh = window.innerHeight;
-      let start = doc.top - vh;
+      const start = playStart();
       const end = doc.top + doc.height - vh;
-      const mark = playFrom ? document.querySelector<HTMLElement>(playFrom) : null;
-      if (mark) {
-        const r = mark.getBoundingClientRect();
-        start = Math.max(start, r.top + y + r.height / 2 - vh / 2);
-      }
       const seconds = (d: number) => (d / vh) * PLAY_SECONDS_PER_SCREEN;
       if (prev <= start + SLACK && y > start + SLACK && y < end) {
         carryTo(end, seconds(end - y), true);

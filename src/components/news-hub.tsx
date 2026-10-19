@@ -6,6 +6,7 @@ import {
   CATEGORIES,
   NEWS,
   formatDate,
+  formatDateShort,
   type NewsCategory,
   type NewsItem,
 } from "@/lib/news";
@@ -129,7 +130,11 @@ function NewsCard({
             <span className="label-xs news-card__foot">
               <span>
                 {item.source} ·{" "}
-                <time dateTime={item.date}>{formatDate(item.date)}</time>
+                <time dateTime={item.date}>
+                  {/* the month in full, or — on a phone, so the line stays one — cut short */}
+                  <span className="news-date--long">{formatDate(item.date)}</span>
+                  <span className="news-date--short">{formatDateShort(item.date)}</span>
+                </time>
               </span>
               <span className="news-card__go">
                 <Arrow />

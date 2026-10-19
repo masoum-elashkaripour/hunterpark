@@ -311,8 +311,12 @@ export function useScrollY(): MotionValue<number> {
  */
 export const PLAY_QUERY =
   "(max-width: 767px) and (prefers-reduced-motion: no-preference)";
-/** Seconds of play per screen of the scroll it replaces. */
-export const PLAY_SECONDS_PER_SCREEN = 1;
+/** Seconds of play per screen of the scroll it replaces — a touch quicker than the
+    scroll's own second, so a phone's played stretches feel brisk rather than slow. */
+export const PLAY_SECONDS_PER_SCREEN = 0.8;
+/** And no played stretch runs longer than this, whatever its length in screens: the
+    long ones go faster to fit, the short ones keep their natural pace. */
+export const PLAY_MAX_SECONDS = 3;
 
 const subscribePlay = (change: () => void) => {
   const mq = window.matchMedia(PLAY_QUERY);
@@ -374,6 +378,11 @@ export function useGated(
     const spans: [number, number][] = JSON.parse(key);
     const EPS = 0.0005;
     const speed = 1 / (screens * PLAY_SECONDS_PER_SCREEN);
+    /* A hold never takes longer than `PLAY_MAX_SECONDS` to play through. */
+    const paceIn = (v: number) => {
+      for (const [a, b] of spans) if (v > a - EPS && v < b + EPS) return Math.max(speed, (b - a) / PLAY_MAX_SECONDS);
+      return speed;
+    };
     /* The stretch a value is in: inside hold i, or the open stretch after `n`
        holds. A hold's end belongs to the stretch after it. */
     const zone = (v: number) => {
@@ -418,7 +427,8 @@ export function useGated(
            leaving the chapter altogether is a reset, four times. At the play
            pace a chapter left from its last act was still unwinding when the
            reader was already back in the hero. */
-        const step = speed * dt * (t === 0 ? 4 : q > t ? 3 : 1);
+        const pace = Math.max(paceIn(q), paceIn(t === 0 ? q : t));
+        const step = pace * dt * (t === 0 ? 4 : q > t ? 3 : 1);
         out.set(q < t ? Math.min(t, q + step) : Math.max(t, q - step));
       }
       if (out.get() === target(raw.get())) {
@@ -491,7 +501,10 @@ export function usePlayToggle(
     if (!enabled) return;
     const to = on ? 1 : 0;
     const controls = animate(value, to, {
-      duration: Math.abs(to - value.get()) * screens * PLAY_SECONDS_PER_SCREEN,
+      duration: Math.min(
+        PLAY_MAX_SECONDS,
+        Math.abs(to - value.get()) * screens * PLAY_SECONDS_PER_SCREEN,
+      ),
       ease: "linear",
     });
     return () => controls.stop();
@@ -503,7 +516,8 @@ export function usePlayToggle(
  * would — through Lenis when the page has one, so the two do not fight over
  * the position.
  */
-export function carryTo(to: number, seconds: number, linear = false) {
+export function carryTo(to: number, rawSeconds: number, linear = false) {
+  const seconds = Math.min(rawSeconds, PLAY_MAX_SECONDS);
   /* `linear` when what the page carries is itself driven by the scroll and has
      to run at the scroll's even pace — the footer — rather than ease in and
      out like a camera move. */

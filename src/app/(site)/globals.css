@@ -225,6 +225,20 @@
   --hp-z-preloader: 100;
 }
 
+/* On a phone the running prose steps down to 15px — and a hero's standfirst, the first
+   thing read, stands a step above it at 17px. */
+@media (max-width: 767px) {
+  :root {
+    --hp-text-copy: 0.9375rem;
+    --hp-text-lede: 1.0625rem;
+  }
+  .about-hero__copy,
+  .contact-hero__standfirst,
+  .news-hero__standfirst {
+    --hp-text-copy: var(--hp-text-lede);
+  }
+}
+
 @theme inline {
   --color-night: var(--hp-night);
   --color-dark: var(--hp-dark);
@@ -512,6 +526,15 @@ body {
   animation: hp-hero-mask 1s var(--hp-ease-out) both;
 }
 
+/* On a phone the About hero arrives at the pace the other pages' heroes do (News 1.8s,
+   Contact 2.2s with 0.28s between its parts) rather than in its own quick 1s / 0.1s. */
+@media (max-width: 767px) {
+  .about-hero__rise {
+    animation-duration: 2s;
+    animation-delay: calc(0.15s + var(--rise-order, 0) * 0.28s) !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-rise,
   .hero-mask-rise {
@@ -669,6 +692,29 @@ html[data-logo-handoff] .site-header__logo {
 .header-cta:hover .header-cta__arrow svg,
 .header-cta:focus-visible .header-cta__arrow svg {
   transform: rotate(45deg);
+}
+
+/* On a phone both of the bar's right-hand controls stand ACTIVE — filled lime, their marks in
+   night: Contact always, the sound toggle while the soundtrack is on (muted, it goes back to
+   its outline) */
+@media (max-width: 767px) {
+  .site-header .sound-toggle[aria-pressed="true"] {
+    background: var(--hp-lime);
+    color: var(--hp-soft);
+  }
+
+  .site-header .header-cta {
+    color: var(--hp-soft);
+  }
+
+  .site-header .header-cta::before {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .site-header .header-cta__arrow {
+    border-color: var(--hp-soft);
+    color: var(--hp-soft);
+  }
 }
 
 /* Menu trigger: the word swaps and the two rules fold into a cross. */
@@ -1570,21 +1616,26 @@ html[data-logo-handoff] .site-header__logo {
   }
 
   .site-header .site-header__actions {
-    gap: 0.3125rem;
+    gap: 0.25rem;
   }
 
   .site-header .sound-toggle,
   .site-header .header-cta {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
   }
 
   .site-header .sound-toggle__bars {
-    height: 12px;
+    height: 11px;
   }
 
   .site-header .site-header__logo {
     width: clamp(6rem, 28vw, 8.25rem);
+  }
+
+  /* the row's links at the trigger's own size — the same type as its Close */
+  .site-header.is-menu-row .menu-panel__item {
+    font-size: 0.875rem;
   }
 }
 
@@ -2090,13 +2141,20 @@ html[data-logo-handoff] .site-header__logo {
   .footer__lines--tall {
     display: block;
   }
+  /* the phone figure draws no small ring */
+  .footer__lines--tall circle {
+    display: none;
+  }
   .footer__grid {
-    grid-template-rows: auto auto auto 1fr auto auto auto;
+    /* The call to talk stands in the middle of the space the links and the small print leave
+       — an equal, flexible gap either side (never under 1.5rem) — rather than tight under
+       the links with all the slack below it */
+    grid-template-rows: auto auto minmax(1.5rem, 1fr) auto minmax(1.5rem, 1fr) auto auto auto;
     grid-template-columns: 1fr 1fr;
   }
   .footer__statement {
     grid-area: 1 / 1 / auto / -1;
-    margin-bottom: clamp(1.5rem, 5svh, 2.5rem);
+    margin-bottom: clamp(1.25rem, 4svh, 2.25rem);
   }
   .footer__group--index {
     grid-area: 2 / 1;
@@ -2106,19 +2164,49 @@ html[data-logo-handoff] .site-header__logo {
     margin-top: 0;
   }
   .footer__contact {
-    grid-row: 3;
+    grid-area: 4 / 1 / auto / -1;
+    margin-top: 0;
   }
+  /* (the tagline stands down on a phone) */
   .footer__tagline {
-    grid-area: 5 / 1 / auto / -1;
+    display: none;
   }
   .footer__base {
-    grid-area: 6 / 1 / auto / -1;
+    grid-area: 7 / 1 / auto / -1;
   }
   .footer__base .footer__rule {
     display: none;
   }
   .footer__mark {
-    grid-row: 7;
+    grid-row: 8;
+  }
+}
+
+/* A SHORT phone (the first SE, 568px): the stacked footer is taller than the frame there, and
+   the wordmark was cut at the foot — so the type and the gaps step down a notch, the order and
+   the composition unchanged. */
+@media (max-width: 767px) and (orientation: portrait) and (max-height: 620px) {
+  .footer__grid {
+    grid-template-rows: auto auto minmax(0.9rem, 1fr) auto minmax(0.9rem, 1fr) auto auto auto;
+  }
+  .footer__statement {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .footer__label {
+    margin-bottom: 0.5rem;
+  }
+  .footer__link {
+    font-size: 0.9375rem;
+  }
+  .footer__say {
+    font-size: 1.75rem;
+  }
+  .footer__tagline {
+    margin-bottom: 0.6rem;
+  }
+  .footer__base {
+    margin-bottom: 0.6rem;
   }
 }
 
@@ -2299,6 +2387,24 @@ html[data-logo-handoff] .site-header__logo {
   }
   .work__cta-link .header-cta__arrow {
     width: calc(2.5rem - 2px);
+  }
+}
+
+/* On a phone the closing CTA stands ACTIVE — the desktop's hover state at rest: flooded lime,
+   label and arrow cell in black, the arrow turned on (there is no hover to bring it) */
+@media (max-width: 767px) {
+  .work__cta-link {
+    color: var(--hp-soft);
+  }
+  .work__cta-link::before {
+    clip-path: inset(0 0 0 0);
+  }
+  .work__cta-link .header-cta__arrow {
+    border-color: var(--hp-soft);
+    color: var(--hp-soft);
+  }
+  .work__cta-link .header-cta__arrow svg {
+    transform: rotate(45deg);
   }
 }
 
@@ -3198,6 +3304,11 @@ html[data-logo-handoff] .site-header__logo {
 .talent-stack__img {
   object-fit: cover;
 }
+/* The phone's cut (see `Panel`): clipped from an edge, the picture settling inside. */
+.talent-stack__panel--cut {
+  overflow: hidden;
+  will-change: clip-path;
+}
 
 /**
  * Room at the top for the heading that arrives into this column.
@@ -3473,17 +3584,34 @@ html[data-logo-handoff] .site-header__logo {
  * portrait would otherwise lose most of its size to — so they go, and the four
  * titles stand on their own.
  */
-@media (max-width: 1023px) and (orientation: portrait) and (max-height: 740px) {
+@media (max-width: 1023px) and (min-width: 768px) and (orientation: portrait) and (max-height: 740px) {
   .talent-card__tags {
     display: none;
+  }
+}
+
+/* On EVERY phone the line under each title stands — and on one line, never two: set in the
+   running case rather than tracked capitals (a third narrower), and sized to the narrowest
+   room any card has (the column less the staircase's deepest step) */
+@media (max-width: 767px) {
+  .talent-card__tags {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: 0 0.5em;
+    font-size: min(0.75rem, calc((100vw - 2 * var(--hp-gutter) - 4.47 * var(--talent-riser)) / 30));
+    letter-spacing: 0.01em;
+    text-transform: none;
+  }
+  .talent-card__tag:not(:last-child)::after {
+    margin-left: 0.5em;
   }
 }
 
 /**
  * Chapter 02 on a PHONE held upright: everything in one frame, both paragraphs
  * standing. The copy loads on a clock here, so the paragraphs no longer share a
- * cell and swap — they follow one another, a step smaller than the page's prose
- * so the pair, the title above them and the founders below all fit the pinned
+ * cell and swap — they follow one another, at the page's prose size (every
+ * description's), the title above them and the founders below in the same pinned
  * screen. The founders take whatever height is left (see the size container
  * on `.about-studio__people`).
  */
@@ -3496,15 +3624,85 @@ html[data-logo-handoff] .site-header__logo {
   .about-studio__beats > * {
     grid-area: auto;
   }
-  .about-studio__beats .hp-copy {
-    font-size: 0.8125rem;
-    line-height: 1.5;
-  }
+  /* (the paragraphs keep `hp-copy` as it is — the page's prose size, as every description) */
   .about-studio__claim {
     --about-gap: 0.75rem;
   }
   .about-studio__sub {
-    font-size: 0.875rem;
+    font-size: 1rem;
+    line-height: 1.6; /* the descriptions' leading (hp-copy) */
+  }
+  /* each founder's name over their role, so the pair fits the narrowest phone */
+  .about-cast__tag {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3em;
+  }
+}
+
+/* The About hero's lockup on a phone: one step between every part of it — eyebrow, title,
+   standfirst, button, and (see `restPad` in about-hero.tsx) the reel's row under it. The
+   standfirst's half-leading (hp-copy's 1.6) is taken off the steps either side of it, so the
+   space reads the same between the type as between the boxes. */
+@media (max-width: 767px) {
+  .about-hero__title {
+    margin-top: 1.5rem;
+  }
+  .about-hero__copy {
+    margin-top: calc(1.5rem - 0.3 * var(--hp-text-copy));
+  }
+  .about-hero__cta {
+    /* (the standfirst's own size — the lede's, see the root) */
+    margin-top: calc(1.5rem - 0.3 * var(--hp-text-lede));
+  }
+}
+
+/* Chapter 02 on a phone, played (see `PHONE_CUE` in about-studio.tsx): the founders take the
+   room the paragraphs leave — from where the paragraphs began (`--beats-top`, measured) to
+   the foot of the frame — as a diptych: two upright portraits side by side, the second a step
+   lower, each under its name and role. Sized to that room by both axes (a size container),
+   so it is as large as the phone allows and never runs off it. */
+@media (max-width: 767px) and (orientation: portrait) and (prefers-reduced-motion: no-preference) {
+  .about-studio__people {
+    position: absolute;
+    top: var(--beats-top, 50%);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    /* the pair stands in the middle of that room, not hung from its top over an empty foot */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .about-cast__composition {
+    /* two frames 48% wide, the second 12% of a frame lower, and a band for the captions over
+       them. The frames are upright — 3:4 at the least (0.64 of the width tall), taller where
+       the phone has the room, up to 9:16 (0.853) — so the pair fills the frame on a tall phone
+       rather than leaving its foot empty; only where even 3:4 cannot fit does it narrow. */
+    --cast-cap: 2.4rem;
+    --cast-w: min(100cqw, (100cqh - var(--cast-cap)) / 0.7168);
+    --cast-frame: clamp(
+      var(--cast-w) * 0.64,
+      (100cqh - var(--cast-cap)) / 1.12,
+      var(--cast-w) * 0.853
+    );
+    width: var(--cast-w);
+    height: calc(var(--cast-frame) * 1.12 + var(--cast-cap));
+    margin-inline: auto;
+  }
+  .about-cast__shot--lead {
+    top: 0;
+    right: 0;
+    width: 48%;
+  }
+  .about-cast__shot--follow {
+    bottom: 0;
+    left: 0;
+    width: 48%;
+  }
+  .about-cast__frame {
+    aspect-ratio: auto;
+    height: var(--cast-frame);
   }
 }
 
@@ -3513,9 +3711,14 @@ html[data-logo-handoff] .site-header__logo {
    between two of its letters — each glyph is its own box for the reveal, so
    without this the browser would break wherever it ran out of room. */
 @media (max-width: 767px) and (orientation: portrait) and (max-height: 620px) {
+  /* (here two paragraphs at the page's prose size are taller than the frame: they and the
+     line over them step down, so neither runs off the foot of it) */
   .about-studio__beats .hp-copy {
-    font-size: 0.75rem;
-    line-height: 1.45;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+  .about-studio__sub {
+    font-size: 0.875rem;
   }
   .about-studio__beats {
     gap: 0.45rem;
@@ -4573,6 +4776,17 @@ html[data-logo-handoff] .site-header__logo {
 .contact-reveal__panel[data-panel-scrolls] {
   mask-image: linear-gradient(to bottom, transparent, #000 1.25rem);
 }
+/* On a phone the panel runs up under the header as the rest of the site's content does: a
+   box clipped at the header's foot read as a bar behind a header that has none */
+@media (max-width: 767px) {
+  .contact-reveal__panel {
+    top: 0;
+    padding-top: calc(var(--hp-header-h) + clamp(1rem, 3svh, 2rem));
+  }
+  .contact-reveal__panel[data-panel-scrolls] {
+    mask-image: none;
+  }
+}
 /**
  * …and while it scrolls, what is timed off the PAGE's scroll is simply shown.
  *
@@ -4583,11 +4797,12 @@ html[data-logo-handoff] .site-header__logo {
  * as anyone looked at it.
  */
 .contact-reveal__panel[data-panel-scrolls] .contact-reveal__map,
-.contact-reveal__panel[data-panel-scrolls] .contact-reveal__line .chars__char {
+.contact-reveal__panel[data-panel-scrolls] .contact-reveal__line:not(.contact-reveal__line--played) .chars__char {
   opacity: 1 !important;
   transform: none !important;
 }
-.contact-reveal__panel[data-panel-scrolls] .contact-reveal__line .chars__line {
+/* (on a phone the heading plays on its own clock instead — see `headPlay`) */
+.contact-reveal__panel[data-panel-scrolls] .contact-reveal__line:not(.contact-reveal__line--played) .chars__line {
   filter: none !important;
 }
 /* Two boxes side by side, as flyward sets them: the same height, a narrow
@@ -4729,6 +4944,14 @@ html[data-logo-handoff] .site-header__logo {
 /* Phones: the same two boxes a step smaller and tighter — the headings, the
    icon frames and the air between facts all come down, so more of the card
    reads in one screen before it has to scroll. */
+/* On a phone the information sits over the brightest, busiest part of the picture: its
+   panel is darkened further (night at 70%, from 40%) so the type reads first — a deeper
+   tint rather than a glass blur, which a fading panel would only snap on at the end. */
+@media (max-width: 767px) {
+  .contact-reveal__info {
+    background: color-mix(in srgb, var(--hp-night) 70%, transparent);
+  }
+}
 @media (max-width: 599px) {
   .contact-reveal__line {
     font-size: clamp(1.25rem, 6.2vw, 1.5rem);
@@ -4757,6 +4980,64 @@ html[data-logo-handoff] .site-header__logo {
   .contact-reveal__icon svg {
     width: 15px;
     height: 15px;
+  }
+}
+
+/* Phones (to the site's mobile breakpoint): the heading as a stair of three — LET’S MAKE small
+   and tracked out, SOMETHING solid lime edge to edge of the panel, TOGETHER. in outline hung
+   from the right edge (`fitHead` in contact-reveal.tsx sizes the big line and sets the three
+   against the edges); each fact's icon centred on its label and value; a little more air
+   between the facts (the desktop gap's own floor); Send it the form's full width. */
+@media (max-width: 767px) {
+  /* the one column takes the panel's width and never the heading's (the heading is fitted to
+     the column — were the column to follow it, each fit would widen the next) */
+  .contact-reveal__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .contact-reveal__line {
+    max-width: none;
+    --head: var(--head-size, 2.6rem);
+  }
+  .contact-reveal__line .chars__line {
+    /* as wide as its own letters: set against an edge by a shift (see `fitHead`), a line as
+       wide as the panel would push its box past the panel's edge and scroll it sideways */
+    width: max-content;
+    white-space: nowrap;
+  }
+  /* the panel scrolls up and down only (scrolling in one axis made it scroll in both) */
+  .contact-reveal__panel {
+    overflow-x: hidden;
+  }
+  /* the lead-in: a third of the big word, tracked out, in the page's light */
+  .contact-reveal__line .chars__line:nth-child(1) {
+    margin-bottom: 0.45em;
+    font-size: calc(var(--head) * 0.34);
+    letter-spacing: 0.24em;
+    color: var(--hp-off-white);
+  }
+  .contact-reveal__line .chars__line:nth-child(2) {
+    font-size: var(--head);
+  }
+  /* the hung word: in outline, as WHO WE ARE's ARE is */
+  .contact-reveal__line .chars__line:nth-child(3) {
+    margin-top: 0.06em;
+    font-size: calc(var(--head) * 0.58);
+    letter-spacing: -0.02em;
+    color: transparent;
+    -webkit-text-stroke: max(1.5px, 0.02em) var(--hp-lime);
+  }
+  .contact-reveal__facts {
+    gap: 1.5rem;
+  }
+  .contact-reveal__fact {
+    align-items: center;
+  }
+  /* Send it: the form's full inner width, its label and arrow centred in it */
+  .contact-reveal__form .contact-submit {
+    justify-self: stretch;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
   }
 }
 
@@ -5229,6 +5510,169 @@ html[data-logo-handoff] .site-header__logo {
   }
 }
 
+/* --- /work on a phone: the showcase (see `Showcase` in work-carousel.tsx) -----------------
+   Rendered only on a phone. One pinned, full-bleed stage: a slider of films, each filling the
+   window with its lockup on the bottom edge, moved through with the arrow cells at its sides;
+   the film on screen then goes into the index as its first card. Positions and sizes are
+   written by the scroll pass; this sets the pieces up. */
+@media (max-width: 767px) {
+  .work-showcase {
+    position: relative;
+    /* full bleed: up under the fixed header, over the clearance the page reserves for it */
+    margin-top: calc(-1 * var(--hp-header-h));
+  }
+
+  .work-showcase__stage {
+    position: sticky;
+    top: 0;
+    /* UNDER the index, which rides up beneath the closing aperture (see the -40svh below);
+       no ground of its own — outside the aperture it is the page's */
+    z-index: 0;
+    height: 100svh;
+    overflow: hidden;
+    padding: 0 var(--hp-gutter);
+  }
+
+
+
+
+  /* the film: the whole window, its aperture closed by the scroll (see `Showcase`) */
+  .work-showcase__frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #111;
+    will-change: clip-path;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .work-showcase__media {
+    position: absolute;
+    inset: 0;
+    will-change: transform;
+  }
+
+  .work-showcase__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* the film covers the window */
+  .work-showcase__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* the film itself arrives softly on load, up out of black */
+  .work-showcase__media {
+    animation: work-showcase-in 1.6s var(--hp-ease-out) both;
+  }
+
+  .work-showcase__rise {
+    display: inline-block;
+    animation-duration: 1.4s;
+  }
+
+  /* the seam the aperture closes to: a lime hairline across the middle, with a soft glow */
+  .work-showcase__seam {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    height: 1px;
+    background: var(--hp-lime);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--hp-lime) 70%, transparent);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* View project: the About hero's ticket, centred under the lockup and standing active */
+  .work-showcase__cta {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.1rem;
+  }
+  .work-showcase__cta .header-cta {
+    border-color: transparent;
+    background-color: var(--hp-lime);
+    color: var(--hp-soft);
+  }
+  .work-showcase__cta .header-cta::before {
+    clip-path: inset(0 0 0 0);
+  }
+  .work-showcase__cta .header-cta__arrow {
+    border-color: var(--hp-soft);
+    color: var(--hp-soft);
+  }
+  .work-showcase__cta .header-cta__arrow svg {
+    transform: rotate(45deg);
+  }
+
+  /* light under the header and the lockup, gone as the film becomes a row */
+  .work-showcase__scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgb(10 10 10 / 0.5), transparent 22%),
+      linear-gradient(to top, rgb(10 10 10 / 0.88), rgb(10 10 10 / 0.4) 38%, transparent 62%);
+  }
+
+  .work-showcase__lockup {
+    position: absolute;
+    z-index: 3; /* over the films (1–2, set by the scroll pass), under the arrows */
+    left: var(--hp-gutter);
+    right: var(--hp-gutter);
+    bottom: max(1.75rem, 5.5svh);
+    text-align: center;
+    will-change: transform, opacity;
+  }
+
+  .work-showcase__meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75em;
+    font-family: var(--hp-font-secondary);
+    font-weight: 500;
+    font-size: 0.625rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgb(245 245 240 / 0.72);
+  }
+
+  .work-showcase__name {
+    margin-top: 0.7rem;
+    font-family: var(--hp-font-primary);
+    font-weight: 900;
+    font-size: clamp(1.75rem, 9vw, 2.5rem);
+    line-height: 0.9;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    color: var(--hp-lime);
+  }
+
+  .work-showcase__title {
+    margin: 0.55rem auto 0.75rem;
+    max-width: 26ch;
+    font-family: var(--hp-font-primary);
+    font-size: 1rem;
+    line-height: 1.25;
+    color: var(--hp-off-white);
+  }
+}
+
 /* The filter: square chips on a hairline, a row that swipes on a phone. */
 .news-filter {
   display: flex;
@@ -5631,5 +6075,567 @@ html[data-logo-handoff] .site-header__logo {
   .contact-map__pulse {
     animation: none;
     opacity: 0.5;
+  }
+}
+
+/* About's hero CTA on a phone stands ACTIVE as the closing CTA does (the desktop's hover at
+   rest: flooded lime, black label and arrow cell, the arrow turned on) */
+@media (max-width: 767px) {
+  .about-hero__cta .header-cta {
+    color: var(--hp-soft);
+  }
+  .about-hero__cta .header-cta::before {
+    clip-path: inset(0 0 0 0);
+  }
+  .about-hero__cta .header-cta__arrow {
+    border-color: var(--hp-soft);
+    color: var(--hp-soft);
+  }
+  .about-hero__cta .header-cta__arrow svg {
+    transform: rotate(45deg);
+  }
+}
+
+/* Lime-filled buttons on a phone carry no rule: the fill is the button. The lime goes on the
+   box itself (under its now-clear border, so nothing shows a seam at the edge); between the
+   label and the arrow cell a black hairline stands instead of the lime one. */
+@media (max-width: 767px) {
+  .site-header .sound-toggle[aria-pressed="true"],
+  .site-header .header-cta,
+  .work__cta-link,
+  .about-hero__cta .header-cta,
+  .view-project--plate {
+    border-color: transparent;
+    background-color: var(--hp-lime);
+  }
+  .site-header .header-cta__arrow,
+  .work__cta-link .header-cta__arrow,
+  .about-hero__cta .header-cta__arrow {
+    border-color: var(--hp-soft);
+  }
+}
+
+/* On a phone the menu carries its links only: the social cells and the hairline before them
+   are left to the footer */
+@media (max-width: 767px) {
+  .site-header .menu-panel__social {
+    display: none;
+  }
+}
+
+/* The header on a phone: the dropped menu's links at the row's size (they were a display size
+   larger than the same links in the row), and Contact as the word alone — no icon, no arrow
+   cell — on its lime ground. */
+.header-cta__short {
+  display: none;
+}
+@media (max-width: 767px) {
+  .site-header .menu-panel__item {
+    font-size: var(--hp-text-body);
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .site-header .header-cta {
+    width: auto;
+  }
+  .site-header .header-cta__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: nowrap;
+    padding-inline: 0.4rem;
+  }
+  .site-header .header-cta__roll,
+  .site-header .header-cta__arrow {
+    display: none;
+  }
+  .site-header .header-cta__short {
+    display: block;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+}
+@media (max-width: 599px) {
+  .site-header .menu-panel__item {
+    font-size: 0.875rem;
+  }
+}
+
+/* The bar's two controls a step more compact on a phone — smaller cells, a tighter pair — so
+   they sit clear of the centred wordmark at its own size down to 320px */
+@media (max-width: 767px) {
+  .site-header .site-header__actions {
+    gap: 0.1875rem;
+  }
+  .site-header .sound-toggle {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .site-header .sound-toggle__bars {
+    height: 10px;
+  }
+  .site-header .header-cta {
+    height: 1.75rem;
+  }
+}
+@media (max-width: 359px) {
+  .site-header .sound-toggle {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .site-header .header-cta {
+    height: 1.5rem;
+  }
+  .site-header .header-cta__label {
+    padding-inline: 0.3rem;
+  }
+  .site-header .header-cta__short {
+    font-size: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+}
+
+@keyframes work-showcase-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-showcase__media {
+    animation: none;
+  }
+}
+
+/* Talent on a phone: the frame is the column's full width (gutter to gutter), as tall as the
+   cell allows up to its own 3:4, the pictures cropped to it */
+@media (max-width: 767px) {
+  .talent-act__media .talent-stack {
+    width: 100cqw;
+    /* (a touch short of the whole cell) */
+    height: min(94cqh, 100cqw * 4 / 3);
+  }
+}
+
+/* The bar's controls on a phone, finished: the sound bars sit at the very centre of their cell
+   (their box as tall as the tallest bar — at 10px the taller bars stood out above it, the
+   whole mark riding high); Contact takes a finger anywhere near it (a touch area round the
+   small cell, nothing drawn), and a press shows: the cell goes hollow — the lime only as its
+   rule, the word in white — until the page moves on. */
+@media (max-width: 767px) {
+  .site-header .sound-toggle__bars {
+    height: 14px;
+  }
+
+  .site-header .header-cta {
+    overflow: visible;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 0.25s var(--hp-ease-out),
+      border-color 0.25s var(--hp-ease-out),
+      color 0.25s var(--hp-ease-out);
+  }
+  .site-header .header-cta::after {
+    content: "";
+    position: absolute;
+    inset: -0.5rem -0.375rem;
+  }
+  .site-header .header-cta:is(:active, :focus-visible, .is-pressed) {
+    border-color: var(--hp-lime);
+    background-color: transparent;
+    color: var(--hp-off-white);
+  }
+  .site-header .header-cta:is(:active, :focus-visible, .is-pressed)::before {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+
+/* /work on a phone: the reel's caption is never shown there (the phone's hero has its own
+   lockup), but the server renders the reel's state before the page knows it is a phone — so
+   the caption was painted, then removed at hydration, and everything moved (CLS 0.22). Kept out
+   of the first paint instead. */
+@media (max-width: 767px) {
+  .work-caption {
+    display: none;
+  }
+}
+
+/* Talent on a phone, its type packed tighter so the picture above it can stand taller: a
+   smaller step between the picture and the title's room, the lead line a touch smaller and
+   closer to the list, and less air between the four roles and under each of their titles. */
+@media (max-width: 767px) {
+  .talent-act {
+    gap: 0.75rem;
+  }
+  .talent-act__body {
+    padding-top: clamp(2.35rem, 5.5svh, 3rem);
+  }
+  .talent-act__line {
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+  .talent-act__list {
+    margin-top: clamp(0.6rem, 1.6svh, 1rem);
+    gap: clamp(0.4rem, 1.4svh, 0.85rem);
+  }
+  .talent-card__tags {
+    margin-top: 0.3rem;
+  }
+}
+
+/* Contact on a phone: the three facts set as a tidy list — each its own row between hairlines,
+   with real air above and below it, so they no longer read as packed into one another — and
+   each row compact: a smaller icon cell centred on its two lines, the label tight to the value. */
+@media (max-width: 767px) {
+  .contact-reveal__facts {
+    gap: 0;
+  }
+  .contact-reveal__fact {
+    gap: 0.85rem;
+    align-items: center;
+    padding-block: 0.95rem;
+    border-top: 1px solid color-mix(in srgb, var(--hp-off-white) 10%, transparent);
+  }
+  .contact-reveal__fact:first-child {
+    padding-top: 0.2rem;
+    border-top: 0;
+  }
+  .contact-reveal__fact:last-child {
+    padding-bottom: 0.2rem;
+  }
+  .contact-reveal__icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  .contact-reveal__fact .contact-reveal__label {
+    margin-bottom: 0.2rem;
+  }
+  .contact-reveal__social {
+    gap: 0.3rem 1rem;
+  }
+}
+
+/* The footer on a phone: more air between the statement and the row under it (INDEX /
+   FOLLOW), so the two read as separate blocks; and SAY HELLO's arrow cell stands active —
+   lime, a size larger, the arrow in night pointing up and out. */
+@media (max-width: 767px) {
+  .footer__statement {
+    margin-bottom: clamp(2rem, 6svh, 3rem);
+  }
+  .footer__say-arrow {
+    width: 0.78em;
+    height: 0.78em;
+    background: var(--hp-lime);
+    color: var(--hp-soft);
+  }
+  /* the arrow as it is drawn — up and to the right, the way out to Contact — and larger */
+  .footer__say .footer__say-arrow svg,
+  .footer__say:is(:hover, :focus-visible) .footer__say-arrow svg {
+    width: 46%;
+    height: 46%;
+    transform: none;
+  }
+}
+@media (max-width: 767px) and (orientation: portrait) and (max-height: 620px) {
+  .footer__statement {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* The bar's two cells on a phone: a clear step between them, and one height for both — the
+   border counted inside each box, so neither stands a pixel taller than the other. */
+@media (max-width: 767px) {
+  .site-header .site-header__actions {
+    gap: 0.5rem;
+  }
+  .site-header .sound-toggle,
+  .site-header .header-cta {
+    box-sizing: border-box;
+    height: 1.75rem;
+  }
+}
+@media (max-width: 359px) {
+  .site-header .site-header__actions {
+    gap: 0.375rem;
+  }
+  .site-header .sound-toggle,
+  .site-header .header-cta {
+    height: 1.5rem;
+  }
+}
+
+/* News on a phone. The featured story's "Read on …" and "See more" stand active, as every lime
+   call on a phone does: flooded lime, the label black, a black hairline before the arrow, the
+   arrow turned on. Each article's foot is one line on every card — the source and the date
+   (its month cut short) in a smaller, tighter set — and its arrow cell is smaller and filled. */
+.news-date--short {
+  display: none;
+}
+@media (max-width: 767px) {
+  .news-featured .header-cta,
+  .news-more__button {
+    border-color: transparent;
+    background-color: var(--hp-lime);
+    color: var(--hp-soft);
+  }
+  .news-featured .header-cta::before,
+  .news-more__button::before {
+    clip-path: inset(0 0 0 0);
+  }
+  .news-featured .header-cta .header-cta__arrow,
+  .news-more__button .header-cta__arrow {
+    border-color: var(--hp-soft);
+    color: var(--hp-soft);
+  }
+  .news-featured .header-cta .header-cta__arrow svg,
+  .news-more__button .header-cta__arrow svg {
+    transform: rotate(45deg);
+  }
+
+  .news-date--long {
+    display: none;
+  }
+  .news-date--short {
+    display: inline;
+  }
+  .news-card__foot {
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+  }
+  .news-card__foot > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .news-card__go {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-color: transparent;
+    background: var(--hp-lime);
+    color: var(--hp-night);
+  }
+  .news-card__go svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* /work on a phone: "See more" stands active — flooded lime, its label black — and sits closer
+   to the last film: the index's own foot and the control's lead-in both a step shorter. */
+@media (max-width: 767px) {
+  .work-control__more {
+    border-color: transparent;
+    background-color: var(--hp-lime);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    color: var(--hp-soft);
+  }
+  .work-control__more:hover:not(:disabled) {
+    color: var(--hp-soft);
+  }
+  #work-index > div:first-child {
+    padding-bottom: 1.25rem;
+  }
+  .work-control {
+    padding-top: 0.75rem;
+  }
+}
+
+/* The dropped menu on a phone: the links a step further apart, and the lime rule beside them
+   exactly as tall as they are — no padding above the first or below the last for it to run
+   past, the links set solid (their finger-sized reach is an invisible area round each). */
+@media (max-width: 767px) {
+  .site-header:not(.is-menu-row) .menu-panel {
+    gap: 0;
+    padding-block: 0;
+  }
+  .site-header:not(.is-menu-row) .menu-panel__list {
+    gap: 0.95rem;
+  }
+  .site-header:not(.is-menu-row) .menu-panel__item {
+    position: relative;
+    padding-block: 0;
+    line-height: 1;
+  }
+  .site-header:not(.is-menu-row) .menu-panel__item::after {
+    content: "";
+    position: absolute;
+    inset: -0.45rem -0.5rem;
+  }
+}
+
+/* Contact on a phone: "Send a brief" stands active, as every lime call on a phone does —
+   flooded lime, the label black, a black hairline before the arrow. */
+@media (max-width: 767px) {
+  .contact-hero .header-cta {
+    border-color: transparent;
+    background-color: var(--hp-lime);
+    color: var(--hp-soft);
+  }
+  .contact-hero .header-cta::before {
+    clip-path: inset(0 0 0 0);
+  }
+  .contact-hero .header-cta .header-cta__arrow {
+    border-color: var(--hp-soft);
+    color: var(--hp-soft);
+  }
+  /* (its arrow left as drawn — pointing DOWN, to the form further down this page; turned, as
+     the other tickets' arrows are, it pointed off to one side) */
+  .contact-hero .header-cta .header-cta__arrow svg,
+  .contact-hero .header-cta:is(:hover, :focus-visible) .header-cta__arrow svg {
+    transform: none;
+  }
+}
+
+/* News on a phone, a size down: the featured story's "Read on …" ticket shorter and its type
+   smaller, the filter chips a slimmer row, and the category badges a smaller, tighter tag. */
+@media (max-width: 767px) {
+  .news-featured .header-cta {
+    height: 2.25rem;
+    font-size: 0.8125rem;
+  }
+  .news-featured .header-cta__label {
+    padding-inline: 0.85rem 0.8rem;
+  }
+  .news-featured .header-cta__arrow {
+    width: 2.25rem;
+  }
+
+  .news-filter__chip {
+    height: 2rem;
+    padding-inline: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .news-tag {
+    padding: 0.3em 0.5em 0.25em;
+    font-size: 0.5625rem;
+    letter-spacing: 0.1em;
+  }
+}
+
+/* The sound cell's bars a step smaller on a phone, still centred in their cell */
+@media (max-width: 767px) {
+  .site-header .sound-toggle__bars {
+    transform: scale(0.78);
+  }
+}
+
+/* /work on a phone: the index rides up under the closing aperture — the hero's last stretch is
+   pulled over by it (40% of a screen), so the films arrive right under the lit seam rather than
+   after a band of empty night. Drawn above the pinned stage as it does. */
+@media (max-width: 767px) {
+  .work-showcase {
+    margin-bottom: -40svh;
+  }
+  .work-showcase ~ .work-index-wrap {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* The header's Contact on the Contact page, on a phone: it stands down — no fill, the word in
+   white, only its lime rule (it is where the reader already is) */
+@media (max-width: 767px) {
+  .site-header .header-cta.is-current {
+    border-color: var(--hp-lime);
+    background-color: transparent;
+    color: var(--hp-off-white);
+  }
+  .site-header .header-cta.is-current::before {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+/* /work on a phone: WORK, the index's title, rising out of the line the hero closed to —
+   centred where the line stood, in the site's chapter-heading type, each letter out of a mask */
+@media (max-width: 767px) {
+  .work-showcase__heading {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    z-index: 2;
+    margin: 0;
+    text-align: center;
+    translate: 0 -55%;
+    font-size: clamp(3.25rem, 19vw, 5.5rem);
+    line-height: 0.9;
+    pointer-events: none;
+  }
+  .work-showcase__heading-mask {
+    display: inline-flex;
+    overflow: hidden;
+    padding-bottom: 0.06em;
+  }
+  .work-showcase__heading-char {
+    display: inline-block;
+    transform: translate3d(0, 110%, 0);
+    will-change: transform;
+  }
+  /* the index arrives below the title, not over it */
+  .work-showcase {
+    margin-bottom: -32svh;
+  }
+}
+/* Contact on a phone: the footer rises as a SCAN — a lime hairline with a soft glow on its
+   leading edge, sweeping up the screen over the lifting panel with the night behind it, as the
+   Work page's index arrives under its seam. */
+@media (max-width: 767px) {
+  .contact-footer-rise::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    height: 1px;
+    background: var(--hp-lime);
+    box-shadow:
+      0 0 18px color-mix(in srgb, var(--hp-lime) 70%, transparent),
+      0 0 60px color-mix(in srgb, var(--hp-lime) 25%, transparent);
+    pointer-events: none;
+  }
+}
+
+/* The menu's links a step further apart on a phone, dropped or in a row */
+@media (max-width: 767px) {
+  .site-header:not(.is-menu-row) .menu-panel__list {
+    gap: 1.3rem;
+  }
+  .site-header:not(.is-menu-row) .menu-panel__item::after {
+    inset: -0.65rem -0.5rem;
+  }
+  .site-header.is-menu-row .menu-panel__list {
+    gap: 1.5rem;
+  }
+}
+
+/* The sound cell on a phone, muted: it stands down — no fill, the bars white, only the lime
+   rule (and so it stays after the tap that muted it: a touch leaves :hover set, and the hover's
+   fill used to keep it looking on) */
+@media (max-width: 767px) {
+  .site-header .sound-toggle[aria-pressed="false"],
+  .site-header .sound-toggle[aria-pressed="false"]:is(:hover, :focus-visible, :active) {
+    border-color: var(--hp-lime);
+    background: transparent;
+    color: var(--hp-off-white);
+  }
+}
+
+/* The About hero's resting foot on a phone, from the first paint (see `lockupPad` in
+   about-hero.tsx): the reel row under the lockup plus the lockup's own step */
+@media (max-width: 767px) {
+  :root {
+    --about-rest: 70px;
   }
 }

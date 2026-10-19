@@ -164,3 +164,12 @@ export const formatDate = (iso: string) =>
     day: "numeric",
     timeZone: "UTC",
   }).format(new Date(iso));
+
+/** The same date with its month cut short ("Feb 10, 2021") — where a line has to stay one. */
+export const formatDateShort = (iso: string) =>
+  new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(iso));

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
+  animate,
   m,
   useMotionValue,
   useMotionValueEvent,
@@ -96,6 +97,76 @@ const MAP = { from: at(2.55), to: at(3) };
 /** The heading builds itself across the panel's arrival. */
 const HEAD_RUN = { from: at(2.1), to: at(2.94) };
 const HEAD = ["Let’s make", "something", "together."];
+
+/**
+ * ON A PHONE the line is set as a stair of three, in the site's own heading vocabulary (the
+ * outlined word of WHO WE ARE): LET’S MAKE small and tracked out, a lead-in; SOMETHING solid
+ * lime and as wide as the panel, edge to edge; and TOGETHER. in outline, hung from the right
+ * edge under it. The big word is fitted to the box from its letters' ink, and the other two
+ * are set against the same edges (see `fitHead`). Desktop and tablet keep the three-line set.
+ */
+const HEAD_PHONE = ["Let’s make", "something", "together."];
+/** On a phone the heading plays on a clock (see `headPlay`): from here in the page's run… */
+const HEAD_PHONE_AT = at(2.35);
+/** …over this many seconds. */
+const HEAD_PHONE_PLAY = 1.5;
+const PHONE = "(max-width: 767px)";
+const subscribePhone = (change: () => void) => {
+  const mq = window.matchMedia(PHONE);
+  mq.addEventListener("change", change);
+  return () => mq.removeEventListener("change", change);
+};
+const usePhone = () =>
+  useSyncExternalStore(subscribePhone, () => window.matchMedia(PHONE).matches, () => false);
+
+/**
+ * Fits the phone heading to its box from the glyphs' INK, not their boxes: the big middle
+ * line's size is set (and re-measured until it holds — at a phone's sizes the browser rounds
+ * glyph advances) so its first letter's left edge and its last letter's right edge sit on the
+ * box's edges; the lead-in above starts on the same left edge, and the outlined last line is
+ * hung so its last letter ends on the right one. The other two lines' sizes follow the big
+ * one's (in the stylesheet).
+ */
+function fitHead(head: HTMLElement) {
+  const lines = Array.from(head.querySelectorAll<HTMLElement>(".chars__line"));
+  if (lines.length !== 3) return;
+  const box = head.getBoundingClientRect();
+  if (!box.width) return;
+  const ctx = document.createElement("canvas").getContext("2d");
+  if (!ctx) return;
+  const ink = (line: HTMLElement) => {
+    const cs = getComputedStyle(line);
+    // measured at 1000px and scaled: at a phone's size the metrics come back whole pixels
+    const k = parseFloat(cs.fontSize) / 1000;
+    ctx.font = `${cs.fontWeight} 1000px ${cs.fontFamily}`;
+    const c = Array.from(line.querySelectorAll<HTMLElement>(".chars__char"));
+    const glyph = (el: HTMLElement) => (el.textContent ?? "").toUpperCase();
+    const stroke = parseFloat(cs.webkitTextStrokeWidth || "0") / 2;
+    const first = c[0];
+    // the last letter that draws anything (a trailing space or stop is not the edge)
+    const last = [...c].reverse().find((el) => glyph(el).trim() && glyph(el) !== "\u00a0") ?? c[c.length - 1];
+    return {
+      left: first.getBoundingClientRect().left - ctx.measureText(glyph(first)).actualBoundingBoxLeft * k - stroke,
+      right: last.getBoundingClientRect().left + ctx.measureText(glyph(last)).actualBoundingBoxRight * k + stroke,
+    };
+  };
+  const [lead, big, tail] = lines;
+  head.style.setProperty("--head-size", "");
+  lines.forEach((l) => (l.style.translate = ""));
+  const TOL = 0.25;
+  let size = parseFloat(getComputedStyle(big).fontSize);
+  for (let i = 0; i < 6; i++) {
+    const a = ink(big);
+    const w = a.right - a.left;
+    if (Math.abs(w - box.width) < TOL) break;
+    size = (size * box.width) / w;
+    head.style.setProperty("--head-size", `${size}px`);
+  }
+  big.style.translate = `${box.left - ink(big).left}px 0`;
+  lead.style.translate = `${box.left - ink(lead).left}px 0`;
+  tail.style.translate = `${box.right - ink(tail).right}px 0`;
+}
+
 /**
  * THE EXIT, still pinned: each column lifts away faster than the wheel and
  * fades — the information first, the form a beat behind — the picture goes to
@@ -141,8 +212,9 @@ export function ContactReveal() {
    * screen, so the picture's zoom, its blur and the panel's arrival move exactly
    * as the scroll would have moved them — and the first scroll back up off that
    * point carries it home again. Each is a crossing, so a carry never sets off
-   * the other, and the page is locked while it runs (see `carryTo`). Past the
-   * panel — its own inner scroll, the exit, the footer — nothing changes.
+   * the other, and the page is locked while it runs (see `carryTo`). And past the
+   * panel the same: once its own inner scroll is spent the next gesture carries
+   * through the exit to the footer, and the first one back carries to the panel.
    */
   const playing = usePlayMode();
   useEffect(() => {
@@ -153,27 +225,102 @@ export function ContactReveal() {
       const a = document.getElementById("contact-form");
       return a ? a.getBoundingClientRect().top + window.scrollY : 0;
     };
+    // where the footer has the frame: the foot of the page (read off the page itself — on a
+    // real phone the window's height changes with the browser's bars)
+    const footY = () => document.documentElement.scrollHeight - window.innerHeight;
+    let busy = 0;
+    const seconds = (d: number) => (d / window.innerHeight) * PLAY_SECONDS_PER_SCREEN;
+    const run = (to: number, d: number) => {
+      busy = window.setTimeout(() => (busy = 0), Math.min(3, seconds(d)) * 1000 + 120);
+      carryTo(to, seconds(d), true);
+    };
     const onScroll = () => {
       const y = window.scrollY;
       const prev = lastY;
       lastY = y;
+      if (busy) return;
       const anchor = anchorY();
       if (!anchor) return;
-      const seconds = (d: number) => (d / window.innerHeight) * PLAY_SECONDS_PER_SCREEN;
-      if (prev <= SLACK && y > SLACK && y < anchor) {
-        carryTo(anchor, seconds(anchor - y), true);
-      } else if (prev >= anchor - SLACK && y < anchor - SLACK && y > 0) {
-        carryTo(0, seconds(y), true);
+      const foot = footY();
+      if (prev <= SLACK && y > SLACK && y < anchor) run(anchor, anchor - y);
+      else if (prev >= anchor - SLACK && y < anchor - SLACK && y > 0) run(0, y);
+      // (the page itself moving on past the panel — a wheel, a fling that got through)
+      else if (prev <= anchor + SLACK && y > anchor + SLACK && y < foot) run(foot, foot - y);
+      // …and off the footer's foot, back to the panel standing whole
+      else if (prev >= foot - SLACK && y < foot - SLACK && y > anchor + SLACK) run(anchor, y - anchor);
+    };
+    /* THE WAY ON FROM THE PANEL IS TAKEN ON INTENT, not on the page crossing a line. The panel
+       scrolls inside itself, so the page's own scroll there is whatever the inner scroller lets
+       through — a few pixels, late, or nothing — and waiting on it was the stutter and the
+       delay. So: a swipe up made at the panel's foot (its own scroll spent) goes to the footer
+       the moment it is made, and the page is held still under it; a swipe down anywhere between
+       the panel and the footer goes back to the panel. */
+    let touchY = 0;
+    let decided = false;
+    let atFoot = false;
+    const onTouchStart = (e: TouchEvent) => {
+      touchY = e.touches[0]?.clientY ?? 0;
+      decided = false;
+      const panel = (e.target as HTMLElement | null)?.closest<HTMLElement>(".contact-reveal__panel");
+      atFoot = !panel || panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 2;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (busy) {
+        if (e.cancelable) e.preventDefault();
+        return;
+      }
+      if (decided) return;
+      const dy = touchY - (e.touches[0]?.clientY ?? touchY);
+      if (Math.abs(dy) < 18) return;
+      const anchor = anchorY();
+      const y = window.scrollY;
+      const foot = footY();
+      if (!anchor) return;
+      if (dy > 0 && atFoot && y >= anchor - SLACK && y < foot - SLACK) {
+        decided = true;
+        if (e.cancelable) e.preventDefault();
+        run(foot, foot - y);
+      } else if (dy < 0 && y > anchor + SLACK) {
+        decided = true;
+        if (e.cancelable) e.preventDefault();
+        run(anchor, y - anchor);
       }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.clearTimeout(busy);
+    };
   }, [playing, reduced]);
   /* Nothing scrubbed under reduced motion: the panel stands at its end state
      and the page flows. Phones and tablets play the film like the desktop —
      the panel scrolls inside itself when it is taller than the window (see
      `panelRef`), so the form is reachable without giving up the zoom. */
   const still = !!reduced;
+
+  /* The phone's two-line heading, fitted to its box (see `fitHead`) — again whenever the box
+     or the type can change. */
+  const phone = usePhone();
+  const headRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    const head = headRef.current;
+    if (!head) return;
+    if (!phone) {
+      head.style.removeProperty("--head-size");
+      head.querySelectorAll<HTMLElement>(".chars__line").forEach((l) => (l.style.translate = ""));
+      return;
+    }
+    const fit = () => fitHead(head);
+    fit();
+    const sizes = new ResizeObserver(fit);
+    sizes.observe(head);
+    document.fonts?.ready.then(fit);
+    return () => sizes.disconnect();
+  }, [phone]);
   const done = useMotionValue(1);
 
 
@@ -332,6 +479,7 @@ export function ContactReveal() {
   const footFade = useTransform(p, [at(EXIT_INFO.from), at(DARK.to)], [0, 1]);
   /* …and the whole picture goes to night under the rising footer. */
   const exitDark = useTransform(p, [at(DARK.from), at(DARK.to)], [0, 1]);
+
   /* The panel arrives as one; it leaves column by column (below). */
   const panel = useTransform(p, [PANEL.from, PANEL.to], [0, 1]);
   /* The stage sits over the hero from the first frame now, so the panel only
@@ -350,6 +498,22 @@ export function ContactReveal() {
   /* The heading's letters, starting just after the panel begins to show and
      done before the map comes — a little over half a screen of scroll. */
   const headIn = useTransform(p, [HEAD_RUN.from, HEAD_RUN.to], [0, 1]);
+  /* ON A PHONE the panel scrolls inside itself, so the page's progress stops where the panel
+     lands and could never finish the letters (the stylesheet stands them finished instead).
+     There the heading PLAYS — the same letter-by-letter build, on a clock — once the panel
+     has mostly come in, and is wound back if the reader goes back above it. */
+  const headPlay = useMotionValue(0);
+  const headPlaying = useRef<"in" | "out">("out");
+  useMotionValueEvent(p, "change", (v) => {
+    if (!phone) return;
+    if (v >= HEAD_PHONE_AT && headPlaying.current === "out") {
+      headPlaying.current = "in";
+      animate(headPlay, 1, { duration: HEAD_PHONE_PLAY, ease: "linear" });
+    } else if (v < PANEL.from && headPlaying.current === "in") {
+      headPlaying.current = "out";
+      animate(headPlay, 0, { duration: 0.3, ease: "linear" });
+    }
+  });
   const mapIn = useTransform(p, [MAP.from, MAP.to], [0, 1]);
   const mapLift = useTransform(p, [MAP.from, MAP.to], [18, 0]);
 
@@ -509,6 +673,7 @@ export function ContactReveal() {
           aria-hidden
         />
 
+
         <m.div
           ref={panelRef}
           className="contact-section contact-reveal__panel"
@@ -532,8 +697,16 @@ export function ContactReveal() {
               {/* Built letter by letter on scroll, the way /about's headings
                   arrive — same component, same motion. The breaks are the
                   ones the line already took at this size. */}
-              <h2 id="reveal-head" className="hp-display contact-reveal__line">
-                <ScrollChars lines={HEAD} progress={still ? done : headIn} />
+              <h2
+                id="reveal-head"
+                ref={headRef}
+                className={`hp-display contact-reveal__line${phone && !still ? " contact-reveal__line--played" : ""}`}
+              >
+                <ScrollChars
+                  lines={phone ? HEAD_PHONE : HEAD}
+                  accent={phone ? 2 : undefined}
+                  progress={still ? done : phone ? headPlay : headIn}
+                />
               </h2>
 
               {/* Each fact on its own row: a lime-ruled icon box (the

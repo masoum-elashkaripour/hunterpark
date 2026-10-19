@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useInView } from "@/components/use-in-view";
 import Link from "next/link";
 import { m, useReducedMotion } from "motion/react";
@@ -69,10 +69,36 @@ const CORNERS = [
 
 const OPEN = "inset(0% 0% 0% 0%)";
 
+/** Which of `PatternGrid`'s `leads` is in front — set by the Work hero's slider, read here. */
+export type LeadStore = ReturnType<typeof createLeadStore>;
+
+export function createLeadStore() {
+  let at = 0;
+  const subs = new Set<() => void>();
+  return {
+    get: () => at,
+    set: (i: number) => {
+      if (i === at) return;
+      at = i;
+      subs.forEach((f) => f());
+    },
+    subscribe: (f: () => void) => {
+      subs.add(f);
+      return () => {
+        subs.delete(f);
+      };
+    },
+  };
+}
+
+const NO_LEAD: LeadStore = createLeadStore();
+
 export function PatternGrid({
   works,
   complete = true,
   className = "",
+  leads,
+  leadStore = NO_LEAD,
 }: {
   works: Work[];
   /**
@@ -85,8 +111,25 @@ export function PatternGrid({
    */
   complete?: boolean;
   className?: string;
+  /**
+   * On a phone the Work hero's last film lands in the index as its first card (see `Showcase`
+   * in work-carousel.tsx): that card's frame holds no picture of its own — the hero's own
+   * film is moved into it — so the project is never on screen twice.
+   *
+   * Laid as a card of its own ahead of the pattern, its own place in the pattern hidden,
+   * rather than by reordering the films: a reorder re-keys every group, and remounting the
+   * whole index as the reader scrolls into it was a long stall on every slide change. Here
+   * a new slide only swaps one card's caption and one hidden flag. The films the hero cycles
+   * through; which one leads is read from `leadStore`, so a slide change renders this grid
+   * (and of it, only the cards it changes) rather than the page above it.
+   */
+  leads?: Work[];
+  /** Which of `leads` is the lead card now. */
+  leadStore?: LeadStore;
 }) {
   const reduced = useReducedMotion();
+  const leadAt = useSyncExternalStore(leadStore.subscribe, leadStore.get, leadStore.get);
+  const lead = leads?.[Math.min(leadAt, leads.length - 1)];
 
   /**
    * Reduced motion changes the DURATION, never whether the animation runs.
@@ -95,7 +138,7 @@ export function PatternGrid({
    * the hidden state, and a client that then resolves it to `true` skips the
    * animation that was the only thing that would have cleared it.
    */
-  const reveal = { duration: reduced ? 0 : 2.1, ease: EASE };
+  const reveal = useMemo(() => ({ duration: reduced ? 0 : 2.1, ease: EASE }), [reduced]);
 
   /**
    * The last two films are lifted out of the repeating composition and set as
@@ -125,6 +168,9 @@ export function PatternGrid({
 
   return (
     <div className={`flex flex-col gap-grid px-gutter ${className}`}>
+      {lead ? (
+        <Tile key="lead" work={lead} i={0} reveal={reveal} host feature stretch />
+      ) : null}
       {groups.map((group, g) => {
         const [feature, ...stack] = group;
         const mirrored = g % 2 === 1;
@@ -154,6 +200,8 @@ export function PatternGrid({
             className="grid grid-cols-1 items-stretch gap-grid lg:max-h-[calc(100svh-var(--hp-header-h)-3rem-60px)] lg:grid-cols-5 lg:grid-rows-[minmax(0,1fr)]"
           >
             <div
+              /* (a hidden card's cell goes too, or the grid keeps its gap) */
+              hidden={feature.slug === lead?.slug}
               className={`lg:col-span-3 lg:min-h-0 ${mirrored ? "lg:order-2" : "lg:order-1"}`}
             >
               <Tile
@@ -161,6 +209,7 @@ export function PatternGrid({
                 i={base}
                 reveal={reveal}
                 finale={feature.slug === finale}
+                hidden={feature.slug === lead?.slug}
                 feature
                 stretch
               />
@@ -179,6 +228,7 @@ export function PatternGrid({
                     i={base + s + 1}
                     reveal={reveal}
                     finale={work.slug === finale}
+                    hidden={work.slug === lead?.slug}
                     stretch
                   />
                 ))}
@@ -194,20 +244,22 @@ export function PatternGrid({
           like everything else. */}
       {pair.length === PAIR ? (
         <div className="grid grid-cols-1 items-start gap-grid lg:grid-cols-12">
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5" hidden={pair[0].slug === lead?.slug}>
             <Tile
               work={pair[0]}
               i={0}
               reveal={reveal}
+              hidden={pair[0].slug === lead?.slug}
               sizes="(max-width: 1024px) 100vw, 40vw"
             />
           </div>
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7" hidden={pair[1].slug === lead?.slug}>
             <Tile
               work={pair[1]}
               i={1}
               reveal={reveal}
               finale={pair[1].slug === finale}
+              hidden={pair[1].slug === lead?.slug}
               sizes="(max-width: 1024px) 100vw, 58vw"
             />
           </div>
@@ -217,13 +269,16 @@ export function PatternGrid({
   );
 }
 
-function Tile({
+/* Memoised so a new lead re-renders the three cards it touches, not the whole index. */
+const Tile = memo(function Tile({
   work,
   i,
   reveal,
   feature = false,
   stretch = false,
   finale = false,
+  host = false,
+  hidden = false,
   sizes,
 }: {
   work: Work;
@@ -250,6 +305,10 @@ function Tile({
    * actually sits rather than where its reveal has scaled it to.
    */
   finale?: boolean;
+  /** This card's frame is the hero film's landing slot (see `PatternGrid`'s `host`). */
+  host?: boolean;
+  /** Laid ahead of the pattern as the lead card instead (see `PatternGrid`'s `lead`). */
+  hidden?: boolean;
   /** Overrides the pattern's own widths for the unequal pair. */
   sizes?: string;
 }) {
@@ -279,13 +338,22 @@ function Tile({
 
   /** The frame has finished opening and the caption may be read. */
   const [readable, setReadable] = useState(false);
+  /* …and not held to the frame's very last frame: the caption comes up as the picture is most
+     of the way open (a little under half the reveal in — its ease front-loads the opening), so
+     each title follows its own picture closely rather than trailing it by a couple of seconds */
+  useEffect(() => {
+    if (!shown || readable) return;
+    const t = window.setTimeout(() => setReadable(true), (delay + reveal.duration * 0.4) * 1000);
+    return () => window.clearTimeout(t);
+  }, [shown, readable, delay, reveal.duration]);
 
   const launch = useLaunch();
 
   return (
     <Link
       href={`/work/${work.slug}`}
-      className={`work-tile block ${
+      hidden={hidden}
+      className={`work-tile ${hidden ? "" : "block"} ${
         stretch ? "lg:flex lg:h-full lg:min-h-0 lg:flex-1 lg:flex-col" : ""
       }`}
       /* The href stays real — middle-click, cmd-click, "open in new tab" and
@@ -313,8 +381,9 @@ function Tile({
           className={`work-tile__frame ${
             stretch ? "lg:aspect-auto lg:min-h-0 lg:flex-1" : ""
           }`}
-          initial={{ clipPath: CORNERS[i % CORNERS.length] }}
-          animate={{ clipPath: shown ? OPEN : CORNERS[i % CORNERS.length] }}
+          /* (a host frame is open from the start: the film arriving in it IS its reveal) */
+          initial={{ clipPath: host ? OPEN : CORNERS[i % CORNERS.length] }}
+          animate={{ clipPath: shown || host ? OPEN : CORNERS[i % CORNERS.length] }}
           transition={{ ...reveal, delay }}
           /* The caption is held until the frame has finished, so the type is
              never read through a half-open box. */
@@ -322,6 +391,9 @@ function Tile({
         >
           {/* The film settles back as the frame opens, so it arrives moving
               rather than already still. */}
+          {host ? (
+            <span className="absolute inset-0 block" data-showcase-host />
+          ) : (
           <m.span
             className="absolute inset-0 block"
             initial={{ scale: 1.14 }}
@@ -345,6 +417,7 @@ function Tile({
               }
             />
           </m.span>
+          )}
         </m.span>
       </>
 
@@ -377,4 +450,4 @@ function Tile({
       </span>
     </Link>
   );
-}
+});

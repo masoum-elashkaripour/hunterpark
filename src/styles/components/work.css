@@ -410,6 +410,23 @@ html.hp-motion .work__marquee {
   background: rgb(245 245 240 / 0.5);
 }
 
+/* The phone list's number and count — shown only in the list (below) */
+.work__counts {
+  display: none;
+}
+
+/* --- The phone list (scripts/work.ts, `PHONE_LIST_QUERY`) ---------------------------------
+   The title holds the middle of the frame over the column of projects, in white, with the project's number and the count
+   at the gutters on its line; the client/discipline line gives way to them. */
+@media (max-width: 767px) {
+  /* The phone SLIDER (scripts/work.ts): the title and its line head the frame as on desktop
+     (`.work__marquee` keeps its desktop place), the slider under them — nothing over the
+     picture but its own wipe. The invitation sits right under the picture. */
+  html.hp-motion .is-list .work__card .work__more {
+    top: calc(100% + 0.55rem);
+  }
+}
+
 /* Cards: absolutely placed in one perspective space; size set per viewport, depth per frame (scripts/work.ts) */
 html.hp-motion .work__space {
   position: absolute;
@@ -621,6 +638,24 @@ html.hp-motion .work__cta.is-live .work__cta-link {
   }
 }
 
+/* On a phone the closing CTA stands ACTIVE — the desktop's hover state at rest: flooded lime,
+   label and arrow cell in black, the arrow turned on (there is no hover to bring it) */
+@media (max-width: 767px) {
+  .work__cta-link {
+    color: var(--hp-soft);
+  }
+  .work__cta-link::before {
+    clip-path: inset(0 0 0 0);
+  }
+  .work__cta-link .header-cta__arrow {
+    border-color: var(--hp-soft);
+    color: var(--hp-soft);
+  }
+  .work__cta-link .header-cta__arrow svg {
+    transform: rotate(45deg);
+  }
+}
+
 /* --- Responsive ------------------------------------------------------------ */
 @media (max-width: 767px) {
   .work__card,
@@ -724,5 +759,17 @@ html.hp-motion .work__cta.is-live .work__cta-link {
   html.hp-motion .work__card--below .work__more,
   html.hp-motion .work__card--side .work__more {
     top: calc(100% + 1.85rem);
+  }
+}
+
+/* On a phone the running chapter marker steps aside at Work's call to action (scripts/work.ts
+   sets the class; the footer fades the marker itself later, so this fades what it holds) */
+@media (max-width: 767px) {
+  .chapter-index > * {
+    transition: opacity 0.4s var(--hp-ease-out);
+  }
+
+  .chapter-index.is-out > * {
+    opacity: 0;
   }
 }

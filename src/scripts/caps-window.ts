@@ -18,7 +18,7 @@ export interface CapsWindow {
   left: number;
 }
 
-export function capsWindow(): CapsWindow | null {
+export function capsWindow(ref?: HTMLElement | null): CapsWindow | null {
   const stage = document.querySelector<HTMLElement>(".caps__stage");
   if (!stage || stage.clientWidth === 0 || stage.clientHeight === 0) return null;
 
@@ -31,18 +31,24 @@ export function capsWindow(): CapsWindow | null {
   };
   const w = stage.clientWidth;
   const h = stage.clientHeight;
-  const box = {
-    top: (read("height", "--wt") / h) * 100,
-    bottom: (read("height", "--wb") / h) * 100,
-    right: (read("width", "--wr") / w) * 100,
-    left: (read("width", "--wl") / w) * 100,
-  };
+  const px = { top: read("height", "--wt"), bottom: read("height", "--wb"), right: read("width", "--wr"), left: read("width", "--wl") };
   probe.remove();
-  return box;
+  // As percentages of `ref`'s own box when one is given (the film shrinking into the window
+  // lives in another stage): the same frame in pixels — its top and left from the top-left,
+  // its foot and right edge where they stand in this stage — so a stage of another height
+  // (a phone's browser bars can leave the two a few dozen pixels apart) cannot stretch it
+  const rw = ref?.clientWidth || w;
+  const rh = ref?.clientHeight || h;
+  return {
+    top: (px.top / rh) * 100,
+    left: (px.left / rw) * 100,
+    bottom: (Math.max(0, rh - (h - px.bottom)) / rh) * 100,
+    right: (Math.max(0, rw - (w - px.right)) / rw) * 100,
+  };
 }
 
 /** The same box as a `clip-path` inset, the form studio.ts keeps its windows in. */
-export const capsInset = (fallback: string) => {
-  const b = capsWindow();
+export const capsInset = (fallback: string, ref?: HTMLElement | null) => {
+  const b = capsWindow(ref);
   return b ? `inset(${b.top}% ${b.right}% ${b.bottom}% ${b.left}%)` : fallback;
 };

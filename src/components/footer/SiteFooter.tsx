@@ -61,31 +61,37 @@ const FIELDS = {
     crosses: [[880, 340], [880, 560], [300, 560], [640, 560]] as Pt[], // where the circle meets the guide
     cross: 9,
   },
+  // (before it is measured: lib/footer-plate.ts lays the same figure from the real layout)
   tall: {
     viewBox: "0 0 390 844",
-    ring: { c: [250, 545] as Pt, r: 95 },
-    sweep: { c: [390, 844] as Pt, r: 300, from: 212, to: 262 },
-    guides: ["M 0 355 H 390", "M 0 545 H 390", "M 330 440 V 700"],
-    diagonal: "M 0 650 L 330 440",
-    crosses: [[330, 545], [155, 545], [330, 440]] as Pt[],
+    ring: { c: [195, 355] as Pt, r: 22 },
+    sweep: { c: [390, 472.8] as Pt, r: 156, from: 90, to: 270 }, // the large circle's left half
+    guides: ["M 0 355 H 390", "M 0 545 H 390", "M 287.7 290 V 600"],
+    diagonal: null,
+    crosses: [[287.7, 355], [251.7, 545]] as Pt[], // on its crossings with the guides
     cross: 5,
   },
 };
 
 function FooterLines({ field }: { field: keyof typeof FIELDS }) {
   const f = FIELDS[field];
+  /* The phone figure is redrawn from the footer's real layout (scripts/footer.ts →
+     lib/footer-plate.ts): its parts are named for that, and drawn on a normalised length so
+     their reveal holds whatever shape they are given. */
+  const tall = field === "tall";
+  const part = (name: string) => (tall ? { "data-plate": name, pathLength: 1 } : {});
   return (
-    <svg className={`footer__lines footer__lines--${field}`} viewBox={f.viewBox} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <svg className={`footer__lines footer__lines--${field}`} viewBox={f.viewBox} preserveAspectRatio="xMidYMid slice" aria-hidden="true" {...(tall ? { "data-footer-tall": "" } : {})}>
       <g data-footer-arcs data-origin={f.ring.c.join(" ")}>
-        <circle cx={f.ring.c[0]} cy={f.ring.c[1]} r={f.ring.r} data-footer-line />
-        <path d={arcPath(f.sweep.c, f.sweep.r, f.sweep.from, f.sweep.to)} data-footer-line />
+        <circle cx={f.ring.c[0]} cy={f.ring.c[1]} r={f.ring.r} data-footer-line {...part("ring")} />
+        <path d={arcPath(f.sweep.c, f.sweep.r, f.sweep.from, f.sweep.to)} data-footer-line {...part("sweep")} />
       </g>
       <g data-footer-guides>
-        {f.guides.map((d) => (
-          <path d={d} data-footer-line key={d} />
+        {f.guides.map((d, i) => (
+          <path d={d} data-footer-line key={d} {...part(`g${i}`)} />
         ))}
-        <path d={f.diagonal} data-footer-line />
-        <path d={crossPath(f.crosses, f.cross)} data-footer-line="cross" />
+        {f.diagonal && <path d={f.diagonal} data-footer-line />}
+        <path d={crossPath(f.crosses, f.cross)} data-footer-line="cross" {...part("cross")} />
       </g>
     </svg>
   );

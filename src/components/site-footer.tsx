@@ -12,6 +12,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
+import { crossD, phonePlate } from "@/lib/footer-plate";
 
 /**
  * Footer ported from the live build (hunterpark.vercel.app).
@@ -208,6 +209,27 @@ function Line({
   );
 }
 
+/** The phone plate before it has been measured: the old fixed board. */
+const TALL_FALLBACK = {
+  measured: false,
+  w: 390,
+  h: 844,
+  yA: 355,
+  yB: 545,
+  vx: 287.7,
+  vTop: 290,
+  vBottom: 600,
+  ring: { cx: 195, cy: 355, r: 22 },
+  arc: "M 390 316.8 A 156 156 0 0 0 390 628.8",
+  crosses: crossD(
+    [
+      [287.7, 355],
+      [251.7, 545],
+    ],
+    5,
+  ),
+};
+
 /** One word of the statement, rising out of its own mask. */
 function Word({
   p,
@@ -337,6 +359,46 @@ export function SiteFooter({
   );
   /* The guides settle through the last stretch. */
   const guideY = useTransform(progress, [0.8, 1], [12, 0]);
+
+  /**
+   * THE PHONE PLATE, MEASURED. It was drawn on a fixed 390×844 board and
+   * sliced to the window, so on any other phone its lines ran through the
+   * words — the rule across INDEX / FOLLOW, the circle over SAY HELLO — and its
+   * crosses missed the corners they mark. Here it is laid out the way the wide
+   * plate is composed, from where the blocks actually stand: one rule above
+   * the call to talk and one below it, a large circle half-drawn from the
+   * right edge with the upright and the crosses on its true crossings with the
+   * rules, and a small ring on the upper rule (lib/footer-plate.ts).
+   * Measured with `offset*`, which ignores the reveal's own transforms.
+   */
+  const [tall, setTall] = useState(TALL_FALLBACK);
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const measure = () => {
+      if (!window.matchMedia("(max-width: 767px)").matches) return;
+      const plate = phonePlate(stage);
+      if (!plate) return;
+      setTall({
+        measured: true,
+        w: plate.w,
+        h: plate.h,
+        yA: plate.yA,
+        yB: plate.yB,
+        vx: plate.vx,
+        vTop: plate.vTop,
+        vBottom: plate.vBottom,
+        ring: plate.ring,
+        arc: plate.sweep,
+        crosses: crossD(plate.crosses, 5),
+      });
+    };
+    measure();
+    const sizes = new ResizeObserver(measure);
+    sizes.observe(stage);
+    document.fonts?.ready.then(measure);
+    return () => sizes.disconnect();
+  }, []);
 
   /* ---- The wordmark hands over from the header ------------------------ */
 
@@ -586,44 +648,33 @@ export function SiteFooter({
 
           <svg
             className="footer__lines footer__lines--tall"
-            viewBox="0 0 390 844"
-            preserveAspectRatio="xMidYMid slice"
+            viewBox={`0 0 ${tall.w} ${tall.h}`}
+            preserveAspectRatio={tall.measured ? "none" : "xMidYMid slice"}
             aria-hidden="true"
           >
-            <m.g
-              style={
-                reduced
-                  ? undefined
-                  : { scale: arcScale, originX: "250px", originY: "545px" }
-              }
-            >
+            {/* The phone figure stands still and only draws: the arcs' swell and the guides'
+                12px settle, scrubbed by a thumb's uneven scroll, read as the pattern wobbling */}
+            <m.g>
               <Line
                 p={progress}
                 driven={driven}
                 at={0}
-                circle={{ cx: 250, cy: 545, r: 95 }}
+                circle={tall.ring}
               />
-              <Line
-                p={progress}
-                driven={driven}
-                at={1}
-                d="M 135.6 685.0 A 300 300 0 0 1 348.2 546.9"
-              />
+              <Line p={progress} driven={driven} at={1} d={tall.arc} />
             </m.g>
-            <m.g style={reduced || !driven ? undefined : { y: guideY }}>
-              <Line p={progress} driven={driven} at={2} d="M 0 355 H 390" />
-              <Line p={progress} driven={driven} at={3} d="M 0 545 H 390" />
-              <Line p={progress} driven={driven} at={4} d="M 330 440 V 700" />
-              <Line p={progress} driven={driven} at={5} d="M 0 650 L 330 440" />
-              {/* The phone plate's three, on the same schedule — see the wide
-                  plate above. */}
+            <m.g>
+              <Line p={progress} driven={driven} at={2} d={`M 0 ${tall.yA} H ${tall.w}`} />
+              <Line p={progress} driven={driven} at={3} d={`M 0 ${tall.yB} H ${tall.w}`} />
               <Line
                 p={progress}
                 driven={driven}
-                at={5}
-                cross
-                d="M 325 545 H 335 M 330 540 V 550 M 150 545 H 160 M 155 540 V 550 M 325 440 H 335 M 330 435 V 445"
+                at={4}
+                d={`M ${tall.vx} ${tall.vTop} V ${tall.vBottom}`}
               />
+              {/* The phone plate's two, on the same schedule — see the wide
+                  plate above. */}
+              <Line p={progress} driven={driven} at={5} cross d={tall.crosses} />
             </m.g>
           </svg>
         </m.div>

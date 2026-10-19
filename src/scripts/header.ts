@@ -14,6 +14,10 @@ export function initHeader(): void {
   const cta = header.querySelector<HTMLElement>("[data-header-cta]");
   const sound = header.querySelector<HTMLElement>("[data-sound-toggle]");
 
+  // A press on Contact shows at once (the cell goes hollow — header.css), held a beat past the
+  // finger's lift so the reader sees it took: iOS gives a link no :active state of its own
+  if (cta) pressFeedback(cta);
+
   // --- Intro: runs the moment the preloader hands off ---------------------
   onSiteReady(() => {
     if (reduced) {
@@ -146,4 +150,21 @@ export function initHeader(): void {
     const target = event.target as Node;
     if (!menu.contains(target) && !toggle.contains(target)) closeMenu({ restoreFocus: false });
   });
+}
+
+/** Marks a control `.is-pressed` from the touch down to a moment after it lifts. */
+export function pressFeedback(el: HTMLElement): void {
+  let timer = 0;
+  const on = () => {
+    window.clearTimeout(timer);
+    el.classList.add("is-pressed");
+  };
+  const off = () => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => el.classList.remove("is-pressed"), 350);
+  };
+  el.addEventListener("pointerdown", on);
+  el.addEventListener("pointerup", off);
+  el.addEventListener("pointercancel", off);
+  el.addEventListener("pointerleave", off);
 }

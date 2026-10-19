@@ -60,6 +60,11 @@ export default function Work() {
               </p>
             ))}
           </div>
+          {/* The phone list's number and count, either side of the centre title (scripts/work.ts) */}
+          <p className="work__counts">
+            <span data-work-count>01</span>
+            <span>{pad(sequence.length)}</span>
+          </p>
           <div className="work__metas">
             {sequence.map((p, i) => (
               <p className="work__meta" data-work-meta key={p.id}>
@@ -156,7 +161,7 @@ export default function Work() {
                 {/* The invitation into the project: the same, in the same place, on every card
                     (not the finale — it is the call to action itself) */}
                 {p !== finale && (
-                  <a className="work__more" href={`/work/${p.id}/`} data-work-more>
+                  <a className="work__more" href={`/work/${p.work ?? p.id}`} data-work-more>
                     <span className="work__more-label">
                       <span className="work__more-roll" data-text="View Project Details">
                         <span>View Project Details</span>

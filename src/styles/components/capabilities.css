@@ -332,9 +332,9 @@ html.hp-motion .caps__title.is-active {
 @media (max-width: 767px) {
   .caps {
     --wt: 13%; /* clear of the chapter marker under the nav */
-    --wr: 5%;
+    --wr: var(--hp-gutter); /* the picture spans the site's own column — gutter to gutter */
     --wb: 45%;
-    --wl: 5%;
+    --wl: var(--hp-gutter);
   }
 
   /* The list sets the frame's foot, not a share of the window: five rows at
@@ -359,6 +359,11 @@ html.hp-motion .caps__title.is-active {
 
   .caps__caption {
     bottom: calc(var(--wb) + 0.9rem);
+  }
+
+  /* the caption on the picture reads from the left, as the list under it does */
+  .caps__line {
+    text-align: left;
   }
 
   .caps__title.is-active {

@@ -29,6 +29,12 @@ export interface Project {
   /** Relative size in the foreground (1 = standard). */
   scale: number;
   caption: CaptionPlacement;
+  /**
+   * The project page this card opens — a slug of the site's own index (`lib/works.ts`), the
+   * same single pages the Work page links to. The homepage's cards are its own curation, so
+   * each is paired with the index's nearest project (by client, subject or picture).
+   */
+  work?: string;
 }
 
 const still = (id: string, focus?: string) => {
@@ -41,6 +47,7 @@ const natural = (src: StaticImageData) => src.width / src.height;
 export const projects: Project[] = [
   {
     id: "red-room",
+    work: "inside-outwards",
     title: "Red Room",
     client: "HunterPark Originals",
     discipline: "Fashion film",
@@ -52,6 +59,7 @@ export const projects: Project[] = [
   },
   {
     id: "mural",
+    work: "stand-for-change-stills",
     title: "Mural",
     client: "Editorial",
     discipline: "Portrait photography",
@@ -63,6 +71,7 @@ export const projects: Project[] = [
   },
   {
     id: "off-fifth",
+    work: "saks-celebrate-pride-stills",
     title: "Off 5th",
     client: "Saks OFF 5TH",
     discipline: "Campaign",
@@ -74,6 +83,7 @@ export const projects: Project[] = [
   },
   {
     id: "spectrum",
+    work: "inside-outwards-stills",
     title: "Spectrum",
     client: "Editorial",
     discipline: "Beauty photography",
@@ -85,6 +95,7 @@ export const projects: Project[] = [
   },
   {
     id: "match-point",
+    work: "usta-move-tennis-forward",
     title: "Match Point",
     client: "Sport campaign",
     discipline: "Film & stills",
@@ -96,6 +107,7 @@ export const projects: Project[] = [
   },
   {
     id: "magenta",
+    work: "scotch-soda-better-together-stills",
     title: "Magenta",
     client: "Editorial",
     discipline: "Fashion photography",

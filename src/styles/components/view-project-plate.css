@@ -1,0 +1,255 @@
+/* View Project's plate — the home hero's ticket on a PHONE (components/hero/Hero.tsx), shared
+   with the /work hero there (the showcase in work-carousel.tsx), so the two are one button.
+   Phones only: on a larger screen the home hero keeps its own View Project (hairline, arrow
+   cell — hero.css) and the plate's arrow is not shown. Imported right after hero.css on the
+   home page, and after the site stylesheet on the inner pages. */
+
+@media (min-width: 768px) {
+  .view-project__orb {
+    display: none;
+  }
+}
+
+/* --- View Project, the plate ----------------------------------------------
+   Its own shape: a full-width plate in the accent — hairline rule, 10% wash —
+   with the label in white and the site's square arrow cell on the right. On hover
+   (a press, on a phone) the wash deepens, the cell floods, the label rolls to a
+   fresh white copy, and the arrow leaves by its corner as its twin comes in. */
+@media (max-width: 767px) {
+  .view-project--plate {
+    position: relative;
+    justify-content: space-between;
+    width: 100%;
+    height: 2.75rem;
+    margin-top: 0.375rem;
+    padding: 0 0.3125rem 0 1rem;
+    border: 1px solid var(--hp-lime);
+    background-color: color-mix(in srgb, var(--hp-lime) 10%, transparent);
+    color: #fff;
+    letter-spacing: 0.16em;
+    transition: background-color 0.45s var(--hp-ease-out);
+  }
+
+  .view-project--plate .view-project__roll::after {
+    color: #fff;
+  }
+
+  .view-project__orb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    /* The site's arrow cell — square, lime-ruled, the diagonal arrow — as the header's
+       Contact and the projects' invitations wear it, sized to sit inside the plate */
+    width: 2rem;
+    height: 2rem;
+    overflow: hidden;
+    border: 1px solid var(--hp-lime);
+    color: var(--hp-lime);
+    transition:
+      background-color 0.45s var(--hp-ease-out),
+      color 0.45s var(--hp-ease-out),
+      border-color 0.45s var(--hp-ease-out);
+  }
+
+  .view-project__go {
+    grid-area: 1 / 1;
+    transition: transform 0.5s var(--hp-ease-out);
+  }
+
+  .view-project__go--next {
+    transform: translate(-180%, 180%);
+  }
+
+  /* the home hero's own hairline and arrow cell stand down for the plate's */
+  .view-project--plate .view-project__line,
+  .view-project--plate .view-project__arrow {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) and (hover: hover) {
+  .view-project--plate:hover,
+  .view-project--plate:focus-visible {
+    background-color: color-mix(in srgb, var(--hp-lime) 18%, transparent);
+  }
+  .view-project--plate:hover .view-project__orb,
+  .view-project--plate:focus-visible .view-project__orb {
+    background-color: var(--hp-lime);
+    border-color: var(--hp-lime);
+    color: var(--hp-night);
+  }
+  .view-project--plate:hover .view-project__go,
+  .view-project--plate:focus-visible .view-project__go {
+    transform: translate(180%, -180%);
+  }
+  .view-project--plate:hover .view-project__go--next,
+  .view-project--plate:focus-visible .view-project__go--next {
+    transform: translate(0, 0);
+  }
+}
+
+@media (max-width: 767px) and (hover: none) {
+  .view-project--plate:is(:active, .is-pressed) {
+    background-color: color-mix(in srgb, var(--hp-lime) 18%, transparent);
+  }
+  .view-project--plate:is(:active, .is-pressed) .view-project__orb {
+    background-color: var(--hp-lime);
+    border-color: var(--hp-lime);
+    color: var(--hp-night);
+  }
+  .view-project--plate:is(:active, .is-pressed) .view-project__go {
+    transform: translate(180%, -180%);
+  }
+  .view-project--plate:is(:active, .is-pressed) .view-project__go--next {
+    transform: translate(0, 0);
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .view-project--plate,
+  .view-project__orb,
+  .view-project__go {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* --- View Project on a phone: a frame, not a box -----------------------------------------
+   Drawn in the hero's own vocabulary rather than a button's: a lime hairline frame over a
+   pane of glass — a 10% wash of the accent, the film behind it blurred; the label in the
+   hero's light, wide-tracked caps; and for the arrow, the hairline the hero's caption and
+   chapter marker lead with, ending in a point. A press deepens the wash, draws the line on
+   and moves the point forward: a short, quiet move that never competes with the title. */
+@media (max-width: 767px) {
+  .view-project--plate {
+    height: 2.875rem;
+    margin-top: 0.5rem;
+    padding: 0 0.875rem 0 1rem;
+    /* the whole frame in the lime the corners were drawn in, over a 10% wash of it with the
+       film behind softly blurred */
+    border: 1px solid var(--hp-lime);
+    background-color: color-mix(in srgb, var(--hp-lime) 10%, transparent);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    font-weight: 400;
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+    transition: background-color 0.45s var(--hp-ease-out);
+  }
+
+  /* the arrow: a lime hairline running into a point */
+  .view-project--plate .view-project__orb {
+    width: 3rem;
+    height: 1rem;
+    overflow: visible;
+    border: 0;
+    background: none;
+    color: var(--hp-lime);
+    place-items: center end;
+  }
+
+  .view-project--plate .view-project__orb::before {
+    content: "";
+    position: absolute;
+    right: 1.5px;
+    top: 50%;
+    width: 2.25rem;
+    height: 1px;
+    background: currentColor;
+    transform-origin: right center;
+    transform: scaleX(0.55);
+    transition: transform 0.45s var(--hp-ease-out);
+  }
+
+  /* the point: drawn in the line's own 1px, not the cell's diagonal arrow (hidden here) */
+  .view-project--plate .view-project__go {
+    display: none;
+  }
+
+  .view-project--plate .view-project__orb::after {
+    content: "";
+    position: absolute;
+    right: 1px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-top: 1px solid currentColor;
+    border-right: 1px solid currentColor;
+    transform: translateY(-50%) rotate(45deg);
+    transform-origin: center;
+    transition: translate 0.45s var(--hp-ease-out);
+  }
+
+  .view-project--plate:is(:active, .is-pressed) {
+    background-color: color-mix(in srgb, var(--hp-lime) 15%, transparent);
+  }
+
+  .view-project--plate:is(:active, .is-pressed) .view-project__orb {
+    background: none;
+    color: var(--hp-lime);
+  }
+
+  .view-project--plate:is(:active, .is-pressed) .view-project__orb::before {
+    transform: scaleX(1);
+  }
+
+  .view-project--plate:is(:active, .is-pressed) .view-project__orb::after {
+    translate: 3px 0;
+  }
+}
+
+/* --- View Project on a phone: the lime ticket with the film's playhead ----------------------
+   The hero's one call to action, made the one SOLID thing on the frame: lime, the label and
+   arrow in night. Along its bottom edge a hairline of night runs left to right with the film
+   on screen — the home hero's bar (scripts/hero.ts sets `--vp-progress`) — so the button is
+   tied to the picture behind it. A press
+   darkens the lime a shade and sends the arrow on. */
+@media (max-width: 767px) {
+  .view-project--plate {
+    overflow: hidden;
+    border-color: transparent; /* the fill is the button — no rule round it */
+    background-color: var(--hp-lime);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    color: var(--hp-night);
+    font-weight: 600;
+    transition:
+      background-color 0.3s var(--hp-ease-out),
+      transform 0.3s var(--hp-ease-out);
+  }
+
+  .view-project--plate .view-project__roll::after,
+  .view-project--plate .view-project__orb,
+  .view-project--plate:is(:active, .is-pressed) .view-project__orb {
+    color: var(--hp-night);
+  }
+
+  .view-project--plate:is(:active, .is-pressed) {
+    background-color: color-mix(in srgb, var(--hp-lime) 86%, #000);
+    transform: scale(0.985);
+  }
+
+  .view-project__progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: color-mix(in srgb, var(--hp-night) 60%, transparent);
+    transform-origin: left center;
+    transform: scaleX(var(--vp-progress, 0));
+    pointer-events: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .view-project__progress {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .view-project__progress {
+    display: none;
+  }
+}

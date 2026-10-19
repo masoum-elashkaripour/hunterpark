@@ -437,7 +437,40 @@ html.hp-motion .whatwedo__heading {
 
 @media (max-width: 767px) {
   .studio__heading {
-    font-size: 13vw;
+    font-size: 11.5vw;
+  }
+
+  /* WHO WE / ARE — two lines, always, and ARE hung off the end of the first: the heading
+     shrinks to its widest line (WHO WE); ARE takes a line of its own whose text starts
+     exactly where WE's E ends (padding of the whole line's width), so the whole word stands
+     to the right of the E. ARE is in outline — the accent's rule, no fill — against the
+     solid WHO WE. */
+  .studio__heading > [aria-hidden] {
+    display: inline-block;
+  }
+
+  .studio__heading .split__word:last-child {
+    position: relative;
+    display: block;
+    /* the E's width, and the A's own side bearing and half its outline (measured: 0.04em),
+       so the A's ink starts where the E's ends */
+    padding-left: calc(100% + 0.04em);
+  }
+
+  .studio__heading .split__word:last-child .split__char {
+    color: transparent;
+    -webkit-text-stroke: max(1.5px, 0.016em) var(--hp-lime);
+  }
+
+  /* HUNTERPARK at WHO WE ARE's size, held only by the width there is (the one long word is
+     8.1em across) */
+  html.hp-motion .studio__name {
+    font-size: min(11.5vw, calc((100vw - 2 * var(--hp-gutter)) / 8.15));
+  }
+
+  /* WHAT WE DO on the page's text edge, as WHO WE ARE and the capability titles */
+  html.hp-motion .whatwedo__heading {
+    left: var(--hp-gutter);
   }
 
   .studio__story {

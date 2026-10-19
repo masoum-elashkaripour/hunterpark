@@ -307,7 +307,15 @@ function createEngine(): Engine {
       startAir();
       play();
       master.gain.setValueAtTime(0, now());
-      master.gain.linearRampToValueAtTime(VOLUME, now() + FADE_IN);
+      // the long fade only the first time this visit; carrying on from the page before, it
+      // comes straight back in (a breath, not a new start)
+      let carried = false;
+      try {
+        carried = sessionStorage.getItem("hp:sound-heard") === "1";
+      } catch {
+        /* storage unavailable */
+      }
+      master.gain.linearRampToValueAtTime(VOLUME, now() + (carried ? 1.2 : FADE_IN));
     },
     setMuted(muted: boolean) {
       if (!started) return;
@@ -336,7 +344,11 @@ declare global {
 // The interactions browsers accept as permission to play sound (scrolling and the wheel don't)
 const UNLOCK_EVENTS = ["pointerdown", "pointerup", "mousedown", "touchend", "keydown", "click"] as const;
 
-export function initSoundtrack(): void {
+/**
+ * `immediate`: the page has no preloader to wait for (the inner pages) — the piece may begin at
+ * once, or at the first interaction the browser accepts.
+ */
+export function initSoundtrack({ immediate = false }: { immediate?: boolean } = {}): void {
   // One soundtrack per page, ever — even if this runs twice (e.g. a hot reload in development)
   if (window.__hpSoundtrack) return;
   window.__hpSoundtrack = true;
@@ -352,10 +364,12 @@ export function initSoundtrack(): void {
   let muted = readMuted();
   let engine: Engine | null = null;
   let entered = false; // the piece begins as the preloader hands over to the hero
-  const audible = () => !!engine && engine.started && engine.ctx.state === "running" && !muted;
 
-  // The toggle always shows what is actually heard
-  const reflect = () => button?.setAttribute("aria-pressed", String(audible()));
+  // The toggle shows the visitor's choice: ON from the first frame unless they have muted it
+  // — even while the browser still holds the sound back until their first tap or key press,
+  // when it begins by itself. (It used to show only what was actually heard, so on a first
+  // load it sat off until that interaction.)
+  const reflect = () => button?.setAttribute("aria-pressed", String(!muted));
   reflect();
 
   /** Builds the one engine (idempotent). */
@@ -375,6 +389,13 @@ export function initSoundtrack(): void {
       if (e.ctx.state !== "running" || muted || !entered) return;
       if (e.started) e.setMuted(false);
       else e.start();
+      // remembered for the visit: the next page (a full load — the home page and the inner
+      // pages are separate documents) starts it at once rather than waiting for a tap
+      try {
+        sessionStorage.setItem("hp:sound-heard", "1");
+      } catch {
+        /* storage unavailable */
+      }
       unlocked();
     };
     if (e.ctx.state === "running") go();
@@ -395,25 +416,34 @@ export function initSoundtrack(): void {
     reflect();
   }
 
-  // Ready before the preloader ends: the engine (and its audio context) is built while the
-  // browser is idle — off the page's first, busiest moments, still well before the hero
-  // appears — so the piece can begin the instant it does. It begins as the preloader hands
-  // over — at once where the browser allows sound, otherwise at the first interaction it
-  // accepts. An earlier play() simply builds it then (prepare() is idempotent).
-  if (!muted) {
-    const idle = window.requestIdleCallback ?? ((fn: () => void) => window.setTimeout(fn, 1));
-    idle(() => prepare(), { timeout: 1500 });
-    listen();
-  }
-  onSiteReady(() => {
+  // The engine (its audio context, and the room's long impulse) is built only once the
+  // browser will let it sound — at the first accepted interaction, or at entry when the visitor
+  // has already interacted with the page. Built earlier it was refused anyway (the console's
+  // "AudioContext was not allowed to start") and its impulse cost the page's first seconds.
+  if (!muted) listen();
+  const allowed = () => {
+    const ua = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation;
+    if (!ua || ua.hasBeenActive) return true;
+    // …or it was playing on the page before this one, this visit: try at once — browsers that
+    // count the visitor's earlier interaction with the site let it carry straight on, and where
+    // one does not, the first tap here starts it (the listeners above)
+    try {
+      return sessionStorage.getItem("hp:sound-heard") === "1";
+    } catch {
+      return false;
+    }
+  };
+  const enter = () => {
     entered = true;
-    if (!muted) play();
-  });
+    if (!muted && allowed()) play();
+  };
+  if (immediate) enter();
+  else onSiteReady(enter);
 
-  // The toggle acts on what is actually heard: silent (muted, or not yet allowed) → play;
-  // playing → mute. Its press is itself an interaction that lets the browser play.
+  // The toggle acts on the choice it shows: on → mute; off → play (its press is itself an
+  // interaction that lets the browser play).
   button?.addEventListener("click", () => {
-    if (audible()) {
+    if (!muted) {
       muted = true;
       saveMuted(true);
       engine?.setMuted(true);
