@@ -18,6 +18,9 @@ export const CAPS_MOTION = {
   handoff: { start: 0.84, end: 0.98, chapterAt: 0.87, titleAt: 0.9 },
   reveal: { ease: "power3.inOut" }, // sharp and controlled, no overshoot
   mediaFrom: { scale: 1.12, shift: 6 }, // incoming media settles from a slight zoom + offset (%)
+  // On a PHONE the zoom is a touch more than the offset needs (12% would leave its leading
+  // edge exactly on the frame's), so no sub-pixel seam of the outgoing picture shows there
+  mediaFromPhone: { scale: 1.16 },
   title: { dim: 0.26, shift: "0.35em" },
 };
 
@@ -53,6 +56,8 @@ export function capabilitiesTimeline(): CapabilitiesBeat | null {
   if (!root || !studio || !anchor || !doVideo || !frame) return null;
 
   const m = CAPS_MOTION;
+  const phone = window.matchMedia("(max-width: 767px)").matches;
+  const fromScale = phone ? m.mediaFromPhone.scale : m.mediaFrom.scale;
   const one = (sel: string) => root.querySelector<HTMLElement>(sel);
   const titles = Array.from(root.querySelectorAll<HTMLElement>("[data-caps-item]"));
   const labels = Array.from(root.querySelectorAll<HTMLElement>("[data-caps-label]"));
@@ -107,7 +112,7 @@ export function capabilitiesTimeline(): CapabilitiesBeat | null {
       .fromTo(layer, { clipPath: EDGES[i % EDGES.length] }, { clipPath: "inset(0% 0% 0% 0%)", duration: m.change, ease: m.reveal.ease, immediateRender: false }, t)
       .fromTo(
         inner,
-        { scale: m.mediaFrom.scale, xPercent: sx * m.mediaFrom.shift, yPercent: sy * m.mediaFrom.shift },
+        { scale: fromScale, xPercent: sx * m.mediaFrom.shift, yPercent: sy * m.mediaFrom.shift },
         { scale: 1, xPercent: 0, yPercent: 0, duration: m.change * 1.3, ease: m.reveal.ease, immediateRender: false },
         t,
       )
@@ -123,6 +128,24 @@ export function capabilitiesTimeline(): CapabilitiesBeat | null {
       .set(nums[i - 1], { autoAlpha: 0 }, t + m.change * 0.6)
       .set(nums[i], { autoAlpha: 1 }, t)
       .to(nums[i], { yPercent: 0, duration: m.change * 0.6, ease: m.reveal.ease }, t + m.change * 0.2);
+    // On a phone, once the new medium has fully settled over it, the old one is taken away, so
+    // not a sliver of it can linger along an edge (restored on the way back by the scrub)
+    if (phone) {
+      tl.set(
+        [layers[i - 1], root.querySelector(`[data-caps-also="${titles[i - 1].dataset.capsItem}"]`)].filter(Boolean),
+        { autoAlpha: 0 },
+        t + m.change * 1.3,
+      );
+      // …and under the first of them the shared WHO WE ARE film itself, the window everything
+      // else is laid over: its clip rounds a pixel wider than the frame, so a line of it showed
+      // along the foot of every later picture. (Its opacity, not its visibility — Work's own
+      // hand-off owns that.)
+      // — as soon as the new picture has covered the whole frame (its cut-in done), not when it
+      // has settled: a reader resting a hair short of that last moment kept the film's foot
+      // showing under it
+      if (i === 1)
+        tl.set([doVideo, studio.querySelector("[data-whatwedo-shade]")], { opacity: 0 }, t + m.change);
+    }
 
     // A capability with a second still: it cuts in halfway through the capability's share,
     // from the opposite edge, the title staying put
@@ -135,7 +158,7 @@ export function capabilitiesTimeline(): CapabilitiesBeat | null {
         .fromTo(also, { clipPath: EDGES[k] }, { clipPath: "inset(0% 0% 0% 0%)", duration: m.change, ease: m.reveal.ease, immediateRender: false }, ta)
         .fromTo(
           also.querySelector("[data-caps-layer-inner]"),
-          { scale: m.mediaFrom.scale, xPercent: ax * m.mediaFrom.shift, yPercent: ay * m.mediaFrom.shift },
+          { scale: fromScale, xPercent: ax * m.mediaFrom.shift, yPercent: ay * m.mediaFrom.shift },
           { scale: 1, xPercent: 0, yPercent: 0, duration: m.change * 1.3, ease: m.reveal.ease, immediateRender: false },
           ta,
         );

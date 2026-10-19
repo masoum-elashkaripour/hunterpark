@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -30,6 +31,7 @@ import { WorkFinale } from "@/components/work-finale";
 import { useLaunch } from "@/components/launch";
 import { WorkControl } from "@/components/work-control";
 import { useInView } from "@/components/use-in-view";
+import { getLenis } from "@/components/smooth-scroll";
 import {
   PLAY_SECONDS_PER_SCREEN,
   carryTo,
@@ -65,6 +67,24 @@ const autoOpenAfter = (reelLength: number) =>
 
 /** One timing for the whole reel ⇄ index change, so the two halves agree. */
 const SWAP = { duration: 0.75, ease: [0.19, 1, 0.22, 1] } as const;
+
+/**
+ * A PHONE opens on the showcase, not the reel — see `Showcase`. Read from the media query
+ * after hydration (the server renders the reel, as it always has), so a phone swaps to the
+ * showcase on its first client render and never mounts the WebGL stage at all.
+ */
+const SHOWCASE_QUERY = "(max-width: 767px)";
+const subscribeShowcase = (change: () => void) => {
+  const mq = window.matchMedia(SHOWCASE_QUERY);
+  mq.addEventListener("change", change);
+  return () => mq.removeEventListener("change", change);
+};
+const useShowcase = () =>
+  useSyncExternalStore(
+    subscribeShowcase,
+    () => window.matchMedia(SHOWCASE_QUERY).matches,
+    () => false,
+  );
 
 /**
  * Upward travel, in pixels, that takes the index all the way back to the reel.
@@ -219,7 +239,11 @@ export function WorkCarousel({ works }: { works: Work[] }) {
   const [kind, setKind] = useState<Kind | null>(null);
   const [index, setIndex] = useState(0);
   /** Zoomed out = the overview grid; zoomed in = the 3D carousel. */
-  const [zoomedOut, setZoomedOut] = useState(false);
+  const [zoomedOutState, setZoomedOut] = useState(false);
+  /* On a phone there is no carousel: the page is the showcase and the index under it, from
+     the first frame (see `Showcase`). */
+  const showcase = useShowcase();
+  const zoomedOut = zoomedOutState || showcase;
 
   /* The category alone — what the reel draws from. The reel is films only, so
      the Film / Photo choice has nothing to say to it, and applying it there
@@ -257,6 +281,15 @@ export function WorkCarousel({ works }: { works: Work[] }) {
        back to one-per-clip keeps the reel populated, still without repeats. */
     return picked.length > 0 ? picked : [...first.values()];
   }, [inCategory]);
+
+  /* On a phone the hero is ONE film (`Showcase`) — the best of the set, `SHOWCASE_FILM`, where
+     the current category has it — and it goes into the index as its first card as the reader
+     scrolls on: the same film, carried there, so the index opens with it and carries on in its
+     own order without it. */
+  const heroWork = useMemo(
+    () => inCategory.find((w) => w.video === SHOWCASE_FILM) ?? reel[0],
+    [reel, inCategory],
+  );
 
   /* The index shows each clip once too — with eleven stand-ins across
      thirty-one projects, anything else repeats footage card after card. */
@@ -791,7 +824,8 @@ export function WorkCarousel({ works }: { works: Work[] }) {
    * is up.
    */
   useEffect(() => {
-    if (!zoomedOut) return;
+    /* (Not on a phone: there is no reel above the index to pull back to.) */
+    if (!zoomedOut || showcase) return;
 
     /* The index arrives neutral, whatever state the last pull left behind. */
     pull.set(0);
@@ -863,7 +897,7 @@ export function WorkCarousel({ works }: { works: Work[] }) {
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
     };
-  }, [zoomedOut, pull]);
+  }, [zoomedOut, showcase, pull]);
 
   return (
     /* `overflow-hidden` is right for the stage — the arc's outer cards have to
@@ -916,6 +950,9 @@ export function WorkCarousel({ works }: { works: Work[] }) {
                   of the scroller from the index's first pixel, and its z-index
                   has to sit between the work below it and the lockup above.
                   Both of those are settled by being siblings here. */}
+              {/* A phone's hero: the showcase, the index following it. */}
+              {showcase && heroWork ? <Showcase work={heroWork} /> : null}
+
               <div className="work__finale-dock">
                 {last ? (
                   <WorkFinale work={last} entry={entry} progress={film} />
@@ -1036,6 +1073,246 @@ export function WorkCarousel({ works }: { works: Work[] }) {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------ showcase --- */
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+
+/** Scroll, in screens, the hero holds pinned while its aperture closes (see `Showcase`). */
+const PIN = 1.0;
+/** The pinned stretch's beats, as shares of it: the aperture closing, the line it leaves
+    stretching edge to edge and then fading — as the home page's hero line does — and WORK rising
+    out of where it was. */
+const AP = { close: 0.5, stretch: [0.5, 0.68], fade: [0.66, 0.84], title: [0.62, 0.95] } as const;
+const easeOut2 = (t: number) => 1 - (1 - t) * (1 - t);
+/**
+ * The phone hero's film: sample-9 — 1080p, the brightest of the supplied footage, and a shoot
+ * of its own (sample-11, the richest master, is the home hero's dance film under another name,
+ * and the About hero plays sample-6, -4 and -10). Played as it is: at ~3.8 Mbps the master is
+ * already a phone's weight. Its poster comes through the image optimiser.
+ */
+export const SHOWCASE_FILM = "/video/sample-9.mp4";
+const phonePoster = (src: string) => `/_next/image?url=${encodeURIComponent(src)}&w=1080&q=75`;
+
+/**
+ * The Work page's hero ON A PHONE, in place of the 3D reel: ONE film, full-bleed, its lockup
+ * on the bottom edge (category and year, the name, the title) over a centred View project.
+ *
+ * THE WAY ON IS AN APERTURE. Held pinned for `PIN` screens, the film closes from its top and
+ * bottom edges toward the middle like a camera's shutter — the picture inside pushing in as it
+ * narrows — while the lockup lifts away; the seam it closes to lights into a lime hairline, and
+ * when the pin lets go that line is what passes up the screen ahead of the index, a scan the
+ * films arrive under. All of it a pure function of the scroll, so the way back is the same
+ * move run backwards — nothing is handed between sections, nothing to come apart.
+ */
+function Showcase({ work }: { work: Work }) {
+  const launch = useLaunch();
+  const driverRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const root = driverRef.current;
+    if (!root) return;
+    const stage = root.querySelector<HTMLElement>("[data-sc-stage]");
+    const frame = root.querySelector<HTMLElement>("[data-sc-frame]");
+    const media = root.querySelector<HTMLElement>("[data-sc-media]");
+    const lockup = root.querySelector<HTMLElement>("[data-sc-lockup]");
+    const seam = root.querySelector<HTMLElement>("[data-sc-seam]");
+    const chars = Array.from(root.querySelectorAll<HTMLElement>("[data-sc-char]"));
+    if (!stage || !frame || !media) return;
+
+    const film = work.video;
+    const video = film ? document.createElement("video") : null;
+    if (video && film) {
+      video.className = "work-showcase__video";
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+      video.preload = "auto";
+      video.poster = phonePoster(work.poster);
+      video.src = film;
+      video.setAttribute("aria-hidden", "true");
+      media.append(video);
+    }
+
+    let raf = 0;
+    const draw = () => {
+      raf = 0;
+      const H = stage.clientHeight || window.innerHeight;
+      const s = -root.getBoundingClientRect().top / H;
+      const t = clamp01(s / PIN);
+      const k = easeInOut(clamp01(t / AP.close));
+      // the shutter: top and bottom close on the middle, all the way — the line takes over
+      const shut = k * 50;
+      frame.style.clipPath = `inset(${shut}% 0% ${shut}% 0%)`;
+      frame.style.visibility = k >= 1 ? "hidden" : "visible";
+      // the picture pushes in as the opening narrows
+      media.style.transform = `scale(${1 + 0.28 * k})`;
+      if (lockup) {
+        const out = clamp01(k * 1.8);
+        lockup.style.opacity = String(1 - out);
+        lockup.style.transform = `translate3d(0, ${-36 * out}px, 0)`;
+        lockup.style.visibility = out < 0.99 ? "visible" : "hidden";
+        lockup.style.pointerEvents = out < 0.2 ? "auto" : "none";
+      }
+      if (seam) {
+        // as on the home page: the line appears as the window shuts, at 80% of the frame,
+        // stretches edge to edge (power2.out), then fades away
+        const on = clamp01((k - 0.9) / 0.1);
+        const wide = easeOut2(clamp01((t - AP.stretch[0]) / (AP.stretch[1] - AP.stretch[0])));
+        const gone = clamp01((t - AP.fade[0]) / (AP.fade[1] - AP.fade[0]));
+        seam.style.opacity = String(on * (1 - gone));
+        seam.style.transform = `translateY(-50%) scaleX(${0.8 + 0.2 * wide})`;
+      }
+      // WORK rises out of where the line was, a letter at a time
+      chars.forEach((c, i) => {
+        const span = AP.title[1] - AP.title[0];
+        const from = AP.title[0] + (i / Math.max(1, chars.length)) * span * 0.45;
+        const r = easeOut2(clamp01((t - from) / (span * 0.55)));
+        c.style.transform = `translate3d(0, ${(1 - r) * 110}%, 0)`;
+      });
+      if (video) {
+        const live = s > -1 && k < 1;
+        if (live && video.paused) void video.play().catch(() => {});
+        else if (!live && !video.paused) video.pause();
+      }
+    };
+    const update = () => {
+      if (!raf) raf = requestAnimationFrame(draw);
+    };
+    draw();
+    const sizes = new ResizeObserver(update);
+    sizes.observe(stage);
+    window.addEventListener("scroll", update, { passive: true });
+
+    /* The close PLAYS, as the home page's hero does on a phone: the first scroll off the top
+       carries the page on by itself through the whole pinned stretch — slowly, eased in and
+       out, every beat of it (the aperture, the line, WORK) moving as the scroll moves it — and
+       the first scroll back up off its end carries it home the same way. */
+    const SLACK = 12;
+    const PLAY_FOR = 3; // seconds for the whole close (the longest a carry runs)
+    let lastY = window.scrollY;
+    let busy = 0;
+    const onCross = () => {
+      const y = window.scrollY;
+      const prev = lastY;
+      lastY = y;
+      if (busy) return;
+      // (the section starts a header's height above the page's top — full bleed under the bar)
+      const start = root.getBoundingClientRect().top + y;
+      const top = Math.max(0, start);
+      const end = start + PIN * (stage.clientHeight || window.innerHeight);
+      const go = (to: number, share: number) => {
+        const secs = PLAY_FOR * share;
+        busy = window.setTimeout(() => (busy = 0), secs * 1000 + 120);
+        carryTo(to, secs);
+      };
+      if (prev <= top + SLACK && y > top + SLACK && y < end) go(end, (end - y) / (end - top));
+      else if (prev >= end - SLACK && y < end - SLACK && y > top) go(top, (y - top) / (end - top));
+    };
+    window.addEventListener("scroll", onCross, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onCross);
+      window.clearTimeout(busy);
+      sizes.disconnect();
+      window.removeEventListener("scroll", update);
+      cancelAnimationFrame(raf);
+      video?.pause();
+      video?.remove();
+    };
+  }, [work]);
+
+  const open = (e: React.MouseEvent<HTMLAnchorElement>, from?: Element | null) => {
+    if (!launch || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const rect = (from ?? e.currentTarget).getBoundingClientRect();
+    if (rect.width < 1) return;
+    e.preventDefault();
+    launch({ href: `/work/${work.slug}`, poster: work.poster, rect });
+  };
+
+  return (
+    <section
+      ref={driverRef}
+      className="work-showcase"
+      aria-label="Featured work"
+      style={{ height: `calc(${1 + PIN} * 100svh)` }}
+    >
+      <div className="work-showcase__stage" data-sc-stage>
+        <div className="work-showcase__item">
+          <Link
+            href={`/work/${work.slug}`}
+            className="work-showcase__frame"
+            data-sc-frame
+            tabIndex={-1}
+            aria-hidden="true"
+            onClick={(e) => open(e)}
+          >
+            <span className="work-showcase__media" data-sc-media>
+              {/* (the film is made and placed here by the effect above) */}
+              {work.video ? null : (
+                <Image src={work.poster} alt="" fill sizes="100vw" quality={80} priority className="work-showcase__img" />
+              )}
+            </span>
+            <span className="work-showcase__scrim" />
+          </Link>
+
+          {/* the seam the aperture closes to, lit */}
+          <span className="work-showcase__seam" data-sc-seam aria-hidden="true" />
+
+          {/* …and the index's title, rising out of where the line was */}
+          <h2 className="hp-display work-showcase__heading">
+            <span className="visually-hidden">Work</span>
+            <span aria-hidden="true" className="work-showcase__heading-mask">
+              {Array.from("Work").map((ch, i) => (
+                <span key={i} className="work-showcase__heading-char" data-sc-char>
+                  {ch}
+                </span>
+              ))}
+            </span>
+          </h2>
+
+          {/* The film's lockup, on the bottom edge of the screen */}
+          <div className="work-showcase__lockup" data-sc-lockup>
+            {/* On load the lockup arrives in order over the film: the line, the name letter by
+                letter, then the title — the site's own hero entrances */}
+            <p className="work-showcase__meta">
+              <span className="hero-rise work-showcase__rise" style={{ animationDelay: "0.25s" }}>
+                {work.category} · {work.year}
+              </span>
+            </p>
+            <h1 className="work-showcase__name">
+              <SplitText text={work.client} delay={0.5} duration={0.9} stagger={0.045} />
+            </h1>
+            <p className="work-showcase__title">
+              <SplitText text={work.title} delay={0.95} stagger={0.02} duration={0.8} />
+            </p>
+            {/* View project — the About hero's ticket, centred */}
+            <div className="work-showcase__cta hero-rise work-showcase__rise" style={{ animationDelay: "1.15s" }}>
+              <Link
+                href={`/work/${work.slug}`}
+                className="header-cta"
+                onClick={(e) => open(e, e.currentTarget.closest(".work-showcase__item")?.querySelector("[data-sc-frame]"))}
+              >
+                <span className="header-cta__label">
+                  <span className="header-cta__roll" data-text="View project">
+                    <span>View project</span>
+                  </span>
+                </span>
+                <span className="header-cta__arrow" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M4 12L12 4M5.5 4H12v6.5" />
+                  </svg>
+                </span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

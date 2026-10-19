@@ -508,17 +508,17 @@ html.js:not([data-site-ready]) .menu-toggle {
   }
 
   .site-header .site-header__actions {
-    gap: 0.3125rem;
+    gap: 0.25rem;
   }
 
   .site-header .sound-toggle,
   .site-header .header-cta {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
   }
 
   .site-header .sound-toggle__bars {
-    height: 12px;
+    height: 11px;
   }
 
   .site-header .site-header__logo {
@@ -538,6 +538,11 @@ html.js:not([data-site-ready]) .menu-toggle {
 
   .site-header.is-menu-row .menu-panel__list {
     gap: 0.875rem;
+  }
+
+  /* the row's links at the trigger's own size — the same type as its Close */
+  .site-header.is-menu-row .menu-panel__item {
+    font-size: 0.875rem;
   }
 
   .site-header.is-menu-row .menu-panel__social {
@@ -583,5 +588,243 @@ html.js:not([data-site-ready]) .menu-toggle {
   .menu-panel__roll::after,
   .menu-panel__icon {
     transition-duration: 0.01ms;
+  }
+}
+
+/* On a phone both of the bar's right-hand controls stand ACTIVE — filled lime, their marks in
+   night: Contact always, the sound toggle while the soundtrack is on (muted, it goes back to
+   its outline) */
+@media (max-width: 767px) {
+  .site-header .sound-toggle[aria-pressed="true"] {
+    background: var(--hp-lime);
+    color: var(--hp-soft);
+  }
+
+  .site-header .header-cta {
+    color: var(--hp-soft);
+  }
+
+  .site-header .header-cta::before {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .site-header .header-cta__arrow {
+    border-color: var(--hp-soft);
+    color: var(--hp-soft);
+  }
+}
+
+/* Lime-filled buttons on a phone carry no rule: the fill is the button. The lime goes on the
+   box itself (under its now-clear border, so nothing shows a seam at the edge); between the
+   label and the arrow cell a black hairline stands instead of the lime one. */
+@media (max-width: 767px) {
+  .site-header .sound-toggle[aria-pressed="true"],
+  .site-header .header-cta,
+  .work__cta-link,
+  .about-hero__cta .header-cta,
+  .view-project--plate {
+    border-color: transparent;
+    background-color: var(--hp-lime);
+  }
+  .site-header .header-cta__arrow,
+  .work__cta-link .header-cta__arrow,
+  .about-hero__cta .header-cta__arrow {
+    border-color: var(--hp-soft);
+  }
+}
+
+/* On a phone the menu carries its links only: the social cells and the hairline before them
+   are left to the footer */
+@media (max-width: 767px) {
+  .site-header .menu-panel__social {
+    display: none;
+  }
+}
+
+/* The header on a phone: the dropped menu's links at the row's size (they were a display size
+   larger than the same links in the row), and Contact as the word alone — no icon, no arrow
+   cell — on its lime ground. */
+.header-cta__short {
+  display: none;
+}
+@media (max-width: 767px) {
+  .site-header .menu-panel__item {
+    font-size: var(--hp-text-body);
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .site-header .header-cta {
+    width: auto;
+  }
+  .site-header .header-cta__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: nowrap;
+    padding-inline: 0.4rem;
+  }
+  .site-header .header-cta__roll,
+  .site-header .header-cta__arrow {
+    display: none;
+  }
+  .site-header .header-cta__short {
+    display: block;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+}
+@media (max-width: 599px) {
+  .site-header .menu-panel__item {
+    font-size: 0.875rem;
+  }
+}
+
+/* The bar's two controls a step more compact on a phone — smaller cells, a tighter pair — so
+   they sit clear of the centred wordmark at its own size down to 320px */
+@media (max-width: 767px) {
+  .site-header .site-header__actions {
+    gap: 0.1875rem;
+  }
+  .site-header .sound-toggle {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .site-header .sound-toggle__bars {
+    height: 10px;
+  }
+  .site-header .header-cta {
+    height: 1.75rem;
+  }
+}
+@media (max-width: 359px) {
+  .site-header .sound-toggle {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .site-header .header-cta {
+    height: 1.5rem;
+  }
+  .site-header .header-cta__label {
+    padding-inline: 0.3rem;
+  }
+  .site-header .header-cta__short {
+    font-size: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+}
+
+/* The bar's controls on a phone, finished: the sound bars sit at the very centre of their cell
+   (their box as tall as the tallest bar — at 10px the taller bars stood out above it, the
+   whole mark riding high); Contact takes a finger anywhere near it (a touch area round the
+   small cell, nothing drawn), and a press shows: the cell goes hollow — the lime only as its
+   rule, the word in white — until the page moves on. */
+@media (max-width: 767px) {
+  .site-header .sound-toggle__bars {
+    height: 14px;
+  }
+
+  .site-header .header-cta {
+    overflow: visible;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 0.25s var(--hp-ease-out),
+      border-color 0.25s var(--hp-ease-out),
+      color 0.25s var(--hp-ease-out);
+  }
+  .site-header .header-cta::after {
+    content: "";
+    position: absolute;
+    inset: -0.5rem -0.375rem;
+  }
+  .site-header .header-cta:is(:active, :focus-visible, .is-pressed) {
+    border-color: var(--hp-lime);
+    background-color: transparent;
+    color: var(--hp-off-white);
+  }
+  .site-header .header-cta:is(:active, :focus-visible, .is-pressed)::before {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+
+/* The bar's two cells on a phone: a clear step between them, and one height for both — the
+   border counted inside each box, so neither stands a pixel taller than the other. */
+@media (max-width: 767px) {
+  .site-header .site-header__actions {
+    gap: 0.5rem;
+  }
+  .site-header .sound-toggle,
+  .site-header .header-cta {
+    box-sizing: border-box;
+    height: 1.75rem;
+  }
+}
+@media (max-width: 359px) {
+  .site-header .site-header__actions {
+    gap: 0.375rem;
+  }
+  .site-header .sound-toggle,
+  .site-header .header-cta {
+    height: 1.5rem;
+  }
+}
+
+/* The dropped menu on a phone: the links a step further apart, and the lime rule beside them
+   exactly as tall as they are — no padding above the first or below the last for it to run
+   past, the links set solid (their finger-sized reach is an invisible area round each). */
+@media (max-width: 767px) {
+  .site-header:not(.is-menu-row) .menu-panel {
+    gap: 0;
+    padding-block: 0;
+  }
+  .site-header:not(.is-menu-row) .menu-panel__list {
+    gap: 0.95rem;
+  }
+  .site-header:not(.is-menu-row) .menu-panel__item {
+    position: relative;
+    padding-block: 0;
+    line-height: 1;
+  }
+  .site-header:not(.is-menu-row) .menu-panel__item::after {
+    content: "";
+    position: absolute;
+    inset: -0.45rem -0.5rem;
+  }
+}
+
+/* The sound cell's bars a step smaller on a phone, still centred in their cell */
+@media (max-width: 767px) {
+  .site-header .sound-toggle__bars {
+    transform: scale(0.78);
+  }
+}
+
+/* The menu's links a step further apart on a phone, dropped or in a row */
+@media (max-width: 767px) {
+  .site-header:not(.is-menu-row) .menu-panel__list {
+    gap: 1.3rem;
+  }
+  .site-header:not(.is-menu-row) .menu-panel__item::after {
+    inset: -0.65rem -0.5rem;
+  }
+  .site-header.is-menu-row .menu-panel__list {
+    gap: 1.5rem;
+  }
+}
+
+/* The sound cell on a phone, muted: it stands down — no fill, the bars white, only the lime
+   rule (and so it stays after the tap that muted it: a touch leaves :hover set, and the hover's
+   fill used to keep it looking on) */
+@media (max-width: 767px) {
+  .site-header .sound-toggle[aria-pressed="false"],
+  .site-header .sound-toggle[aria-pressed="false"]:is(:hover, :focus-visible, :active) {
+    border-color: var(--hp-lime);
+    background: transparent;
+    color: var(--hp-off-white);
   }
 }

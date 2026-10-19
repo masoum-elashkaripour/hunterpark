@@ -112,6 +112,9 @@ const REEL = { hold: 6000, cross: 700 };
  */
 const RISE = { each: 0.1 };
 
+/** The reel's films that have a phone cut in public/video/m. */
+const PHONE_CUTS = new Set(["/video/sample-10.mp4"]);
+
 /** How far the furniture drifts up as it goes. */
 const LIFT = -64;
 
@@ -123,7 +126,8 @@ const LIFT = -64;
  * entrances; 0.1 between them is enough that the eye reads an order and not
  * enough that it reads a queue.
  */
-const rise = (order: number) => ({ animationDelay: `${order * RISE.each}s` });
+const rise = (order: number) =>
+  ({ animationDelay: `${order * RISE.each}s`, "--rise-order": order }) as React.CSSProperties;
 
 export function AboutHero({ reel }: { reel: Work[] }) {
   const driverRef = useRef<HTMLElement>(null);
@@ -458,7 +462,37 @@ export function AboutHero({ reel }: { reel: Work[] }) {
    * closed. That was backwards: raising the title only widened the space
    * between it and the grid, which is the space it was supposed to be closing.
    */
-  const lockupPad = useTransform(scrollYProgress, [0.45, 1], [112, 20]);
+  /* (At rest: 112px — on a PHONE, the row of the reel index under it plus the lockup's own
+     step, so the gap above that row matches the gaps between the lockup's parts; see
+     `.about-hero__*` in the phone stylesheet. Measured, below.) */
+  /* The rest is a CSS custom property, `--about-rest`, with the phone's value set in the
+     stylesheet — so the FIRST paint already has it. As a number held here it was 112 (the
+     desktop's) until the page's script had run and measured the phone's, and on a slow phone
+     that was seconds after the lockup was on screen: it then dropped 42px under the reader. */
+  const lockupPad = useTransform(scrollYProgress, (p: number) => {
+    const t = Math.min(1, Math.max(0, (p - 0.45) / 0.55));
+    return `calc(var(--about-rest, 112px) * ${1 - t} + ${20 * t}px)`;
+  });
+  const reelRowRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const row = reelRowRef.current;
+    if (!row) return;
+    const phone = window.matchMedia("(max-width: 767px)");
+    const root = document.documentElement;
+    const measure = () => {
+      if (!phone.matches) return root.style.removeProperty("--about-rest");
+      const step = parseFloat(getComputedStyle(root).fontSize) * 1.5;
+      root.style.setProperty("--about-rest", `${row.offsetHeight + step}px`);
+    };
+    measure();
+    const sizes = new ResizeObserver(measure);
+    sizes.observe(row);
+    phone.addEventListener("change", measure);
+    return () => {
+      sizes.disconnect();
+      phone.removeEventListener("change", measure);
+    };
+  }, []);
 
   /**
    * The standfirst also has to stop TAKING UP ROOM, not just stop being
@@ -610,7 +644,6 @@ export function AboutHero({ reel }: { reel: Work[] }) {
                 ref={(el) => {
                   videoRefs.current[i] = el;
                 }}
-                src={work.video}
                 poster={work.poster}
                 muted
                 playsInline
@@ -632,7 +665,14 @@ export function AboutHero({ reel }: { reel: Work[] }) {
                 className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-hp-out ${
                   i === live ? "opacity-100" : "opacity-0"
                 }`}
-              />
+              >
+                {/* a phone takes a 720p cut where there is one (public/video/m) — the reel's
+                    first film was a 3.8MB 1080p master on a 375px screen */}
+                {work.video && PHONE_CUTS.has(work.video) ? (
+                  <source src={work.video.replace("/video/", "/video/m/")} media="(max-width: 767px)" type="video/mp4" />
+                ) : null}
+                <source src={work.video} type="video/mp4" />
+              </video>
             ))}
 
             {/* The lockup sits on footage, so it needs its own ground to stay
@@ -667,7 +707,7 @@ export function AboutHero({ reel }: { reel: Work[] }) {
           style={{ paddingBottom: lockupPad }}
         >
           <m.p className="hp-eyebrow" style={leaves}>
-            <span className="hero-rise inline-block" style={rise(0)}>
+            <span className="hero-rise about-hero__rise inline-block" style={rise(0)}>
               A studio, not an agency
             </span>
           </m.p>
@@ -683,7 +723,7 @@ export function AboutHero({ reel }: { reel: Work[] }) {
                 inside it are driven by scroll. Putting both on the same node
                 would have them fight over `y`. */}
             <span className="block overflow-hidden">
-              <span className="hero-mask-rise" style={rise(1)}>
+              <span className="hero-mask-rise about-hero__rise" style={rise(1)}>
                 <ScrollChars
                   lines={TITLE}
                   progress={leave}
@@ -705,7 +745,7 @@ export function AboutHero({ reel }: { reel: Work[] }) {
               marginBottom: furnitureHeight ? furnitureMargin : 0,
             }}
           >
-            <div ref={furnitureRef} className="hero-rise" style={rise(2)}>
+            <div ref={furnitureRef} className="hero-rise about-hero__rise" style={rise(2)}>
               {/* The third layer: who said it, and what saying it cost.
                   `hp-copy`, the same declaration the studio's paragraphs and the
                   staircase's lines use — one prose size for the whole page.
@@ -765,11 +805,12 @@ export function AboutHero({ reel }: { reel: Work[] }) {
             the frame once the standfirst grew to its proper size — which is
             why the slider looked like it vanished on load. */}
         <m.div
+          ref={reelRowRef}
           className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-start px-gutter pb-8 lg:justify-end lg:pb-14"
           style={leaves}
         >
           <div
-            className="hero-rise pointer-events-auto flex items-center gap-3"
+            className="hero-rise about-hero__rise pointer-events-auto flex items-center gap-3"
             style={rise(3)}
           >
             {reel.map((work, i) => (

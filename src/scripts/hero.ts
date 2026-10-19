@@ -115,6 +115,19 @@ export function initHero(): void {
     bars.forEach((bar) => bar && gsap.set(bar, { scaleX: 0 }));
   }
 
+  // On a phone the View Project plate carries the active film's bar along its bottom edge
+  // (view-project-plate.css): its fill is mirrored there every frame
+  if (viewProject && window.matchMedia("(max-width: 767px)").matches) {
+    let last = -1;
+    gsap.ticker.add(() => {
+      const bar = bars[active];
+      const k = bar ? Number(gsap.getProperty(bar, "scaleX")) || 0 : 0;
+      if (Math.abs(k - last) < 0.001) return;
+      last = k;
+      viewProject.style.setProperty("--vp-progress", k.toFixed(4));
+    });
+  }
+
   const advance = (from: number) => {
     if (from !== token) return; // a stale clock fired after the user moved on
     activate((active + 1) % backgrounds.length, { restartFilm: true });

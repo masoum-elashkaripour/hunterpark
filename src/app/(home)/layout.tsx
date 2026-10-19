@@ -5,6 +5,7 @@ import "../../styles/global.css";
 import "../../styles/components/preloader.css";
 import "../../styles/components/header.css";
 import "../../styles/components/hero.css";
+import "../../styles/components/view-project-plate.css";
 import "../../styles/components/studio.css";
 import "../../styles/components/capabilities.css";
 import "../../styles/components/work.css";

@@ -608,6 +608,33 @@ html.js:not([data-site-ready]) .view-project {
     );
   }
 
+  /* The slider's rings and marks, a notch finer on a phone, where the strip is lower: the
+     open item's lime rule at 2px rather than 3, and the film mark (decorative — the whole
+     thumbnail is the target) at 15px with its point to match, still clear on any picture */
+  /* a hairline frame on a phone, not a band */
+  .hero__thumb::after {
+    border-width: 1px;
+  }
+
+  /* no timer line under the active thumbnail on a phone — the View Project plate carries
+     the film's playhead instead (view-project-plate.css; hero.ts still drives the bar, so it
+     is hidden, not removed) */
+  .hero__progress {
+    visibility: hidden;
+  }
+
+  .hero__film {
+    left: 0.3rem;
+    bottom: 0.3rem;
+    width: 0.9375rem;
+    height: 0.9375rem;
+  }
+
+  .hero__film svg {
+    width: 6px;
+    height: 7.5px;
+  }
+
   .hero__title {
     bottom: 8%; /* centres at 46%: the optical middle of the space above the reel */
     /* The keywords a step up on a phone — they are the line's whole point —
@@ -622,14 +649,21 @@ html.js:not([data-site-ready]) .view-project {
     padding-left: calc(var(--big) * 0.55);
   }
 
-  /* View Project spans the thumbnail strip exactly, so its arrow cell stands
-     on the strip's right edge: the strip is a fixed width (`.hero__thumbs`),
-     and the reel column it sits in can be wider than that on a phone. */
+  /* FULL WIDTH on a phone: the caption row, the strip and View Project all
+     run gutter to gutter. The strip stops being a fixed width — the idle cards
+     keep theirs and the open card takes everything that is left — so its right
+     edge is the gutter on every phone, and the button's arrow cell with it. */
+  .hero__reel {
+    justify-self: stretch;
+    align-items: stretch;
+  }
+
+  .hero__thumbs {
+    width: 100%;
+  }
+
   .view-project {
-    width: calc(
-      var(--card-w) + (var(--count) - 1) * (var(--sliver) + var(--reel-gap))
-    );
-    max-width: 100%;
+    width: 100%;
   }
 
   .hero__content {

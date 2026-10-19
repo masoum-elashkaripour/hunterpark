@@ -1,5 +1,7 @@
 import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { strokeLength } from "./lifecycle";
+import { crossD, phonePlate } from "@/lib/footer-plate";
 
 /**
  * The footer — the last beat of the homepage film. Tune here.
@@ -51,6 +53,31 @@ export function footerTimeline(): gsap.core.Timeline | null {
   const arcs = Array.from(root.querySelectorAll<SVGGElement>("[data-footer-arcs]"));
   const guides = Array.from(root.querySelectorAll<SVGGElement>("[data-footer-guides]"));
   const lines = Array.from(root.querySelectorAll<SVGGeometryElement>("[data-footer-line]"));
+
+  // The phone figure, laid out from where the footer's blocks stand (lib/footer-plate.ts) —
+  // redrawn on every refresh; its parts draw on a normalised length, so the reveal holds
+  const tallSvg = root.querySelector<SVGSVGElement>("[data-footer-tall]");
+  const stageEl = root.querySelector<HTMLElement>("[data-footer-stage]");
+  const layPlate = () => {
+    if (!tallSvg || !stageEl || !window.matchMedia("(max-width: 767px)").matches) return;
+    const plate = phonePlate(stageEl);
+    if (!plate) return;
+    const set = (name: string, attrs: Record<string, string | number>) => {
+      const el = tallSvg.querySelector(`[data-plate="${name}"]`);
+      if (el) Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, String(v)));
+    };
+    tallSvg.setAttribute("viewBox", `0 0 ${plate.w} ${plate.h}`);
+    tallSvg.setAttribute("preserveAspectRatio", "none");
+    set("ring", { cx: plate.ring.cx, cy: plate.ring.cy, r: plate.ring.r });
+    set("sweep", { d: plate.sweep });
+    set("g0", { d: `M 0 ${plate.yA} H ${plate.w}` });
+    set("g1", { d: `M 0 ${plate.yB} H ${plate.w}` });
+    set("g2", { d: `M ${plate.vx} ${plate.vTop} V ${plate.vBottom}` });
+    set("cross", { d: crossD(plate.crosses, 5) });
+    tallSvg.querySelector("[data-footer-arcs]")?.setAttribute("data-origin", `${plate.ring.cx} ${plate.ring.cy}`);
+  };
+  layPlate();
+  ScrollTrigger.addEventListener("refresh", layPlate);
 
   // Resting state: the footer waits unseen (it is stacked over the whole film)
   gsap.set(mark, { autoAlpha: 0 });
@@ -132,7 +159,7 @@ export function footerTimeline(): gsap.core.Timeline | null {
   const A = m.figure;
   // Drawn along each shape's real (measured) length, linear and overlapping, like WHO WE ARE
   lines.forEach((el) => {
-    const len = strokeLength(el);
+    const len = el.hasAttribute("pathLength") ? Number(el.getAttribute("pathLength")) : strokeLength(el);
     gsap.set(el, { strokeDasharray: len, strokeDashoffset: len });
   });
   const L = A.lines;
@@ -149,12 +176,16 @@ export function footerTimeline(): gsap.core.Timeline | null {
     L.start,
   );
   if (glow) tl.fromTo(glow, { autoAlpha: 0, xPercent: -20, yPercent: 12 }, { autoAlpha: 1, xPercent: 18, yPercent: -10, duration: 1 - L.start, immediateRender: false }, L.start);
-  // the curves open out about their own centre (each field has its own)
-  arcs.forEach((g) => {
+  // the curves open out about their own centre (each field has its own) — and the guides
+  // settle — except on a phone: there the figure stands still and only draws, since a 12px
+  // drift and a slow swell, scrubbed by a thumb's uneven scroll over the pinned footer, read
+  // as the pattern wobbling up and down rather than settling
+  const still = window.matchMedia("(max-width: 767px)").matches;
+  if (!still) arcs.forEach((g) => {
     const svgOrigin = g.dataset.origin ?? "0 0";
     tl.fromTo(g, { scale: A.arcsFrom, svgOrigin }, { scale: 1, svgOrigin, duration: 1 - L.start, ease: "power2.out", immediateRender: false }, L.start);
   });
-  if (guides.length) tl.fromTo(guides, { y: 12 }, { y: 0, duration: A.rest[1] - A.rest[0], ease: "power1.out", immediateRender: false }, A.rest[0]);
+  if (!still && guides.length) tl.fromTo(guides, { y: 12 }, { y: 0, duration: A.rest[1] - A.rest[0], ease: "power1.out", immediateRender: false }, A.rest[0]);
 
   // The footer takes the pointer the moment it owns the frame (the night has fully risen over
   // the call to action) — so its links and hovers work as soon as they're seen, not only at

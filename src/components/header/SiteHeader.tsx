@@ -38,8 +38,8 @@ export default function SiteHeader() {
 
         <div className="site-header__actions">
           {/* Sound: the site's ambient soundtrack on / off (scripts/soundtrack.ts). The bars stand
-              when it plays and lie flat when it's muted. */}
-          <button type="button" className="sound-toggle" aria-pressed="false" data-sound-toggle>
+              when it is on (from the first frame, as it plays by default) and lie flat when muted. */}
+          <button type="button" className="sound-toggle" aria-pressed="true" data-sound-toggle>
             <span className="visually-hidden">Sound</span>
             <span className="sound-toggle__bars" aria-hidden="true">
               <span></span>
@@ -55,6 +55,8 @@ export default function SiteHeader() {
               <span className="header-cta__roll" data-text="Contact Us">
                 <span>Contact Us</span>
               </span>
+              {/* on a phone: the word alone, in place of the label and its icon */}
+              <span className="header-cta__short">Contact</span>
             </span>
             <span className="header-cta__arrow" aria-hidden="true">
               <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5">

@@ -71,6 +71,11 @@
   .footer__lines--tall {
     display: block;
   }
+
+  /* the phone figure draws no small ring */
+  .footer__lines--tall circle {
+    display: none;
+  }
 }
 
 /* WHO WE ARE's hairline: lime at 16%, about a pixel */
@@ -437,13 +442,16 @@ html.hp-motion .footer__mark {
 @media (max-width: 767px) {
   .footer__grid {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto 1fr auto auto auto;
+    /* The call to talk stands in the middle of the space the links and the small print leave
+       — an equal, flexible gap either side (never under 1.5rem) — rather than tight under
+       the links with all the slack below it */
+    grid-template-rows: auto auto minmax(1.5rem, 1fr) auto minmax(1.5rem, 1fr) auto auto auto;
   }
 
   .footer__statement {
     grid-column: 1 / -1;
     grid-row: 1;
-    margin-bottom: clamp(1.5rem, 5svh, 2.5rem);
+    margin-bottom: clamp(1.25rem, 4svh, 2.25rem);
   }
 
   .footer__group--index {
@@ -458,17 +466,19 @@ html.hp-motion .footer__mark {
   }
 
   .footer__contact {
-    grid-row: 3;
+    grid-column: 1 / -1;
+    grid-row: 4;
+    margin-top: 0;
   }
 
+  /* (the tagline stands down on a phone) */
   .footer__tagline {
-    grid-column: 1 / -1;
-    grid-row: 5;
+    display: none;
   }
 
   .footer__base {
     grid-column: 1 / -1;
-    grid-row: 6;
+    grid-row: 7;
   }
 
   .footer__base .footer__rule {
@@ -476,7 +486,35 @@ html.hp-motion .footer__mark {
   }
 
   .footer__mark {
-    grid-row: 7;
+    grid-row: 8;
+  }
+}
+
+/* A SHORT phone (the first SE, 568px): the stacked footer is taller than the frame there, and
+   the wordmark was cut at the foot — so the type and the gaps step down a notch, the order and
+   the composition unchanged. */
+@media (max-width: 767px) and (orientation: portrait) and (max-height: 620px) {
+  .footer__grid {
+    grid-template-rows: auto auto minmax(0.9rem, 1fr) auto minmax(0.9rem, 1fr) auto auto auto;
+  }
+  .footer__statement {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .footer__label {
+    margin-bottom: 0.5rem;
+  }
+  .footer__link {
+    font-size: 0.9375rem;
+  }
+  .footer__say {
+    font-size: 1.75rem;
+  }
+  .footer__tagline {
+    margin-bottom: 0.6rem;
+  }
+  .footer__base {
+    margin-bottom: 0.6rem;
   }
 }
 
@@ -550,5 +588,32 @@ html.hp-motion .footer__mark {
   .footer__say-arrow svg,
   .footer__top {
     transition-duration: 0.01ms;
+  }
+}
+
+/* The footer on a phone: more air between the statement and the row under it (INDEX /
+   FOLLOW), so the two read as separate blocks; and SAY HELLO's arrow cell stands active —
+   lime, a size larger, the arrow in night pointing up and out. */
+@media (max-width: 767px) {
+  .footer__statement {
+    margin-bottom: clamp(2rem, 6svh, 3rem);
+  }
+  .footer__say-arrow {
+    width: 0.78em;
+    height: 0.78em;
+    background: var(--hp-lime);
+    color: var(--hp-soft);
+  }
+  /* the arrow as it is drawn — up and to the right, the way out to Contact — and larger */
+  .footer__say .footer__say-arrow svg,
+  .footer__say:is(:hover, :focus-visible) .footer__say-arrow svg {
+    width: 46%;
+    height: 46%;
+    transform: none;
+  }
+}
+@media (max-width: 767px) and (orientation: portrait) and (max-height: 620px) {
+  .footer__statement {
+    margin-bottom: 1.5rem;
   }
 }

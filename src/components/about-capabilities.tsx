@@ -11,6 +11,7 @@ import {
   type MotionValue,
 } from "motion/react";
 import {
+  PLAY_MAX_SECONDS,
   PLAY_SECONDS_PER_SCREEN,
   usePlayMode,
   useRun,
@@ -569,7 +570,7 @@ export function AboutCapabilities() {
               : null;
           if (to === null) return;
           const len = route?.img[i]?.len ?? view * 1.5;
-          const full = (len / view) * PLAY_SECONDS_PER_SCREEN;
+          const full = Math.min(PLAY_MAX_SECONDS, (len / view) * PLAY_SECONDS_PER_SCREEN);
           runs[i]?.forEach((r) => r.stop());
           runs[i] = [reveals[i], texts[i]].map((v) =>
             animate(v, to, {

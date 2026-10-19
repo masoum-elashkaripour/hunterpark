@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
-import { m, useTransform, type MotionValue } from "motion/react";
+import { m, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import {
+  PLAY_SECONDS_PER_SCREEN,
+  carryTo,
   compressHolds,
   useBeat,
   useEnter,
@@ -256,6 +258,28 @@ const HOLDS: [number, number][] = [
  */
 const PLAY_HOLD = 1;
 
+/**
+ * ON A PHONE act one is two beats, not one. The prose takes the column at the page's own
+ * size, so the founders cannot stand under it as well: first the words (the title, the line
+ * under it, both paragraphs) arrive and the frame rests on them to be read; the next gesture
+ * then lifts the paragraphs away and brings the founders into the room they leave — the pair
+ * as a diptych under the title. Two holds where the larger screens have one.
+ */
+const PHONE_CUE = {
+  bodyEnd: act1([0, 0.56])[1],
+  beatsOut: act1([0.56, 0.62]),
+  founder: act1([0.58, 0.68]),
+  founderName: act1([0.66, 0.71]),
+  second: act1([0.62, 0.72]),
+  secondName: act1([0.71, 0.76]),
+};
+const PHONE_HOLDS: [number, number][] = [
+  [0, PHONE_CUE.bodyEnd],
+  [PHONE_CUE.bodyEnd, PHONE_CUE.secondName[1]],
+  [PHONE_CUE.secondName[1], CUE.outFrom],
+  [CUE.outFrom, CUE.out[0]],
+];
+
 /** How many things leave in act three, newest first — see `outFrom`. */
 const LEAVE_ORDER = { cards: 4, line: 4, media: 5 };
 
@@ -327,6 +351,26 @@ const SHOTS = [
     aura: { base: "#401b18", accent: "#631b14", far: "#161d4a" },
   },
 ]
+
+/**
+ * ON A PHONE, FIVE pictures: the first standing from the start, and one more turned up with
+ * each of the four cards as it arrives under it — Direction, Cinematography, Edit, Creative —
+ * so the portrait and the list move as one. The fifth, a studio session in teal, is a palette
+ * none of the four has. Each change is set to begin the moment its card does (the stack plays
+ * a change from the middle of its stretch, see `Panel`).
+ */
+const PHONE_SHOTS = [
+  ...SHOTS,
+  {
+    src: "/talent/stage-1.jpg",
+    aura: { base: "#163f3e", accent: "#1d5a58", far: "#162f4a" },
+  },
+];
+const PHONE_SHOT_BOUNDS = [
+  CUE.morph[0],
+  ...[0, 1, 2, 3].map((k) => CUE.cardFrom + k * CUE.cardStep + REVEAL / 2),
+  CUE.morph2[0],
+];
 
 /** Deliberately short — the four cards under it carry the detail. */
 const TALENT_LINE =
@@ -705,14 +749,15 @@ function Shot({
  * `.about-cast__shot--lead` / `--follow`), and every pixel of their movement is
  * a function of scroll position.
  */
-function Cast({ p }: { p: MotionValue<number> }) {
+function Cast({ p, phone }: { p: MotionValue<number>; phone: boolean }) {
+  const cue = phone ? PHONE_CUE : CUE;
   return (
     <div className="about-cast">
       <div className="about-cast__composition">
         <Shot
           person={FOUNDERS[0]}
-          cue={CUE.founder}
-          name={CUE.founderName}
+          cue={cue.founder}
+          name={cue.founderName}
           from={ARRIVE.lead}
           away={DEPART.lead}
           p={p}
@@ -720,8 +765,8 @@ function Cast({ p }: { p: MotionValue<number> }) {
         />
         <Shot
           person={FOUNDERS[1]}
-          cue={CUE.second}
-          name={CUE.secondName}
+          cue={cue.second}
+          name={cue.secondName}
           from={ARRIVE.follow}
           away={DEPART.follow}
           p={p}
@@ -824,12 +869,29 @@ export function AboutStudio() {
    * be scrubbing — see the section's height below.
    */
   const playing = usePlayMode();
+
+  /* ON A PHONE a reload starts this page from the top rather than where it was left. The
+     closing half's place is only known once the chapter's title has rested (see the hand-over
+     below), so a reload restored to the call to action measured it late — and the whole
+     closing moved by a hundred pixels under the reader as they scrolled back up. */
+  useEffect(() => {
+    if (!playing || !("scrollRestoration" in history)) return;
+    const was = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+    return () => {
+      history.scrollRestoration = was;
+    };
+  }, [playing]);
   const [ref, scrollP] = useBeat();
-  const phoneBeat = compressHolds(HOLDS, BEATS, PLAY_HOLD);
-  const mapped = useTransform(scrollP, (v) =>
-    playing ? phoneBeat.map(v) : v,
+  const phoneBeat = compressHolds(PHONE_HOLDS, BEATS, PLAY_HOLD);
+  /* On a phone the paragraphs follow the title and the line under it by themselves: once those
+     have arrived, the act's first played stretch is set going (a nudge past its start) rather
+     than waiting on a scroll the reader has no reason to make. Withdrawn as they leave. */
+  const kick = useMotionValue(0);
+  const mapped = useTransform([scrollP, kick], ([v, k]: number[]) =>
+    playing ? Math.max(phoneBeat.map(v), k ? 0.002 : 0) : v,
   );
-  const p = useGated(mapped, { holds: HOLDS, screens: BEATS, enabled: playing });
+  const p = useGated(mapped, { holds: playing ? PHONE_HOLDS : HOLDS, screens: BEATS, enabled: playing });
   /* The heading and the subtitle are act one's first elements: on a phone they
      too load on a clock once they have started — the same span the scroll gave
      them (`HEAD_ENTER`, a screen and a bit), as one hold. */
@@ -858,6 +920,66 @@ export function AboutStudio() {
    * the sequence across the two clocks this chapter runs on: the subtitle is
    * finished at the moment the first paragraph is due.
    */
+  /* …and with the paragraphs in, the next gesture goes straight on to the founders: the rest of
+     that first stretch's scroll (it no longer has anything to play) is carried over. */
+  const sectionRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!playing) return;
+    const holdTwoAt = 1 / compressHolds(PHONE_HOLDS, BEATS, PLAY_HOLD).total;
+    let lastY = window.scrollY;
+    let busy = 0;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const down = y > lastY + 2;
+      lastY = y;
+      const el = sectionRef.current;
+      if (!down || busy || !el) return;
+      const top = el.getBoundingClientRect().top + y;
+      const span = el.offsetHeight - window.innerHeight;
+      if (span <= 0) return;
+      const at = (y - top) / span;
+      if (at > 0 && at < holdTwoAt && p.get() >= PHONE_CUE.bodyEnd - 0.001) {
+        busy = window.setTimeout(() => (busy = 0), 900);
+        carryTo(top + span * holdTwoAt + 6, 0.7);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(busy);
+    };
+  }, [playing, p]);
+
+  /* …and at the act's end the next chapter starts by itself: once the title has become WHAT WE
+     DO (the last played stretch done), the page is carried on until the staircase's first
+     step is in view, so its pictures begin to open — not left on the title until the reader
+     has scrolled the rest of the pin and the gap below it by hand. On the way the title hands
+     over to the staircase's own heading, as it always has. */
+  useMotionValueEvent(p, "change", (v) => {
+    if (!playing) return;
+    const end = CUE.out[0] - 0.0001;
+    const prev = p.getPrevious() ?? 0;
+    if (!(prev < end && v >= end)) return;
+    const first = document.querySelector<HTMLElement>(".stair__frame");
+    if (!first) return;
+    const y = window.scrollY;
+    // carried to the hand-over itself: the staircase's own heading risen to where this title
+    // stands, so the first picture lies at its natural step under the heading — landing short
+    // of it (the first picture at 60% of the screen) left the pinned title a long way above it
+    const head = document.querySelector<HTMLElement>(".caps-section__head");
+    const title = titleBox.current;
+    const to =
+      head && title
+        ? y + head.getBoundingClientRect().top - title.getBoundingClientRect().top
+        : first.getBoundingClientRect().top + y - window.innerHeight * 0.6;
+    if (to > y + 10) carryTo(to, ((to - y) / window.innerHeight) * PLAY_SECONDS_PER_SCREEN);
+  });
+
+  useMotionValueEvent(headP, "change", (v) => {
+    if (!playing) return;
+    if (v >= 0.999) kick.set(1);
+    else if (v < 0.5) kick.set(0);
+  });
   const titleIn = useTransform(headP, [0, 0.55], [0, 1]);
   const subIn = useTransform(headP, [0.5, 1], [0, 1]);
 
@@ -875,6 +997,37 @@ export function AboutStudio() {
     ([a, b]: number[]) => a * b,
   );
   const claimY = useTransform(p, CUE.leave, [0, -40]);
+
+  /* On a phone the paragraphs give the column up to the founders (see `PHONE_CUE`). */
+  const beatsAway = useTransform(p, PHONE_CUE.beatsOut, [0, 1]);
+  const beatsOpacity = useTransform([claimOpacity, beatsAway], ([o, a]: number[]) =>
+    playing ? o * (1 - a) : o,
+  );
+  const beatsY = useTransform([claimY, beatsAway], ([y, a]: number[]) => (playing ? y - 28 * a : y));
+
+  /* …and the founders take the room the paragraphs stood in: where that room starts, for
+     the stylesheet (offsets, so the paragraphs' own travel does not move it). */
+  const splitRef = useRef<HTMLDivElement | null>(null);
+  const beatsRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const split = splitRef.current;
+    const beats = beatsRef.current;
+    if (!split || !beats) return;
+    const measure = () => {
+      let top = 0;
+      let n: HTMLElement | null = beats;
+      while (n && n !== split) {
+        top += n.offsetTop;
+        n = n.offsetParent as HTMLElement | null;
+      }
+      if (n === split) split.style.setProperty("--beats-top", `${top}px`);
+    };
+    measure();
+    const sizes = new ResizeObserver(measure);
+    sizes.observe(split);
+    document.fonts?.ready.then(measure);
+    return () => sizes.disconnect();
+  }, []);
 
   /**
    * THE TITLE RESTS IN ACT ONE'S COLUMN, and the path is written from there.
@@ -1037,7 +1190,17 @@ export function AboutStudio() {
       const self = titleBox.current;
       if (!self || restAt) return;
       if (morph2.get() < 0.995) return;
-      restAt = self.getBoundingClientRect().top;
+      /* Where the title stands in the window WHILE THE STAGE IS PINNED — read off the stage it
+         is pinned with (sticky at the top, so its offset there is its place in the window), not
+         off the window itself. Read straight from the window, the value was only right if the
+         stage happened to be pinned at the moment the title finished turning: arriving any
+         other way — a refresh far down the page, a fling, a link — it came from wherever the
+         stage had scrolled to, and the margin below set the whole closing half a screen or
+         more out of place, the page jumping under the call to action. */
+      const stage = self.closest<HTMLElement>(".beat__stage");
+      restAt = stage
+        ? self.getBoundingClientRect().top - stage.getBoundingClientRect().top
+        : self.getBoundingClientRect().top;
       /**
        * ON A PHONE the pin is shorter (see `HOLDS`), so it lets go before the
        * staircase's heading has risen to this title — both then travel up
@@ -1138,7 +1301,10 @@ export function AboutStudio() {
     CUE.morph[0],
     CUE.morph[1],
     mediaOut - CUE.outEach * 0.6,
-    CUE.out[1],
+    /* On a phone the act's last played stretch stops where the stage starts to clear
+       (`CUE.out[0]`, see `PHONE_HOLDS`) — so the portrait is gone by then, not left half-way
+       out of the frame until the next gesture. */
+    playing ? CUE.out[0] : CUE.out[1],
   ];
   /* MIRRORED. The founders stand on the RIGHT and come and go by the right
      edge; this portrait stands on the LEFT, so the same move is flipped about
@@ -1152,10 +1318,18 @@ export function AboutStudio() {
   const mediaRY = useTransform(p, media, [-ARRIVE.lead.ry, 0, 0, -DEPART.lead.ry]);
   const mediaTilt = useTransform(p, media, [-ARRIVE.lead.tilt, 0, 0, -DEPART.lead.tilt]);
   /* Up early and stays up — it leaves by travelling, as the founders do. */
+  /* (On a phone it also fades over the second half of its way out: the departure's end, made
+     for a wide screen, still leaves a corner of it in a phone's frame, and the stage that
+     would clear it is not played there — see `PHONE_HOLDS`.) */
   const talentOpacity = useTransform(
     p,
-    [media[0], media[0] + (media[1] - media[0]) * 0.35],
-    [0, 1],
+    [
+      media[0],
+      media[0] + (media[1] - media[0]) * 0.35,
+      media[2] + (media[3] - media[2]) * 0.5,
+      media[3],
+    ],
+    [0, 1, 1, playing ? 0 : 1],
   );
 
   /**
@@ -1189,6 +1363,7 @@ export function AboutStudio() {
            heading that runs before it. */
         ref(el);
         headRef(el);
+        sectionRef.current = el;
       }}
       className="beat"
       /**
@@ -1251,7 +1426,7 @@ export function AboutStudio() {
 
             The subtitle, the body and the founders leave. The heading stays,
             because it is about to become the next chapter's. */}
-        <div className="about-studio__split">
+        <div className="about-studio__split" ref={splitRef}>
           <div className="about-studio__claim" ref={claimBox}>
             {/* THE TITLE LIVES HERE — three texts on one piece of type, and
                 this is the first of them. It leaves for the Talent column and
@@ -1289,7 +1464,8 @@ export function AboutStudio() {
 
             <m.div
               className="about-studio__beats"
-              style={{ opacity: claimOpacity, y: claimY }}
+              ref={beatsRef}
+              style={{ opacity: beatsOpacity, y: beatsY }}
             >
               {BODY.map((text, i) => (
                 <Beat
@@ -1307,7 +1483,7 @@ export function AboutStudio() {
             className="about-studio__people"
             style={{ opacity: claimOpacity, y: claimY }}
           >
-            <Cast p={p} />
+            <Cast p={p} phone={playing} />
           </m.div>
         </div>
 
@@ -1322,8 +1498,8 @@ export function AboutStudio() {
               picture cannot come apart. It adds nothing to the layout: it is
               absolutely positioned and takes no pointer. */}
           <TalentAura
-            shots={SHOTS}
-            bounds={SHOT_BOUNDS}
+            shots={playing ? PHONE_SHOTS : SHOTS}
+            bounds={playing ? PHONE_SHOT_BOUNDS : SHOT_BOUNDS}
             progress={p}
             presence={auraPresence}
           />
@@ -1342,7 +1518,11 @@ export function AboutStudio() {
               transformPerspective: 900,
             }}
           >
-            <TalentStack shots={SHOTS} bounds={SHOT_BOUNDS} progress={p} />
+            <TalentStack
+              shots={playing ? PHONE_SHOTS : SHOTS}
+              bounds={playing ? PHONE_SHOT_BOUNDS : SHOT_BOUNDS}
+              progress={p}
+            />
           </m.div>
 
           <div className="talent-act__body" ref={talentBox}>

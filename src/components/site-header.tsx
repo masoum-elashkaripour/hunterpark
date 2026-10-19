@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { setSoundEnabled, soundEnabled } from "@/lib/sound";
 
 /**
  * Header ported from the live build (hunterpark.vercel.app): centred wordmark,
@@ -75,6 +75,7 @@ const HERO_END = 0.35;
 const LOGO_CLEAR = 24;
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   /** This opening runs sideways, and if so whether it had to drop a line. */
   const [shape, setShape] = useState<{ row: boolean; below: boolean }>({
@@ -82,7 +83,11 @@ export function SiteHeader() {
     below: false,
   });
   /** Mirrors the shared store so the button can render its pressed state. */
-  const [sound, setSound] = useState(soundEnabled);
+  /* The soundtrack plays on every page, not just the home page: one engine for the visit,
+     begun at once here (no preloader to wait for) or at the first tap the browser allows. */
+  useEffect(() => {
+    import("@/scripts/soundtrack").then(({ initSoundtrack }) => initSoundtrack({ immediate: true }));
+  }, []);
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const logoRef = useRef<HTMLAnchorElement>(null);
@@ -125,8 +130,11 @@ export function SiteHeader() {
        the line under the bar instead. Measured after the offset is applied, so
        the panel's own width is the real one. */
     const logo = logoRef.current?.getBoundingClientRect();
+    /* (on a phone it always does: the row goes under the bar. Measured, the panel was read in
+       its dropped shape — the row's class not yet on it — and the links landed across the logo) */
     const reaches =
-      !!logo && panel.getBoundingClientRect().right > logo.left - LOGO_CLEAR;
+      window.matchMedia("(max-width: 767px)").matches ||
+      (!!logo && panel.getBoundingClientRect().right > logo.left - LOGO_CLEAR);
     setShape({ row: true, below: reaches });
   };
 
@@ -200,7 +208,15 @@ export function SiteHeader() {
         {/* Home. The repo's header points its wordmark at `/` and so does this
             one now — in this prototype `/` redirects to `/work`, so it is a
             short trip, but it is the right address once the two are one site. */}
-        <Link href="/" ref={logoRef} className="site-header__logo">
+        <Link
+          href="/"
+          ref={logoRef}
+          className="site-header__logo"
+          /* No prefetch: the home page has its own root layout, so going there is a full page
+             load whatever happens — prefetching it only fetched its stylesheets and fonts into
+             every inner page for nothing (the "preloaded but not used" warnings) */
+          prefetch={false}
+        >
           <Image
             src="/brand/logo.svg"
             alt="HunterPark — home"
@@ -214,14 +230,13 @@ export function SiteHeader() {
         {/* The live header groups its two controls in one flush-right cell
             rather than letting the CTA sit in the grid column alone. */}
         <div className="site-header__actions">
+          {/* The site's ambient soundtrack, as on the home page (scripts/soundtrack.ts, which
+              owns this button: its press and its pressed state) — on from the first frame */}
           <button
             type="button"
             className="sound-toggle"
-            aria-pressed={sound}
-            onClick={() => {
-              setSound(!sound);
-              setSoundEnabled(!sound);
-            }}
+            aria-pressed="true"
+            data-sound-toggle
           >
             <span className="visually-hidden">Sound</span>
             {/* Four bars that stand up when it is on — the equaliser is the
@@ -243,11 +258,27 @@ export function SiteHeader() {
               something there, so it comes back on.
               No trailing slash: `trailingSlash` is not set, so `/contact/`
               would cost a redirect on the way to `/contact`. */}
-          <Link href="/contact" className="header-cta">
+          <Link
+            href="/contact"
+            /* on the Contact page itself it stands down — outlined, not lit (globals.css) */
+            className={`header-cta${pathname === "/contact" ? " is-current" : ""}`}
+            aria-current={pathname === "/contact" ? "page" : undefined}
+            /* a press shows at once and is held a beat past the lift (globals.css): iOS gives a
+               link no :active state of its own */
+            onPointerDown={(e) => e.currentTarget.classList.add("is-pressed")}
+            onPointerUp={(e) => {
+              const el = e.currentTarget;
+              window.setTimeout(() => el.classList.remove("is-pressed"), 350);
+            }}
+            onPointerCancel={(e) => e.currentTarget.classList.remove("is-pressed")}
+            onPointerLeave={(e) => e.currentTarget.classList.remove("is-pressed")}
+          >
             <span className="header-cta__label">
               <span className="header-cta__roll" data-text="Contact Us">
                 <span>Contact Us</span>
               </span>
+              {/* on a phone: the word alone, in place of the label and its icon */}
+              <span className="header-cta__short">Contact</span>
             </span>
             <span className="header-cta__arrow" aria-hidden>
               <svg
