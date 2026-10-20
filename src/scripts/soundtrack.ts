@@ -16,7 +16,8 @@ import { onSiteReady } from "./lifecycle";
 
 const STORAGE_KEY = "hp:sound"; // "off" when the visitor has muted it
 const VOLUME = 0.45; // master level — present but quiet (about -31 dBFS RMS)
-const FADE_IN = 6; // seconds, the first time it starts
+const FADE_IN = 2.5; // seconds, the first time it starts (it used to take six: the page was
+// long loaded, and the toggle already moving, before anything could be heard)
 const TOGGLE = 0.12; // mute / unmute ramp (time constant, s) — instant, without a click
 
 // The progression, as MIDI notes. Each chord holds for CHORD_S and cross-fades into the next.
@@ -36,6 +37,10 @@ interface Engine {
   readonly started: boolean;
   start(): void;
   setMuted(muted: boolean): void;
+  /** What is being heard, for the toggle's bars to follow (see `followMusic`). */
+  analyser: AnalyserNode;
+  /** How much of the piece can be heard now, 0–1: its fade in (or back) — and 0 muted. */
+  heard(): number;
 }
 
 // The mute choice lasts for the visit (every section, every reload in this tab), not forever:
@@ -133,6 +138,11 @@ function createEngine(): Engine {
   limiter.threshold.value = -18;
   limiter.ratio.value = 3;
   master.connect(limiter).connect(ctx.destination);
+  // a listener on the output (it changes nothing that is heard): the toggle's bars move with it
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 256;
+  analyser.smoothingTimeConstant = 0.9;
+  limiter.connect(analyser);
 
   const bus = ctx.createGain();
   const dry = ctx.createGain();
@@ -295,8 +305,19 @@ function createEngine(): Engine {
     timers = [];
   }
 
+  // where the level stands, for `heard`: the ramp now running, in the context's own time (which
+  // stands still while the audio is suspended)
+  let rampFrom = 0;
+  let rampLen = 1;
+  let silent = false;
+
   return {
     ctx,
+    analyser,
+    heard() {
+      if (!started || silent || ctx.state !== "running") return 0;
+      return Math.max(0, Math.min(1, (now() - rampFrom) / rampLen));
+    },
     get started() {
       return started;
     },
@@ -315,12 +336,19 @@ function createEngine(): Engine {
       } catch {
         /* storage unavailable */
       }
-      master.gain.linearRampToValueAtTime(VOLUME, now() + (carried ? 1.2 : FADE_IN));
+      rampFrom = now();
+      rampLen = carried ? 1.2 : FADE_IN;
+      master.gain.linearRampToValueAtTime(VOLUME, now() + rampLen);
     },
     setMuted(muted: boolean) {
       if (!started) return;
       master.gain.cancelScheduledValues(now());
       master.gain.setTargetAtTime(muted ? 0 : VOLUME, now(), TOGGLE);
+      silent = muted;
+      if (!muted) {
+        rampFrom = now();
+        rampLen = TOGGLE * 3;
+      }
       if (muted) {
         stop();
         // once it has fallen silent, rest the audio thread entirely
@@ -459,9 +487,73 @@ export function initSoundtrack({ immediate = false }: { immediate?: boolean } = 
     reflect();
   });
 
+  followMusic(button, () => (engine && engine.started && !muted && !document.hidden ? engine : null));
+
   // Rest while the tab is hidden; pick up again when it's back
   document.addEventListener("visibilitychange", () => {
     if (!engine?.started || muted) return;
     engine.setMuted(document.hidden);
   });
+}
+
+/**
+ * THE TOGGLE'S BARS FOLLOW THE MUSIC (on a phone): each of the four reads its own stretch of
+ * what is being heard — low pads to high glints — and stands as tall as that stretch is loud.
+ * Calm by construction: the levels are heavily smoothed, and each bar is measured against its
+ * own level of the last few seconds, so a held pad does not pin it and a swell lifts it
+ * without slamming it. Off when the music is (the bars lie flat, see header.css), when
+ * motion is reduced, and on a larger screen.
+ */
+function followMusic(button: HTMLButtonElement | null, source: () => Engine | null): void {
+  const bars = Array.from(button?.querySelectorAll<HTMLElement>(".sound-toggle__bars span") ?? []);
+  if (!bars.length) return;
+  const wanted = window.matchMedia("(max-width: 767px) and (prefers-reduced-motion: no-preference)");
+  // the frequency bins each bar listens to (of 128, ~172Hz each at 44.1kHz)
+  const BANDS: [number, number][] = [
+    [1, 3],
+    [3, 7],
+    [7, 16],
+    [16, 40],
+  ];
+  const level = bars.map(() => 0.25);
+  const fast = bars.map(() => 0);
+  const slow = bars.map(() => 0);
+  let data: Uint8Array<ArrayBuffer> | null = null;
+  const REST = 0.25; // the bars' height while nothing is heard: low and still
+  const tick = () => {
+    requestAnimationFrame(tick);
+    if (!wanted.matches) return;
+    const e = source();
+    const heard = e ? e.heard() : 0;
+    if (!e || heard <= 0) {
+      // nothing heard yet (the browser holds sound back until a first touch), or no longer:
+      // the bars wait low and still — they move only once the music can be heard
+      bars.forEach((bar, i) => {
+        level[i] += (REST - level[i]) * 0.1;
+        bar.style.setProperty("--eq", level[i].toFixed(3));
+      });
+      return;
+    }
+    const a = e.analyser;
+    if (!data || data.length !== a.frequencyBinCount) data = new Uint8Array(a.frequencyBinCount);
+    a.getByteFrequencyData(data);
+    bars.forEach((bar, i) => {
+      const [lo, hi] = BANDS[i];
+      let sum = 0;
+      for (let k = lo; k < hi; k++) sum += data![k];
+      const v = sum / (hi - lo) / 255;
+      // the band now (a fraction of a second) against the band of late (several seconds):
+      // the pads are held, so a bar answers the music's swells and ebbs, not its loudness
+      fast[i] += (v - fast[i]) * 0.12;
+      slow[i] += (v - slow[i]) * 0.008;
+      // (while it fades in, the rise is the fade's, not the music's: the measure keeps up)
+      if (heard < 1) slow[i] = fast[i];
+      const swell = slow[i] > 0.004 ? fast[i] / slow[i] - 1 : 0;
+      // (and only as far as the music can be heard yet: they rise with its fade in)
+      const target = REST + (Math.max(REST, Math.min(1, 0.6 + swell * 2.4)) - REST) * heard;
+      level[i] += (target - level[i]) * 0.07; // eased toward, never jumped to
+      bar.style.setProperty("--eq", level[i].toFixed(3));
+    });
+  };
+  requestAnimationFrame(tick);
 }

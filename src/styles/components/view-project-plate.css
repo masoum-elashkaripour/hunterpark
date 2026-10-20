@@ -253,3 +253,103 @@
     display: none;
   }
 }
+
+/* --- View Project on a phone: the ticket -------------------------------------------------------
+   The width of the column: a pane of dark glass over the film (the label, in lime, reads on any picture
+   without a block of lime outshouting the title), a finger's height, ruled in lime, and at its
+   end the site's square cell with the arrow. A press lays a faint wash of lime in and sends the
+   arrow out by its corner as its twin comes in. */
+@media (max-width: 767px) {
+  .view-project--plate {
+    width: 100%;
+    justify-content: space-between;
+    gap: 1rem;
+    height: 2.75rem;
+    /* the cell stands as far in from the right as from the top and the foot: the inside height
+       (less the two 1px rules) minus the cell, halved */
+    padding: 0 calc((2.75rem - 2px - 2.125rem) / 2) 0 1.1rem;
+    overflow: visible;
+    /* the lime rule a step back, so the label and the cell carry the accent */
+    border: 1px solid color-mix(in srgb, var(--hp-lime) 60%, transparent);
+    background-color: rgb(13 13 13 / 0.38);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    backdrop-filter: blur(12px) saturate(1.2);
+    color: var(--hp-lime);
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    transition:
+      border-color 0.35s var(--hp-ease-out),
+      background-color 0.35s var(--hp-ease-out),
+      transform 0.3s var(--hp-ease-out);
+  }
+
+  .view-project--plate .view-project__roll::after {
+    color: var(--hp-lime);
+  }
+
+  /* the playhead is the ring now, not a bar along the foot */
+  .view-project--plate .view-project__progress {
+    display: none;
+  }
+
+  .view-project--plate .view-project__orb {
+    width: 2.125rem;
+    height: 2.125rem;
+    overflow: hidden;
+    border: 0;
+    /* the cell filled in the accent, the arrow in night — the ticket's one solid mark */
+    background: var(--hp-lime);
+    color: var(--hp-night);
+    place-items: center;
+  }
+
+  /* no rule round the cell, and no playhead: the strip above already keeps
+     time with the film, and this is a way to the work, not a control of the picture */
+  .view-project--plate .view-project__orb::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    border: 0;
+    background: none;
+    transform: none;
+    transition: border-color 0.35s var(--hp-ease-out);
+  }
+
+  .view-project--plate .view-project__orb::after {
+    content: none;
+  }
+
+  /* the cell's own diagonal arrow, and its twin waiting at the far corner */
+  .view-project--plate .view-project__go {
+    display: block;
+    width: 12px;
+    height: 12px;
+    transition: transform 0.45s var(--hp-ease-out);
+  }
+
+  .view-project--plate .view-project__go--next {
+    transform: translate(-180%, 180%);
+  }
+
+  .view-project--plate:is(:active, .is-pressed) {
+    border-color: var(--hp-lime);
+    background-color: color-mix(in srgb, var(--hp-lime) 12%, rgb(13 13 13 / 0.5));
+    transform: scale(0.985);
+  }
+
+  .view-project--plate:is(:active, .is-pressed) .view-project__orb {
+    background: color-mix(in srgb, var(--hp-lime) 86%, #000);
+    color: var(--hp-night);
+  }
+
+  .view-project--plate:is(:active, .is-pressed) .view-project__go {
+    transform: translate(180%, -180%);
+  }
+
+  .view-project--plate:is(:active, .is-pressed) .view-project__go--next {
+    transform: translate(0, 0);
+  }
+}

@@ -927,28 +927,63 @@ export function AboutStudio() {
    * the sequence across the two clocks this chapter runs on: the subtitle is
    * finished at the moment the first paragraph is due.
    */
-  /* …and with the paragraphs in, the next gesture goes straight on to the founders: the rest of
-     that first stretch's scroll (it no longer has anything to play) is carried over. */
+  /* …and with any played stretch finished, the next gesture goes straight on to the next one:
+     the rest of that stretch's scroll (it has nothing left to play) is carried over — the
+     paragraphs to the founders, the founders to Talent, Talent to the hand-over — and the same
+     the other way: settled back at a stretch's end, a gesture up goes straight back past it.
+     Each played stretch takes `PLAY_HOLD` screens of scroll whatever it plays, so without
+     this the reader thumbed through a screen or more of a page that did not move at every
+     step, and the act seemed stuck, then lurched. */
   const sectionRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (!playing) return;
-    const holdTwoAt = 1 / compressHolds(PHONE_HOLDS, BEATS, PLAY_HOLD).total;
+    // where each played stretch starts and ends on the section's own scroll (0–1), as the
+    // compression lays them out (see `compressHolds`)
+    const { total } = compressHolds(PHONE_HOLDS, BEATS, PLAY_HOLD);
+    const marks: { from: number; to: number; ends: number; starts: number }[] = [];
+    let at = 0;
+    let pos = 0;
+    for (const [h0, h1] of PHONE_HOLDS) {
+      if (h0 > at) pos += (h0 - at) * BEATS;
+      marks.push({ from: pos / total, to: (pos + PLAY_HOLD) / total, starts: h0, ends: h1 });
+      pos += PLAY_HOLD;
+      at = h1;
+    }
     let lastY = window.scrollY;
     let busy = 0;
     const onScroll = () => {
       const y = window.scrollY;
       const down = y > lastY + 2;
+      const up = y < lastY - 2;
       lastY = y;
       const el = sectionRef.current;
-      if (!down || busy || !el) return;
+      if ((!down && !up) || busy || !el) return;
       const top = el.getBoundingClientRect().top + y;
       const span = el.offsetHeight - window.innerHeight;
       if (span <= 0) return;
-      const at = (y - top) / span;
-      if (at > 0 && at < holdTwoAt && p.get() >= PHONE_CUE.bodyEnd - 0.001) {
+      const now = (y - top) / span;
+      const v = p.get();
+      const k = marks.findIndex((m) => now > m.from && now < m.to);
+      const last = marks[marks.length - 1];
+      // up from the hand-over (the title already WHAT WE DO, the page past the last played
+      // stretch): straight back into Talent — the hand-over stretch has nothing to show on
+      // the way up but the title standing still
+      if (k < 0 && up && now > last.to && now < 1 && v >= last.ends - 0.002) {
         busy = window.setTimeout(() => (busy = 0), 900);
-        carryTo(top + span * holdTwoAt + 6, 0.7);
+        carryTo(top + span * (last.from - 6 / span), 0.7);
+        return;
       }
+      if (k < 0) return;
+      const m = marks[k];
+      const carry = (to: number) => {
+        busy = window.setTimeout(() => (busy = 0), 900);
+        carryTo(top + span * to, 0.7);
+      };
+      // down: this stretch has played out (the last one hands over by itself, see below)
+      if (down && k < marks.length - 1 && v >= m.ends - 0.001) carry(marks[k + 1].from + 6 / span);
+      // up: settled back at this stretch's end — on into the one before it
+      // (from the first, back above the act: its paragraphs then go as they came)
+      else if (up && Math.abs(v - m.ends) < 0.002) carry(m.from - 6 / span);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {

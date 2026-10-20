@@ -337,6 +337,17 @@ function Panel({
  * (`talent:pick`). The four role names stay in the page for a screen reader (see globals.css).
  */
 const BOARD = { intro: 1.4, hold: 4.4 };
+/** A card at slot `f` — 0 in front, ±1 at the edges, ±2 out of sight, and anywhere between
+    while a finger holds the board: every value runs continuously, so a card on its way in
+    grows and lights as it comes, as the home page's Work slider does. */
+function place(el: HTMLElement, f: number) {
+  const a = Math.min(Math.abs(f), 2);
+  el.style.setProperty("--x", f.toFixed(4));
+  el.style.setProperty("--s", (1 - 0.18 * Math.min(a, 1)).toFixed(4));
+  el.style.setProperty("--r", `${(Math.max(-1, Math.min(1, f)) * 4).toFixed(3)}deg`);
+  el.style.setProperty("--o", (a <= 1 ? 1 : Math.max(0, 2 - a)).toFixed(4));
+  el.style.setProperty("--dim", (0.5 * Math.min(a, 1)).toFixed(4));
+}
 type Role = { title: string; line: string };
 const pad2 = (n: number) => String(n).padStart(2, "0");
 function PhoneStack({
@@ -359,7 +370,18 @@ function PhoneStack({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   /** A finger (or a pointer) holding the board: where it went down, and whether it has taken it. */
-  const drag = useRef<{ id: number; x: number; y: number; dx: number; held: boolean } | null>(null);
+  const drag = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    dx: number;
+    held: boolean;
+    step: number;
+    /** the last few samples, for a flick's speed */
+    t: number;
+    v: number;
+    frame: number;
+  } | null>(null);
 
   const go = useCallback(
     (to: number, dir: number) => setState((s) => ({ at: ((to % n) + n) % n, dir, turn: s.turn + 1 })),
@@ -393,11 +415,11 @@ function PhoneStack({
       return Math.max(-2, Math.min(2, d));
     });
     const put = (el: HTMLDivElement, d: number) => {
-      el.style.setProperty("--x", String(d));
-      el.style.setProperty("--s", d === 0 ? "1" : "0.82");
-      el.style.setProperty("--r", `${Math.max(-1, Math.min(1, d)) * 4}deg`);
-      el.style.setProperty("--o", Math.abs(d) >= 2 ? "0" : d === 0 ? "1" : "0.5");
+      place(el, d);
       el.dataset.slot = d === 0 ? "on" : Math.abs(d) === 1 ? "side" : "off";
+      // (the turn's parity: the card in front leans in afresh on every turn, the first one
+      // on arrival included — see `talent-push` in globals.css)
+      el.dataset.beat = String(state.turn % 2);
     };
     const before = slots.current;
     cards.current.forEach((el, i) => {
@@ -434,6 +456,49 @@ function PhoneStack({
     sync(progress.get());
     return progress.on("change", sync);
   }, [progress, bounds]);
+
+  /* A sideways drag keeps the page still. `pan-y` alone lets the browser take the gesture
+     back the moment the finger strays a little up or down — and on this page a scroll is a
+     carry to the next part. So the gesture is read from its first few pixels: more across
+     than up or down, it is the board's until the finger lifts, and the page is held (touch
+     events are the only ones that can hold it; the pointer events, which move the cards,
+     carry on regardless). More up or down, it is the page's, as ever. */
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    let start: { x: number; y: number } | null = null;
+    let mine: boolean | null = null;
+    const down = (e: TouchEvent) => {
+      const t = e.touches[0];
+      start = t && e.touches.length === 1 ? { x: t.clientX, y: t.clientY } : null;
+      mine = null;
+    };
+    const move = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!start || !t) return;
+      if (mine === null) {
+        const dx = Math.abs(t.clientX - start.x);
+        const dy = Math.abs(t.clientY - start.y);
+        if (dx < 4 && dy < 4) return;
+        mine = dx > dy;
+      }
+      if (mine && e.cancelable) e.preventDefault();
+    };
+    const up = () => {
+      start = null;
+      mine = null;
+    };
+    el.addEventListener("touchstart", down, { passive: true });
+    el.addEventListener("touchmove", move, { passive: false });
+    el.addEventListener("touchend", up);
+    el.addEventListener("touchcancel", up);
+    return () => {
+      el.removeEventListener("touchstart", down);
+      el.removeEventListener("touchmove", move);
+      el.removeEventListener("touchend", up);
+      el.removeEventListener("touchcancel", up);
+    };
+  }, []);
 
   // Round the roles while the act is on screen.
   useEffect(() => {
@@ -489,7 +554,7 @@ function PhoneStack({
            flicked, or settles back. An upright drag is the page's, as ever (pan-y). */
         onPointerDown={(e) => {
           if (e.pointerType === "mouse" && e.button !== 0) return;
-          drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, held: false };
+          drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, held: false, step: 0, t: e.timeStamp, v: 0, frame: 0 };
         }}
         onPointerMove={(e) => {
           const d = drag.current;
@@ -498,33 +563,59 @@ function PhoneStack({
           const dx = e.clientX - d.x;
           const dy = e.clientY - d.y;
           if (!d.held) {
-            if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) {
-              if (Math.abs(dy) > 12) drag.current = null; // the page's
+            if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+            if (Math.abs(dx) <= Math.abs(dy)) {
+              drag.current = null; // the page's
               return;
             }
             d.held = true;
             el.setPointerCapture?.(e.pointerId);
             el.classList.add("is-dragging");
+            // one step, in pixels: the distance between two cards' centres
+            const card = cards.current.find(Boolean);
+            const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+            d.step = (card?.offsetWidth ?? 240) * 0.91 + 0.9 * rem;
+            // the card out of sight waits on the side the finger is pulling from
+            const from = dx < 0 ? 2 : -2;
+            slots.current = (slots.current ?? []).map((v) => (Math.abs(v) >= 2 ? from : v));
           }
+          const dt = Math.max(1, e.timeStamp - d.t);
+          d.v = 0.7 * d.v + 0.3 * ((dx - d.dx) / dt);
+          d.t = e.timeStamp;
           d.dx = dx;
-          el.style.setProperty("--drag", `${dx}px`);
+          if (d.frame) return;
+          d.frame = requestAnimationFrame(() => {
+            const now = drag.current;
+            if (!now) return;
+            now.frame = 0;
+            const shift = Math.max(-1.2, Math.min(1.2, now.dx / now.step));
+            cards.current.forEach((c, i) => c && place(c, (slots.current?.[i] ?? 0) + shift));
+          });
         }}
         onPointerUp={() => {
           const d = drag.current;
           const el = trackRef.current;
           drag.current = null;
           if (!d || !el || !d.held) return;
+          if (d.frame) cancelAnimationFrame(d.frame);
           el.classList.remove("is-dragging");
-          el.style.setProperty("--drag", "0px");
-          const step = parseFloat(getComputedStyle(el.querySelector(".talent-board__card") ?? el).width) || 240;
-          if (Math.abs(d.dx) > step * 0.2) go(state.at + (d.dx < 0 ? 1 : -1), d.dx < 0 ? 1 : -1);
-          else go(state.at, 1); // (settles back, and its turn starts afresh)
+          // the cards are where the finger left them: the move on (or back) starts from there,
+          // not from their slots
+          const shift = Math.max(-1.2, Math.min(1.2, d.dx / d.step));
+          slots.current = (slots.current ?? []).map((v) => v + shift);
+          cards.current.forEach((c, i) => c && place(c, slots.current?.[i] ?? 0));
+          // on to the next (or back to the last) past a fifth of a step, or on a flick
+          const flick = Math.abs(d.v) > 0.45;
+          const way = (flick ? d.v : d.dx) < 0 ? 1 : -1;
+          if (Math.abs(d.dx) > d.step * 0.2 || (flick && Math.abs(d.dx) > 12)) go(state.at + way, way);
+          else go(state.at, state.dir); // (settles back, and its turn starts afresh)
         }}
         onPointerCancel={() => {
-          const el = trackRef.current;
+          const d = drag.current;
           drag.current = null;
-          el?.classList.remove("is-dragging");
-          el?.style.setProperty("--drag", "0px");
+          if (d?.frame) cancelAnimationFrame(d.frame);
+          trackRef.current?.classList.remove("is-dragging");
+          if (d?.held) go(state.at, state.dir);
         }}
       >
         {cast.map((shot, i) => (
