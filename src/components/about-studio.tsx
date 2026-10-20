@@ -822,7 +822,12 @@ function Card({
   const z = useTransform(p, stops, [-140, 0, 0, -120]);
 
   return (
-    <m.li className="talent-card" style={{ opacity, y, z, rotateX }}>
+    <m.li
+      className="talent-card"
+      style={{ opacity, y, z, rotateX }}
+      /* on a phone, a tap calls this role on the portrait (see `PhoneStack` in talent-stack) */
+      onClick={() => window.dispatchEvent(new CustomEvent("talent:pick", { detail: order }))}
+    >
       <span className="talent-card__num" aria-hidden>
         {String(order + 1).padStart(2, "0")}
       </span>

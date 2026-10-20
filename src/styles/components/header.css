@@ -828,3 +828,17 @@ html.js:not([data-site-ready]) .menu-toggle {
     color: var(--hp-off-white);
   }
 }
+
+/* On a phone the rule before a ticket's arrow runs the button's whole height: the cell reaches
+   over the box's own 1px border top and bottom (on the lime tickets that border is clear, and
+   the rule stopped a pixel short of each edge) */
+@media (max-width: 767px) {
+  .header-cta__arrow {
+    margin-block: -1px;
+  }
+  /* (and the ticket does not clip it back: its own overflow cut at the inside of the border;
+     the label's roll keeps its own clip, and the lime fill is drawn inside the box anyway) */
+  .header-cta {
+    overflow: visible;
+  }
+}

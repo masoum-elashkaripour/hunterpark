@@ -6587,25 +6587,6 @@ html[data-logo-handoff] .site-header__logo {
     margin-bottom: -32svh;
   }
 }
-/* Contact on a phone: the footer rises as a SCAN — a lime hairline with a soft glow on its
-   leading edge, sweeping up the screen over the lifting panel with the night behind it, as the
-   Work page's index arrives under its seam. */
-@media (max-width: 767px) {
-  .contact-footer-rise::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 5;
-    height: 1px;
-    background: var(--hp-lime);
-    box-shadow:
-      0 0 18px color-mix(in srgb, var(--hp-lime) 70%, transparent),
-      0 0 60px color-mix(in srgb, var(--hp-lime) 25%, transparent);
-    pointer-events: none;
-  }
-}
 
 /* The menu's links a step further apart on a phone, dropped or in a row */
 @media (max-width: 767px) {
@@ -6637,5 +6618,100 @@ html[data-logo-handoff] .site-header__logo {
 @media (max-width: 767px) {
   :root {
     --about-rest: 70px;
+  }
+}
+
+/* Talent on a phone: THE CASTING REEL (see `PhoneStack` in talent-stack.tsx). The roles are
+   called in turn: the called one stands out — its title lime, its tags clear, a lime timer
+   filling under it for its turn — and the others step back. A tap calls any of them. */
+@media (max-width: 767px) {
+  .talent-act.is-reel .talent-card {
+    position: relative;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .talent-act.is-reel .talent-card .talent-card__title,
+  .talent-act.is-reel .talent-card .talent-card__tags {
+    transition:
+      color 0.5s var(--hp-ease-out),
+      opacity 0.5s var(--hp-ease-out);
+  }
+  .talent-act.is-reel .talent-card:not([data-active]) .talent-card__title {
+    color: color-mix(in srgb, var(--hp-off-white) 42%, transparent);
+  }
+  .talent-act.is-reel .talent-card:not([data-active]) .talent-card__tags {
+    opacity: 0.45;
+  }
+  .talent-act.is-reel .talent-card[data-active] .talent-card__title {
+    color: var(--hp-lime);
+  }
+  /* the turn's timer: a lime hairline under the called role, filling over its turn */
+  .talent-act.is-reel .talent-card::after {
+    content: "";
+    grid-column: 1 / -1;
+    height: 1px;
+    margin-top: 0.4rem;
+    background: var(--hp-lime);
+    transform-origin: left center;
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  .talent-act.is-reel .talent-card[data-active]::after {
+    opacity: 1;
+    animation: talent-turn var(--talent-hold, 3.3s) linear both;
+  }
+}
+@keyframes talent-turn {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* On a phone the rule before a ticket's arrow runs the button's whole height: the cell reaches
+   over the box's own 1px border top and bottom (on the lime tickets that border is clear, and
+   the rule stopped a pixel short of each edge) */
+@media (max-width: 767px) {
+  .header-cta__arrow {
+    margin-block: -1px;
+  }
+  /* (and the ticket does not clip it back: its own overflow cut at the inside of the border;
+     the label's roll keeps its own clip, and the lime fill is drawn inside the box anyway) */
+  .header-cta {
+    overflow: visible;
+  }
+}
+
+/* Chapter 02's first act on a phone held upright: the title, the line under it and the two
+   paragraphs stand in the MIDDLE of the frame, not hung from its top over an empty foot (the
+   founders, who take that room next, are laid absolutely from where the paragraphs began —
+   `--beats-top` — so they follow) */
+@media (max-width: 767px) and (orientation: portrait) and (prefers-reduced-motion: no-preference) {
+  .about-studio__split {
+    grid-template-rows: auto;
+    align-content: center;
+  }
+}
+
+/* The footer's links on a phone: further apart, and each with a finger-sized reach round it
+   (an invisible area, nothing drawn), so the one meant is the one taken */
+@media (max-width: 767px) {
+  .footer__group li + li {
+    margin-top: 0.85rem;
+  }
+  .footer__link {
+    position: relative;
+  }
+  .footer__link::before {
+    content: "";
+    position: absolute;
+    inset: -0.45rem -0.6rem;
+  }
+}
+@media (max-width: 767px) and (orientation: portrait) and (max-height: 620px) {
+  .footer__group li + li {
+    margin-top: 0.6rem;
   }
 }

@@ -617,3 +617,24 @@ html.hp-motion .footer__mark {
     margin-bottom: 1.5rem;
   }
 }
+
+/* The footer's links on a phone: further apart, and each with a finger-sized reach round it
+   (an invisible area, nothing drawn), so the one meant is the one taken */
+@media (max-width: 767px) {
+  .footer__group li + li {
+    margin-top: 0.85rem;
+  }
+  .footer__link {
+    position: relative;
+  }
+  .footer__link::before {
+    content: "";
+    position: absolute;
+    inset: -0.45rem -0.6rem;
+  }
+}
+@media (max-width: 767px) and (orientation: portrait) and (max-height: 620px) {
+  .footer__group li + li {
+    margin-top: 0.6rem;
+  }
+}

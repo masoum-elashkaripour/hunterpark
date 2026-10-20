@@ -445,20 +445,37 @@ html.hp-motion .whatwedo__heading {
      exactly where WE's E ends (padding of the whole line's width), so the whole word stands
      to the right of the E. ARE is in outline — the accent's rule, no fill — against the
      solid WHO WE. */
+  /* Laid out as a GRID — WHO and WE side by side on the first row, ARE on the second in the
+     column after WE — so ARE starts where WE ends in every browser. It was a padding of 100% of
+     a shrink-to-fit box: a cyclic percentage, which Chrome resolves against the box's final
+     width but Safari does not, and on an iPhone ARE was pushed out of the frame. */
   .studio__heading > [aria-hidden] {
-    display: inline-block;
+    display: inline-grid;
+    grid-template-columns: auto auto auto;
+    justify-content: start;
+  }
+
+  .studio__heading .split__word:nth-child(1) {
+    grid-area: 1 / 1;
+  }
+
+  .studio__heading .split__word:nth-child(2) {
+    grid-area: 1 / 2;
+    /* the space between the two words (the space itself does not take part in a grid) */
+    margin-left: 0.27em;
   }
 
   .studio__heading .split__word:last-child {
-    position: relative;
-    display: block;
-    /* the E's width, and the A's own side bearing and half its outline (measured: 0.04em),
-       so the A's ink starts where the E's ends */
-    padding-left: calc(100% + 0.04em);
+    grid-area: 2 / 3;
+    /* the A's own side bearing and half its outline (measured: 0.04em), so the A's ink starts
+       where the E's ends */
+    padding-left: 0.04em;
   }
 
+  /* ARE in outline — the accent's rule, no fill, the film showing through it */
   .studio__heading .split__word:last-child .split__char {
     color: transparent;
+    -webkit-text-fill-color: transparent;
     -webkit-text-stroke: max(1.5px, 0.016em) var(--hp-lime);
   }
 
