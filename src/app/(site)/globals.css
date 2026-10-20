@@ -6127,11 +6127,33 @@ html[data-logo-handoff] .site-header__logo {
   }
 }
 
-/* On a phone the menu carries its links only: the social cells and the hairline before them
-   are left to the footer */
+/* On a phone the menu carries its social cells again, a size down from the larger screens'.
+   Dropped down the hero (the links upright) they stand in a short row under the links, no
+   divider; run along the bar (the links in a row) they follow them after the row's own
+   upright hairline, "items | social", as on the larger screens */
 @media (max-width: 767px) {
   .site-header .menu-panel__social {
-    display: none;
+    display: flex;
+    gap: 0.375rem;
+    margin-top: 0.75rem;
+    padding-left: 0;
+    border-left: 0;
+  }
+  .site-header.is-menu-row .menu-panel__social {
+    margin-top: 0;
+    padding-left: 0.875rem;
+    border-left: 1px solid color-mix(in srgb, var(--hp-off-white) 22%, transparent);
+  }
+  /* (one size in both: the row's own, larger rule is outranked here) */
+  .site-header .menu-panel__icon,
+  .site-header.is-menu-row .menu-panel__icon {
+    width: 1.625rem;
+    height: 1.625rem;
+  }
+  .site-header .menu-panel__icon svg,
+  .site-header.is-menu-row .menu-panel__icon svg {
+    width: 11px;
+    height: 11px;
   }
 }
 
@@ -6787,13 +6809,14 @@ html[data-logo-handoff] .site-header__logo {
     background: var(--hp-night);
     box-shadow: 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.7);
     opacity: var(--o, 0);
-    /* (`--drag`: the finger's pull, while it holds the board) */
-    transform: translateX(calc(-50% + var(--x, 0) * var(--step) + var(--drag, 0px))) rotate(var(--r, 0deg))
-      scale(var(--s, 1));
+    transform: translateX(calc(-50% + var(--x, 0) * var(--step))) rotate(var(--r, 0deg)) scale(var(--s, 1));
+    /* eased OUT, as the home page's Work slider moves: under way at once, settling soft —
+       an in-out curve sat still for its first frames, which read as the board lagging */
     transition:
-      transform 0.95s cubic-bezier(0.65, 0, 0.35, 1),
-      opacity 0.6s var(--hp-ease-out),
-      filter 0.6s var(--hp-ease-out);
+      transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.6s var(--hp-ease-out);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
     -webkit-tap-highlight-color: transparent;
   }
   .talent-board__track.is-dragging .talent-board__card {
@@ -6809,8 +6832,21 @@ html[data-logo-handoff] .site-header__logo {
   .talent-board__track.is-dragging {
     cursor: grabbing;
   }
+  /* the cards at the edges stepped back by a veil of night, not a filter: a filter on a moving
+     card is redrawn on every frame of its move */
+  .talent-board__card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--hp-night);
+    opacity: var(--dim, 0);
+    transition: opacity 0.6s var(--hp-ease-out);
+    pointer-events: none;
+  }
+  .talent-board__track.is-dragging .talent-board__card::after {
+    transition: none;
+  }
   .talent-board__card[data-slot="side"] {
-    filter: grayscale(0.7) brightness(0.65);
     cursor: pointer;
   }
   .talent-board__img {
@@ -6820,6 +6856,11 @@ html[data-logo-handoff] .site-header__logo {
   /* the card in front leans in slowly over its turn */
   .talent-board__card[data-slot="on"] .talent-board__img {
     animation: talent-push var(--talent-hold, 3.4s) linear both;
+  }
+  /* (two names for the one move, alternating with the turn, so it starts over on every turn —
+     the first card's, on arrival, included) */
+  .talent-board__card[data-slot="on"][data-beat="1"] .talent-board__img {
+    animation-name: talent-push-b;
   }
   /* the viewfinder: four lime corners closing on the card in front as it settles */
   .talent-board__finder {
@@ -6910,6 +6951,14 @@ html[data-logo-handoff] .site-header__logo {
     transform: scale(1.07);
   }
 }
+@keyframes talent-push-b {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.07);
+  }
+}
 @keyframes talent-finder {
   from {
     opacity: 0;
@@ -6984,5 +7033,27 @@ html[data-logo-handoff] .site-header__logo {
 @media (max-width: 767px) and (orientation: portrait) and (max-height: 620px) {
   .footer__group li + li {
     margin-top: 0.6rem;
+  }
+}
+
+/* The call to action on a phone stands at the LARGE viewport's height, not the small one's.
+   `100svh` is the window with the browser's bars out; once a phone's toolbar has slid away
+   (iOS Safari, as the page is carried down) the window is taller than that, and the top of the
+   footer showed in the strip left under the call to action. At `100lvh` it fills the window
+   whichever way the bars stand — with them out, its foot simply runs on under them. */
+@media (max-width: 767px) {
+  .work__cta {
+    height: 100lvh;
+  }
+}
+
+/* The sound toggle on a phone, while the soundtrack plays: its four bars move WITH THE MUSIC —
+   each stands as tall as its own stretch of what is heard (scripts/soundtrack.ts sets `--eq`,
+   smoothed, so the move is calm). Scaled from their feet, so their standing heights hold;
+   muted, they lie flat and still. */
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .site-header .sound-toggle[aria-pressed="true"] .sound-toggle__bars span {
+    transform-origin: center bottom;
+    transform: scaleY(var(--eq, 1));
   }
 }

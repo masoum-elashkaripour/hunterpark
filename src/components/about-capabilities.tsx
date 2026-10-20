@@ -121,7 +121,7 @@ const TITLE: [number, number] = [0, 1];
 const LINE: [number, number] = [0.72, 1];
 
 /** On a phone, the seconds a step's words take to arrive — see the played steps below. */
-const WORDS_PLAY = 2.4;
+const WORDS_PLAY = 1.6;
 
 /**
  * How much longer a step's words run than their own height.
@@ -581,7 +581,7 @@ export function AboutCapabilities() {
           /* The picture opens over its own segment, as the scroll gave it; the WORDS get a pace
              of their own — on the clock the segment came to a second or so, and the title's
              letters, sorting themselves over all of it, were gone before they could be seen
-             doing it. So the title starts once the picture is a third open, and takes
+             doing it. So the title starts once the picture is a quarter open, and takes
              `WORDS_PLAY`; going back out, both simply unwind at the picture's pace. */
           const words = texts[i];
           const fresh = to === 1 && words.get() < 0.05;
@@ -590,7 +590,7 @@ export function AboutCapabilities() {
             animate(words, to, {
               duration: Math.abs(to - words.get()) * (to === 1 ? Math.max(WORDS_PLAY, full) : full),
               ease: "linear",
-              delay: fresh ? full * 0.35 : 0,
+              delay: fresh ? full * 0.25 : 0,
             }),
           ];
         });
