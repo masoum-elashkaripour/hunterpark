@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
+import { preload } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -774,6 +775,27 @@ export function WorkCarousel({ works }: { works: Work[] }) {
     });
   };
 
+  /* The index's first screen is fetched WHILE the reel withdraws, not after it has gone: the
+     grid used to mount onto a blank page and only then ask for its pictures, so the reader
+     sat in front of nothing until they arrived. The same files the tiles will ask for (their
+     `sizes`, and the stills' quality — see `TileMedia`), so the tiles find them cached. */
+  useEffect(() => {
+    if (!receding) return;
+    paged.slice(0, 3).forEach((work, i) => {
+      const { props } = getImageProps({
+        src: work.poster,
+        alt: "",
+        fill: true,
+        quality: 90,
+        sizes:
+          i === 0
+            ? "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 60vw"
+            : "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 40vw",
+      });
+      preload(props.src, { as: "image", imageSrcSet: props.srcSet, imageSizes: props.sizes, fetchPriority: "high" });
+    });
+  }, [receding, paged]);
+
   const handleReceded = useCallback(() => {
     setReceding(false);
     setZoomedOut(true);
@@ -1041,10 +1063,10 @@ export function WorkCarousel({ works }: { works: Work[] }) {
               className={`absolute inset-0 ${receding ? "pointer-events-none" : ""}`}
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
-              /* Barely anything left to do — the stage has already faded
-                 itself out in WebGL by the time this runs. A long exit here
-                 would just hold a blank canvas in front of the index. */
-              exit={{ opacity: 0 }}
+              /* Nothing left to do — the stage has already faded itself out in
+                 WebGL by the time this runs, and under `mode="wait"` any exit
+                 here is time the index spends waiting behind a blank canvas. */
+              exit={{ opacity: 0, transition: { duration: 0 } }}
               transition={SWAP}
             >
               <LazyStage3D

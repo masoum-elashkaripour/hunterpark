@@ -729,6 +729,8 @@ function Shot({
             fill
             sizes="(max-width: 1023px) 56vw, 32vw"
             quality={90}
+            /* behind the hero's film: the founders are a beat down the page */
+            fetchPriority="low"
             className="about-cast__img"
           />
         </div>
@@ -1013,26 +1015,76 @@ export function AboutStudio() {
   /* …and the founders take the room the paragraphs stood in: where that room starts, for
      the stylesheet (offsets, so the paragraphs' own travel does not move it). */
   const splitRef = useRef<HTMLDivElement | null>(null);
+  /* EACH STATE OF THE ACT STANDS IN THE MIDDLE OF THE FRAME. The block is laid centred at the
+     founders' height (the taller state), the paragraphs hard under the line over them — so
+     while the paragraphs are up, the whole act is lowered by half of what the founders will
+     add (`textShift`, measured below), and as the paragraphs leave and the founders arrive it
+     glides up into place: one move, title and all, instead of a gap under the subtitle. */
+  const textShift = useMotionValue(0);
+  const settleUp = useTransform(p, [PHONE_CUE.beatsOut[0], PHONE_CUE.founder[1]], [0, 1], { clamp: true });
+  const splitY = useTransform([settleUp, textShift], ([a, d]: number[]) => {
+    const e = a * a * (3 - 2 * a); // eased at both ends
+    return d * (1 - e);
+  });
+  // (written to `translate`, its own property: the split's `transform` is not this act's to set)
+  useMotionValueEvent(splitY, "change", (v) => splitRef.current?.style.setProperty("--act-lift", `${v}px`));
   const beatsRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const split = splitRef.current;
     const beats = beatsRef.current;
     if (!split || !beats) return;
-    const measure = () => {
+    /* The act is ONE block in the middle of the frame in both of its states — the paragraphs,
+       then the founders in their place — so it is centred at the height of the TALLER of the
+       two, not at the paragraphs' alone (the founders, taller, then ran on to the foot of the
+       frame and left an empty band over the title). The founders are sized to the room under
+       the heading as if the act stood at the top (`--cast-room`, which the centring cannot
+       change); that room the pair actually takes, or the paragraphs' own if taller, is the
+       act's (`--act-room`), and the pair stands in the middle of it (`--cast-shift`). */
+    const offsetIn = (el: HTMLElement, box: HTMLElement) => {
       let top = 0;
-      let n: HTMLElement | null = beats;
-      while (n && n !== split) {
+      let n: HTMLElement | null = el;
+      while (n && n !== box) {
         top += n.offsetTop;
         n = n.offsetParent as HTMLElement | null;
       }
-      if (n === split) split.style.setProperty("--beats-top", `${top}px`);
+      return n === box ? top : null;
+    };
+    const measure = () => {
+      const claim = beats.parentElement;
+      const cast = split.querySelector<HTMLElement>(".about-cast__composition");
+      // (the heading's height over the paragraphs: offsets within the split, which is the
+      // positioned box both are measured in)
+      const beatsAt = offsetIn(beats, split);
+      const claimAt = claim ? offsetIn(claim, split) : null;
+      const head = beatsAt !== null && claimAt !== null ? beatsAt - claimAt : null;
+      if (head !== null && cast) {
+        split.style.setProperty("--cast-room", `${Math.max(0, split.clientHeight - head)}px`);
+        const castH = cast.offsetHeight;
+        // (the paragraphs' own run, first top to last foot — they follow one another on a phone)
+        const kids = Array.from(beats.children) as HTMLElement[];
+        const textH = kids.length
+          ? Math.max(...kids.map((c) => c.offsetTop + c.offsetHeight)) - Math.min(...kids.map((c) => c.offsetTop))
+          : 0;
+        const room = Math.max(castH, textH);
+        split.style.setProperty("--act-room", `${room}px`);
+        split.style.setProperty("--cast-shift", `${(room - castH) / 2}px`);
+        // (a phone's played act only — the transform below is built once and cannot read it)
+        textShift.set(playing ? (room - textH) / 2 : 0);
+        split.style.setProperty("--act-lift", `${splitY.get()}px`);
+      }
+      const top = offsetIn(beats, split);
+      if (top !== null) split.style.setProperty("--beats-top", `${top}px`);
     };
     measure();
     const sizes = new ResizeObserver(measure);
     sizes.observe(split);
+    // (and the paragraphs, whose type lands late, and the pair, which mounts with the phone)
+    beats.querySelectorAll<HTMLElement>(":scope > *").forEach((c) => sizes.observe(c));
+    const cast = split.querySelector<HTMLElement>(".about-cast__composition");
+    if (cast) sizes.observe(cast);
     document.fonts?.ready.then(measure);
     return () => sizes.disconnect();
-  }, []);
+  }, [playing, textShift]);
 
   /**
    * THE TITLE RESTS IN ACT ONE'S COLUMN, and the path is written from there.
@@ -1104,9 +1156,25 @@ export function AboutStudio() {
       if (!a || !b) return;
       const ra = a.getBoundingClientRect();
       const rb = b.getBoundingClientRect();
+      // (less the lift a phone's first act stands at while its paragraphs are up — see
+      // `textShift` — which is a `translate`, so the rect has it and the layout does not)
+      const lift = parseFloat(a.parentElement?.style.getPropertyValue("--act-lift") ?? "") || 0;
+      // On a phone the Talent act is set centred (the board under it is), so the word lands
+      // in the middle of its column: half of what the column has over the word's own width,
+      // measured in the heading's own type.
+      let centre = 0;
+      const h = titleBox.current;
+      if (h && window.matchMedia("(max-width: 767px)").matches) {
+        const probe = document.createElement("span");
+        probe.textContent = "Talent";
+        probe.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;white-space:nowrap;pointer-events:none;";
+        h.appendChild(probe);
+        centre = Math.max(0, (rb.width - probe.offsetWidth) / 2);
+        probe.remove();
+      }
       setLand({
-        x: rb.left - ra.left,
-        y: rb.top - ra.top,
+        x: rb.left - ra.left + centre,
+        y: rb.top - (ra.top - lift),
         vh: window.innerHeight,
       });
     };
@@ -1116,6 +1184,8 @@ export function AboutStudio() {
     const observer = new ResizeObserver(read);
     const host = claimBox.current;
     if (host) observer.observe(host);
+    // (and when the Talent column itself is laid out again — on a phone it heads the act)
+    if (talentBox.current) observer.observe(talentBox.current);
     window.addEventListener("resize", read);
     return () => {
       cancelAnimationFrame(frame);
@@ -1527,6 +1597,7 @@ export function AboutStudio() {
               shots={playing ? PHONE_SHOTS : SHOTS}
               bounds={playing ? PHONE_SHOT_BOUNDS : SHOT_BOUNDS}
               progress={p}
+              roles={CRAFT}
             />
           </m.div>
 

@@ -13,7 +13,7 @@ export default function StudioLines() {
         <g data-studio-line-group>
           <circle cx="1180" cy="560" r="440" data-studio-line="arc" />
           <line x1="0" y1="330" x2="1600" y2="330" data-studio-line />
-          <line x1="0" y1="742" x2="1600" y2="742" data-studio-line />
+          <line x1="0" y1="742" x2="1600" y2="742" data-studio-line="low" />
           <line x1="470" y1="0" x2="470" y2="1000" data-studio-line />
           <line x1="0" y1="1000" x2="1600" y2="150" data-studio-line />
         </g>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLatePoster } from "@/components/use-late-poster";
 import { useEffect, useRef } from "react";
 import { LazyVideo } from "@/components/lazy-video";
 import {
@@ -140,6 +141,8 @@ export function WorkFinale({
   progress: MotionValue<number>;
   /** The reader is within reach — mount the clip and let it buffer. */
 }) {
+  /* (its still held back from a phone's first load — see `useLatePoster`) */
+  const latePoster = useLatePoster(work.video ? work.poster : undefined);
   const reduced = useReducedMotion();
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -495,7 +498,7 @@ export function WorkFinale({
                 }}
                 className="work__finale-frame object-cover"
                 src={work.video}
-                poster={work.poster}
+                poster={latePoster}
                 tabIndex={-1}
                 onLoadedMetadata={(e) => {
                   const el = e.currentTarget;

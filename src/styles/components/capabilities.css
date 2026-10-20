@@ -23,12 +23,20 @@
 }
 
 /* --- Media frame: the window itself (grows full-bleed at the hand-off) ------ */
+/* `--caps-open` (0 → 1) is the hand-off opening the window full-bleed (scripts/capabilities.ts).
+   The timeline drives that one number and never the edges themselves, so at rest the frame is
+   always exactly the window this stylesheet defines, however tall the stage has since become —
+   the caption, the folio and the titles are laid around the same definition. */
 .caps__frame {
+  --caps-shut: calc(1 - var(--caps-open, 0));
+
   position: absolute;
-  top: var(--wt);
-  right: var(--wr);
-  bottom: var(--wb);
-  left: var(--wl);
+  /* (`--caps-to-*`: the Work chapter contracting the opened window into its first card —
+     scripts/work.ts — set only while that runs) */
+  top: var(--caps-to-top, calc(var(--wt) * var(--caps-shut)));
+  right: var(--caps-to-right, calc(var(--wr) * var(--caps-shut)));
+  bottom: var(--caps-to-bottom, calc(var(--wb) * var(--caps-shut)));
+  left: var(--caps-to-left, calc(var(--wl) * var(--caps-shut)));
   z-index: 0;
   overflow: hidden;
 }

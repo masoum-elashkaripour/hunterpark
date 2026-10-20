@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import Image, { getImageProps } from "next/image";
+import { preload } from "react-dom";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   animate,
   cubicBezier,
@@ -303,6 +304,16 @@ function Panel({
     );
   }
 
+  /* The first picture is fetched up front — but only where this stack is the one shown. The
+     server renders this branch for every screen (it cannot know a phone), so a plain `priority`
+     made each phone download a full-size frame it never shows, ahead of the page's own hero.
+     The preload carries a media query instead; the lazy <img> then finds it already cached. */
+  const desk = { src: shot.src, alt: shot.alt ?? "", fill: true, sizes: "(max-width: 1023px) 86vw, 34vw", quality: 90 } as const;
+  if (priority) {
+    const { props } = getImageProps(desk);
+    preload(props.src, { as: "image", imageSrcSet: props.srcSet, imageSizes: props.sizes, fetchPriority: "high", media: "(min-width: 768px)" });
+  }
+
   return (
     <m.div
       className="talent-stack__panel"
@@ -310,154 +321,272 @@ function Panel({
         first ? undefined : { maskImage: mask, WebkitMaskImage: mask }
       }
     >
-      <Image
-        src={shot.src}
-        alt={shot.alt ?? ""}
-        fill
-        sizes="(max-width: 1023px) 86vw, 34vw"
-        quality={90}
-        priority={priority}
-        className="talent-stack__img"
-      />
+      <Image {...desk} className="talent-stack__img" />
     </m.div>
   );
 }
 
 /**
- * ON A PHONE: A CASTING REEL. Each portrait belongs to one of the four roles listed beside it
- * (the first, to the act's title), and while the act is on screen the roles are called in
- * turn — Direction, Cinematography, Edit, Creative, and round again: the role lights (its
- * title lime, the others dimmed, a lime timer filling under it — the cards are driven from
- * here, by `data-active`, see globals.css) and the portrait cuts to its picture, in from an
- * edge as the home page's What We Do media do, the picture settling inside. A tap on a role
- * calls it at once and restarts the clock from there. Off screen the reel waits; back on, it
- * carries on.
+ * ON A PHONE: A CASTING BOARD — the home page's Work chapter's way of showing one thing at a
+ * time (a title over a single card, its neighbours at the edges, a line under it), turned to
+ * the four roles. Over the card, a slate: the take's number and the role's name, rolled in
+ * on each change. The card in front stands in a viewfinder — four lime corners that close on
+ * it as it settles — its neighbours turned a few degrees away and dimmed at the screen's
+ * edges, as prints laid out on a table. Under it, what the role covers. While the act is on screen the roles are called in turn; a swipe
+ * or a tap on a neighbour calls one at once, and so does a tap on a role elsewhere
+ * (`talent:pick`). The four role names stay in the page for a screen reader (see globals.css).
  */
-const REEL = { intro: 1.4, cut: 1.1, hold: 2.2 };
-function PhoneStack({ shots, progress, bounds }: { shots: Shot[]; progress: MotionValue<number>; bounds: number[] }) {
-  const panels = useRef<(HTMLDivElement | null)[]>([]);
+const BOARD = { intro: 1.4, hold: 4.4 };
+type Role = { title: string; line: string };
+const pad2 = (n: number) => String(n).padStart(2, "0");
+function PhoneStack({
+  shots,
+  progress,
+  bounds,
+  roles = [],
+}: {
+  shots: Shot[];
+  progress: MotionValue<number>;
+  bounds: number[];
+  roles?: Role[];
+}) {
+  // shot k + 1 is role k (the first is the act's own, shown before any role is called)
+  const cast = useMemo(() => (roles.length ? shots.slice(1, 1 + roles.length) : shots), [shots, roles.length]);
+  const n = cast.length;
+  const [state, setState] = useState({ at: 0, dir: 1, turn: 0 });
+  const cards = useRef<(HTMLDivElement | null)[]>([]);
+  const slots = useRef<number[] | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  /** A finger (or a pointer) holding the board: where it went down, and whether it has taken it. */
+  const drag = useRef<{ id: number; x: number; y: number; dx: number; held: boolean } | null>(null);
+
+  const go = useCallback(
+    (to: number, dir: number) => setState((s) => ({ at: ((to % n) + n) % n, dir, turn: s.turn + 1 })),
+    [n],
+  );
+
+  // The act knows it is a board (its list then steps aside, see globals.css), and its turn.
   useEffect(() => {
-    const els = panels.current;
-    const n = shots.length;
-    const roles = n - 1; // shot k + 1 is role k
-    if (roles < 1) return;
-    let shot = 0; // the picture in front
-    let role = -1; // the role called (-1: the title's own picture, before the first)
-    let z = n;
-    let timer = 0;
-    let run: { stop: () => void } | null = null;
     const act = rootRef.current?.closest<HTMLElement>(".talent-act");
-    const cards = () => Array.from(act?.querySelectorAll<HTMLElement>(".talent-card") ?? []);
-    act?.style.setProperty("--talent-hold", `${REEL.cut + REEL.hold}s`);
+    act?.style.setProperty("--talent-hold", `${BOARD.hold}s`);
     act?.classList.add("is-reel");
+    const onPick = (e: Event) => {
+      const r = (e as CustomEvent<number>).detail;
+      if (typeof r === "number" && r >= 0 && r < n) setState((s) => ({ at: r, dir: r >= s.at ? 1 : -1, turn: s.turn + 1 }));
+    };
+    window.addEventListener("talent:pick", onPick);
+    return () => {
+      window.removeEventListener("talent:pick", onPick);
+      act?.classList.remove("is-reel");
+    };
+  }, [n]);
+
+  /* The cards to their places. Each has a slot: 0 in front, ±1 at the edges, ±2 out of
+     sight. A card coming into sight comes in from the side the board is turning from (so
+     with four, the one that left one way is brought round, unseen, to come in the other). */
+  useEffect(() => {
+    const { at, dir } = state;
+    const want = cast.map((_, i) => {
+      let d = (((i - at) % n) + n) % n;
+      if (d > n / 2 || (d === n / 2 && dir > 0)) d -= n;
+      return Math.max(-2, Math.min(2, d));
+    });
+    const put = (el: HTMLDivElement, d: number) => {
+      el.style.setProperty("--x", String(d));
+      el.style.setProperty("--s", d === 0 ? "1" : "0.82");
+      el.style.setProperty("--r", `${Math.max(-1, Math.min(1, d)) * 4}deg`);
+      el.style.setProperty("--o", Math.abs(d) >= 2 ? "0" : d === 0 ? "1" : "0.5");
+      el.dataset.slot = d === 0 ? "on" : Math.abs(d) === 1 ? "side" : "off";
+    };
+    const before = slots.current;
+    cards.current.forEach((el, i) => {
+      if (!el) return;
+      const to = want[i];
+      const from = before?.[i];
+      const enters = from !== undefined && Math.abs(from) >= 2 && Math.abs(to) < 2;
+      if (from === undefined || (Math.abs(from) >= 2 && Math.abs(to) >= 2) || enters) {
+        el.style.transition = "none";
+        put(el, enters ? Math.max(-2, Math.min(2, to + dir)) : to);
+        void el.offsetWidth;
+        el.style.transition = "";
+      }
+      put(el, to);
+    });
+    slots.current = want;
+  }, [state, cast, n]);
+
+  // The board takes the finger only while the act is up (the stage above it takes no pointer,
+  // and the acts are stacked: hidden, it would sit over the first act's own content).
+  useEffect(() => {
+    // (and arriving in the act, from either side, the board starts again at the first role,
+    // given its whole turn — the clock keeps no time from before the reader got here)
+    let was: boolean | null = null;
+    const sync = (v: number) => {
+      const el = trackRef.current;
+      if (!el) return;
+      const on = v >= bounds[0] && v <= bounds[bounds.length - 1];
+      if (on) el.dataset.live = "";
+      else delete el.dataset.live;
+      if (on && was === false) setState((s) => ({ at: 0, dir: s.at === 0 ? 1 : -1, turn: s.turn + 1 }));
+      was = on;
+    };
+    sync(progress.get());
+    return progress.on("change", sync);
+  }, [progress, bounds]);
+
+  // Round the roles while the act is on screen.
+  useEffect(() => {
     const live = () => {
       const v = progress.get();
       return v >= bounds[0] && v <= bounds[bounds.length - 1] && !document.hidden;
     };
-    const paint = (el: HTMLDivElement, k: number, order: number) => {
-      const m = EDGES[order % EDGES.length].match(/[\d.]+/g)!.map(Number);
-      const r = 1 - k;
-      el.style.clipPath = `inset(${m[0] * r}% ${m[1] * r}% ${m[2] * r}% ${m[3] * r}%)`;
-      const inner = el.firstElementChild as HTMLElement | null;
-      if (inner) {
-        const [sx, sy] = SHIFTS[order % SHIFTS.length];
-        const e = 1 - Math.pow(1 - k, 3);
-        const sc = 1 + (SETTLE_FROM.scale - 1) * (1 - e);
-        inner.style.transform = `translate(${sx * SETTLE_FROM.shift * (1 - e)}%, ${sy * SETTLE_FROM.shift * (1 - e)}%) scale(${sc})`;
-      }
-    };
-    els.forEach((el, i) => {
-      if (!el) return;
-      el.style.zIndex = String(i === 0 ? n : 0);
-      paint(el, i === 0 ? 1 : 0, i);
-    });
-    /** Lights role `r` on the cards (none for -1), the timer starting afresh under it. */
-    const light = (r: number) => {
-      cards().forEach((c, i) => {
-        c.removeAttribute("data-active");
-        if (i === r) {
-          void c.offsetWidth; // (so the timer's animation restarts even on the same card)
-          c.setAttribute("data-active", "");
+    let timer = window.setTimeout(
+      function tick() {
+        if (!live() || drag.current?.held) {
+          timer = window.setTimeout(tick, 400);
+          return;
         }
-      });
-    };
-    const cutTo = (to: number) => {
-      if (to === shot) return;
-      const el = els[to];
-      if (!el) return;
-      run?.stop();
-      z += 1;
-      el.style.zIndex = String(z);
-      paint(el, 0, to);
-      run = animate(0, 1, { duration: REEL.cut, ease: PLAY.ease, onUpdate: (k) => paint(el, k, to) });
-      shot = to;
-    };
-    const call = (r: number) => {
-      role = r;
-      light(r);
-      cutTo(r + 1);
-      window.clearTimeout(timer);
-      timer = window.setTimeout(tick, (REEL.cut + REEL.hold) * 1000);
-    };
-    function tick() {
-      if (!live()) {
-        timer = window.setTimeout(tick, 400);
-        return;
-      }
-      call((role + 1) % roles);
-    }
-    timer = window.setTimeout(tick, REEL.intro * 1000);
-    // a tap on a role (dispatched by the cards) calls it at once
-    const onPick = (e: Event) => {
-      const r = (e as CustomEvent<number>).detail;
-      if (typeof r === "number" && r >= 0 && r < roles) call(r);
-    };
-    window.addEventListener("talent:pick", onPick);
-    return () => {
-      window.clearTimeout(timer);
-      run?.stop();
-      window.removeEventListener("talent:pick", onPick);
-      act?.classList.remove("is-reel");
-      light(-1);
-    };
-  }, [shots.length, progress, bounds]);
+        go(state.at + 1, 1);
+      },
+      (state.turn === 0 ? BOARD.intro : BOARD.hold) * 1000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [state, go, progress, bounds]);
+
+  const role = roles[state.at];
+  const tags = role ? role.line.replace(/\.$/, "").split(/,\s*/) : [];
 
   return (
-    <div className="talent-stack" aria-hidden ref={rootRef}>
-      {shots.map((shot, i) => (
-        <div
-          key={shot.src}
-          ref={(el) => {
-            panels.current[i] = el;
-          }}
-          className="talent-stack__panel talent-stack__panel--cut"
-        >
-          <div className="absolute inset-0">
+    <div className="talent-board" aria-hidden ref={rootRef}>
+      {role ? (
+        <div className="talent-board__head">
+          <p className="talent-board__slate">
+            <span className="talent-board__mask">
+              <span key={`n${state.turn}`} className="talent-board__roll" data-dir={state.dir}>
+                {pad2(state.at + 1)}
+              </span>
+            </span>
+            <span className="talent-board__rule" />
+            <span className="talent-board__total">{pad2(n)}</span>
+            <span className="talent-board__label">Casting</span>
+          </p>
+          <p className="talent-board__role">
+            <span className="talent-board__mask">
+              <span key={`r${state.turn}`} className="talent-board__roll" data-dir={state.dir}>
+                {role.title}
+              </span>
+            </span>
+          </p>
+        </div>
+      ) : null}
+
+      <div
+        className="talent-board__track"
+        ref={trackRef}
+        /* The board moves under the finger: a sideways drag carries every card with it, and on
+           letting go it turns to the next (or the last) if it was pulled a fifth of a step or
+           flicked, or settles back. An upright drag is the page's, as ever (pan-y). */
+        onPointerDown={(e) => {
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, held: false };
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current;
+          const el = trackRef.current;
+          if (!d || d.id !== e.pointerId || !el) return;
+          const dx = e.clientX - d.x;
+          const dy = e.clientY - d.y;
+          if (!d.held) {
+            if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) {
+              if (Math.abs(dy) > 12) drag.current = null; // the page's
+              return;
+            }
+            d.held = true;
+            el.setPointerCapture?.(e.pointerId);
+            el.classList.add("is-dragging");
+          }
+          d.dx = dx;
+          el.style.setProperty("--drag", `${dx}px`);
+        }}
+        onPointerUp={() => {
+          const d = drag.current;
+          const el = trackRef.current;
+          drag.current = null;
+          if (!d || !el || !d.held) return;
+          el.classList.remove("is-dragging");
+          el.style.setProperty("--drag", "0px");
+          const step = parseFloat(getComputedStyle(el.querySelector(".talent-board__card") ?? el).width) || 240;
+          if (Math.abs(d.dx) > step * 0.2) go(state.at + (d.dx < 0 ? 1 : -1), d.dx < 0 ? 1 : -1);
+          else go(state.at, 1); // (settles back, and its turn starts afresh)
+        }}
+        onPointerCancel={() => {
+          const el = trackRef.current;
+          drag.current = null;
+          el?.classList.remove("is-dragging");
+          el?.style.setProperty("--drag", "0px");
+        }}
+      >
+        {cast.map((shot, i) => (
+          <div
+            key={shot.src}
+            ref={(el) => {
+              cards.current[i] = el;
+            }}
+            className="talent-board__card"
+            onClick={() => {
+              if (trackRef.current?.classList.contains("is-dragging")) return;
+              const d = slots.current?.[i] ?? 0;
+              if (Math.abs(d) === 1) go(i, d);
+            }}
+          >
             <Image
               src={shot.src}
               alt={shot.alt ?? ""}
               fill
-              sizes="100vw"
-              quality={90}
-              priority={i === 0}
-              loading="eager"
-              className="talent-stack__img"
+              /* the card's own width on a phone, at a phone's photograph quality, and fetched
+                 behind the hero (low priority): the act is a screen or more down the page */
+              sizes="70vw"
+              quality={75}
+              fetchPriority="low"
+              draggable={false}
+              className="talent-board__img"
             />
           </div>
+        ))}
+        <span key={`f${state.turn}`} className="talent-board__finder">
+          <i />
+          <i />
+          <i />
+          <i />
+        </span>
+      </div>
+
+      {role ? (
+        <div className="talent-board__foot">
+          <p key={`g${state.turn}`} className="talent-board__tags">
+            {tags.map((t) => (
+              <span key={t}>{t}</span>
+            ))}
+          </p>
         </div>
-      ))}
+      ) : null}
     </div>
   );
 }
 
-export function TalentStack(props: {
+export function TalentStack({
+  roles,
+  ...props
+}: {
   shots: Shot[];
   bounds: number[];
   progress: MotionValue<number>;
+  /** On a phone, the roles the board calls (see `PhoneStack`). */
+  roles?: Role[];
 }) {
   const phone = usePhone();
-  return phone ? <PhoneStack {...props} /> : <DeskStack {...props} />;
+  return phone ? <PhoneStack {...props} roles={roles} /> : <DeskStack {...props} />;
 }
 
 function DeskStack({
@@ -508,7 +637,7 @@ function DeskStack({
   }, [progress, bounds, shots.length, front]);
 
   return (
-    <div className="talent-stack" aria-hidden>
+    <div className="talent-stack talent-stack--desk" aria-hidden>
       {shots.map((shot, i) => (
         <Panel
           key={shot.src}
