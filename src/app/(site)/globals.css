@@ -3667,12 +3667,24 @@ html[data-logo-handoff] .site-header__logo {
     position: absolute;
     top: var(--beats-top, 50%);
     right: 0;
-    bottom: 0;
     left: 0;
-    /* the pair stands in the middle of that room, not hung from its top over an empty foot */
+    /* sized to the room under the heading (measured, see about-studio.tsx), and the pair laid
+       at the head of it, then lowered into the middle of the act's room */
+    height: var(--cast-room, auto);
+    bottom: auto;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
+  }
+  .about-cast__composition {
+    translate: 0 var(--cast-shift, 0px);
+  }
+  /* the act holds the founders' height as well as the paragraphs' (the paragraphs at the head
+     of it, under the line over them), so the block is centred at the founders' state; the
+     paragraphs' state is lowered into the middle by the act itself (`textShift` in
+     about-studio.tsx) */
+  .about-studio__beats {
+    min-height: var(--act-room, 0px);
   }
   .about-cast__composition {
     /* two frames 48% wide, the second 12% of a frame lower, and a band for the captions over
@@ -6625,6 +6637,11 @@ html[data-logo-handoff] .site-header__logo {
    called in turn: the called one stands out — its title lime, its tags clear, a lime timer
    filling under it for its turn — and the others step back. A tap calls any of them. */
 @media (max-width: 767px) {
+  /* The desktop stack is in the server's HTML on every screen until hydration swaps in the
+     reel; its lazy pictures, left displayed, were fetched at full quality on every phone. */
+  .talent-stack--desk .talent-stack__img {
+    display: none;
+  }
   .talent-act.is-reel .talent-card {
     position: relative;
     cursor: pointer;
@@ -6661,6 +6678,258 @@ html[data-logo-handoff] .site-header__logo {
     animation: talent-turn var(--talent-hold, 3.3s) linear both;
   }
 }
+/* Talent on a phone: THE CASTING BOARD (see `PhoneStack` in talent-stack.tsx). The act is
+   turned over — the title and its line at the head, the board under them taking every pixel
+   left: a slate (take number, role) over one card at a time, its neighbours at the screen's
+   edges, and what the role covers under it. The list of roles steps aside for it (kept for a
+   screen reader, the board itself being a picture of it). */
+@media (max-width: 767px) {
+  .talent-act {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .talent-act__body {
+    order: -1;
+    /* centred, as the board under it is (the title lands centred too — see about-studio.tsx) */
+    text-align: center;
+  }
+  .talent-act__line {
+    margin-inline: auto;
+  }
+  .talent-act.is-reel .talent-act__list {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .talent-board {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(0.6rem, 1.8svh, 1rem);
+    width: 100%;
+    height: 100%;
+    /* a breath between the act's line and the slate */
+    padding-top: clamp(0.4rem, 1.6svh, 1.1rem);
+    text-align: center;
+  }
+  .talent-board__slate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6em;
+    margin: 0;
+    font-family: var(--hp-font-secondary);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--hp-lime);
+  }
+  .talent-board__rule {
+    width: 1.75rem;
+    height: 1px;
+    background: color-mix(in srgb, var(--hp-off-white) 45%, transparent);
+  }
+  .talent-board__total {
+    color: var(--hp-lime);
+  }
+  .talent-board__label {
+    margin-left: 0.35em;
+    color: color-mix(in srgb, var(--hp-off-white) 60%, transparent);
+  }
+  .talent-board__role {
+    margin: 0.35rem 0 0;
+    font-family: var(--hp-font-primary);
+    font-weight: 900;
+    /* a step under the act's title, and the longest role (CINEMATOGRAPHY, about 11 of its em
+       wide) still inside the column */
+    font-size: min(1.5rem, calc((100vw - 2 * var(--hp-gutter)) / 11.6));
+    line-height: 1;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: var(--hp-off-white);
+  }
+  /* a name (or a number) rolls up into its mask — down, when the board turns back */
+  .talent-board__mask {
+    display: inline-block;
+    overflow: hidden;
+    padding-block: 0.06em;
+    vertical-align: bottom;
+  }
+  .talent-board__roll {
+    display: inline-block;
+    animation: talent-roll 0.75s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+  .talent-board__roll[data-dir="-1"] {
+    animation-name: talent-roll-back;
+  }
+
+  .talent-board__track {
+    --w: min(71cqw, 79cqh);
+    --step: calc(var(--w) * 0.91 + 0.9rem);
+    position: relative;
+    min-height: 0;
+    /* out to the screen's edges, where the neighbours are cut off */
+    margin-inline: calc(-1 * var(--hp-gutter));
+    overflow-x: clip;
+    container-type: size;
+    touch-action: pan-y;
+  }
+  .talent-board__card {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: var(--w);
+    overflow: hidden;
+    background: var(--hp-night);
+    box-shadow: 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.7);
+    opacity: var(--o, 0);
+    /* (`--drag`: the finger's pull, while it holds the board) */
+    transform: translateX(calc(-50% + var(--x, 0) * var(--step) + var(--drag, 0px))) rotate(var(--r, 0deg))
+      scale(var(--s, 1));
+    transition:
+      transform 0.95s cubic-bezier(0.65, 0, 0.35, 1),
+      opacity 0.6s var(--hp-ease-out),
+      filter 0.6s var(--hp-ease-out);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .talent-board__track.is-dragging .talent-board__card {
+    transition: none;
+  }
+  .talent-board__track {
+    cursor: grab;
+    user-select: none;
+  }
+  .talent-board__track[data-live] {
+    pointer-events: auto;
+  }
+  .talent-board__track.is-dragging {
+    cursor: grabbing;
+  }
+  .talent-board__card[data-slot="side"] {
+    filter: grayscale(0.7) brightness(0.65);
+    cursor: pointer;
+  }
+  .talent-board__img {
+    object-fit: cover;
+    object-position: 50% 30%;
+  }
+  /* the card in front leans in slowly over its turn */
+  .talent-board__card[data-slot="on"] .talent-board__img {
+    animation: talent-push var(--talent-hold, 3.4s) linear both;
+  }
+  /* the viewfinder: four lime corners closing on the card in front as it settles */
+  .talent-board__finder {
+    position: absolute;
+    top: -0.45rem;
+    bottom: -0.45rem;
+    left: 50%;
+    width: calc(var(--w) + 0.9rem);
+    translate: -50% 0;
+    pointer-events: none;
+    animation: talent-finder 0.8s cubic-bezier(0.19, 1, 0.22, 1) 0.45s both;
+  }
+  .talent-board__finder i {
+    position: absolute;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 0 solid var(--hp-lime);
+  }
+  .talent-board__finder i:nth-child(1) {
+    top: 0;
+    left: 0;
+    border-top-width: 2px;
+    border-left-width: 2px;
+  }
+  .talent-board__finder i:nth-child(2) {
+    top: 0;
+    right: 0;
+    border-top-width: 2px;
+    border-right-width: 2px;
+  }
+  .talent-board__finder i:nth-child(3) {
+    bottom: 0;
+    left: 0;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+  }
+  .talent-board__finder i:nth-child(4) {
+    right: 0;
+    bottom: 0;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+  }
+
+  .talent-board__foot {
+    display: grid;
+    justify-items: center;
+    gap: 0.55rem;
+  }
+  .talent-board__tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.2rem 0.55em;
+    margin: 0;
+    font-family: var(--hp-font-secondary);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: color-mix(in srgb, var(--hp-off-white) 72%, transparent);
+    animation: talent-tags 0.6s var(--hp-ease-out) 0.2s both;
+  }
+  .talent-board__tags span:not(:last-child)::after {
+    content: "·";
+    margin-left: 0.55em;
+    color: var(--hp-lime);
+  }
+}
+@keyframes talent-roll {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes talent-roll-back {
+  from {
+    transform: translateY(-105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes talent-push {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.07);
+  }
+}
+@keyframes talent-finder {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes talent-tags {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 @keyframes talent-turn {
   from {
     transform: scaleX(0);
@@ -6692,6 +6961,8 @@ html[data-logo-handoff] .site-header__logo {
   .about-studio__split {
     grid-template-rows: auto;
     align-content: center;
+    /* the paragraphs' state lowered into the middle, gliding up as the founders arrive */
+    translate: 0 var(--act-lift, 0px);
   }
 }
 

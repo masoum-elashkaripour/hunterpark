@@ -96,6 +96,42 @@ export function initFilm(): void {
     });
   }
 
+  // THE WINDOWS ARE MEASURED, so they are re-measured when what they are measured from changes.
+  // Every frame the film moves through — the What We Do window the stills sit in, the box the
+  // WHO WE ARE film shrinks into, the pair under the story — is read off the layout as a share
+  // of its stage when the film is built, and only a ScrollTrigger refresh reads it again. A
+  // phone's refresh is skipped for a change of height alone (the browser's bars), so a stage
+  // that came out another height after the build (the bars settling on load, a rotation and
+  // back, the story's type reflowing) kept the old shares: the pictures landed in a frame
+  // shorter or longer than the one the caption, the folio and the titles are laid around.
+  // Watched here, and refreshed once the page is at rest.
+  {
+    const boxes = [".caps__stage", "[data-studio-stage]", ".studio__story", "[data-caps-list]"]
+      .map((q) => film.querySelector<HTMLElement>(q))
+      .filter((el): el is HTMLElement => !!el);
+    const seen = new Map<Element, string>();
+    let wait = 0;
+    let lastScroll = 0;
+    window.addEventListener("scroll", () => (lastScroll = performance.now()), { passive: true });
+    const whenAtRest = () => {
+      window.clearTimeout(wait);
+      wait = window.setTimeout(() => {
+        if (performance.now() - lastScroll < 300 || lenis?.isLocked) whenAtRest();
+        else ScrollTrigger.refresh();
+      }, 300);
+    };
+    const sizes = new ResizeObserver((entries) => {
+      let changed = false;
+      for (const e of entries) {
+        const size = `${Math.round(e.contentRect.width)}x${Math.round(e.contentRect.height)}`;
+        if (seen.has(e.target) && seen.get(e.target) !== size) changed = true;
+        seen.set(e.target, size);
+      }
+      if (changed) whenAtRest();
+    });
+    boxes.forEach((el) => sizes.observe(el));
+  }
+
   // What We Do's capabilities are STEPS, not a scrub to work through: each was 0.78 of a screen
   // of scroll (5.6 screens over five), so a wheel flick or a swipe moved a change only a third
   // of the way and took two or three to finish one. Here one gesture is one step — on the film's

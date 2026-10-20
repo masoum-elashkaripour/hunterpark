@@ -144,6 +144,14 @@ html.hp-motion .studio-lines {
   opacity: 0.16;
 }
 
+/* On a phone the lower horizontal runs straight across the pair of films under the story,
+   a stray rule over the pictures — so it is not drawn there */
+@media (max-width: 767px) {
+  .studio-lines__svg [data-studio-line="low"] {
+    visibility: hidden;
+  }
+}
+
 /* Barely-there light, not neon: a wide low-alpha lime bloom */
 .studio-lines__glow {
   position: absolute;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLatePoster } from "@/components/use-late-poster";
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { LazyVideo } from "@/components/lazy-video";
@@ -117,6 +118,8 @@ export function AboutFinale({
   /** The footer's beat. Only used to take this layer back off the screen. */
   progress: MotionValue<number>;
 }) {
+  /* (its still held back from a phone's first load — see `useLatePoster`) */
+  const latePoster = useLatePoster(video ? src : undefined);
   const reduced = useReducedMotion();
 
   const clip = useMotionValue("inset(0px)");
@@ -510,7 +513,7 @@ export function AboutFinale({
                 }}
                 className="work__finale-frame object-cover"
                 src={video}
-                poster={src}
+                poster={latePoster}
                 /* The cover arithmetic needs the clip's real shape, the same way
                  the still path reads it off the file. */
                 onLoadedMetadata={(e) => {

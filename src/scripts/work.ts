@@ -760,8 +760,21 @@ export function workTimeline(): WorkBeat | null {
   if (underneath) tl.fromTo(underneath, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.001, immediateRender: false }, at(m.morph.start));
 
   // 2 · The capability window contracts into project 01's card, the shade lifting off it
-  tl.fromTo(
-    frame,
+  //   (through custom properties the stylesheet reads, never the edges themselves: a tween on
+  //   `top`/`bottom` left its values inline as fixed pixels after every refresh, which then
+  //   overrode the window the stylesheet defines — the What We Do pictures sat in a frame of
+  //   the height the page had when it was measured, not the one the caption stands in. See
+  //   `--caps-to-*` in capabilities.css.)
+  const morph = { top: 0, right: 0, bottom: 0, left: 0 };
+  const EDGES = ["top", "right", "bottom", "left"] as const;
+  // (written from where the tween really stands, not from its callbacks alone: a refresh
+  // renders the film through and back with events held, which left the props at its start)
+  const syncMorph = () => {
+    if (contract.progress() > 0) EDGES.forEach((k) => frame.style.setProperty(`--caps-to-${k}`, `${morph[k]}px`));
+    else EDGES.forEach((k) => frame.style.removeProperty(`--caps-to-${k}`));
+  };
+  const contract = gsap.fromTo(
+    morph,
     { top: 0, right: 0, bottom: 0, left: 0 },
     {
       top: () => frontRect().top,
@@ -771,9 +784,13 @@ export function workTimeline(): WorkBeat | null {
       duration: dur(m.morph.start, m.morph.end - m.morph.start),
       ease: m.morph.ease,
       immediateRender: false,
+      paused: true,
+      onUpdate: () => syncMorph(),
+      onReverseComplete: () => syncMorph(),
     },
-    at(m.morph.start),
-  ).to(caps.querySelector("[data-caps-shade]"), { opacity: 0, duration: dur(m.morph.start, (m.morph.end - m.morph.start) * 0.6) }, at(m.morph.start));
+  );
+  ScrollTrigger.addEventListener("refresh", syncMorph);
+  tl.add(contract.paused(false), at(m.morph.start)).to(caps.querySelector("[data-caps-shade]"), { opacity: 0, duration: dur(m.morph.start, (m.morph.end - m.morph.start) * 0.6) }, at(m.morph.start));
 
   // 5 · The call to action: the headline comes forward out of depth behind the opening card —
   //     MAKE SOMETHING a word at a time, then TOGETHER. a letter at a time from further back,

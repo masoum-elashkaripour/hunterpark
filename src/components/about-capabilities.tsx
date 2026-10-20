@@ -1,5 +1,6 @@
 "use client";
 
+import { useLatePoster } from "@/components/use-late-poster";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import {
@@ -118,6 +119,9 @@ const EASE = cubicBezier(0.62, 0, 0.3, 1);
  */
 const TITLE: [number, number] = [0, 1];
 const LINE: [number, number] = [0.72, 1];
+
+/** On a phone, the seconds a step's words take to arrive — see the played steps below. */
+const WORDS_PLAY = 2.4;
 
 /**
  * How much longer a step's words run than their own height.
@@ -293,6 +297,8 @@ function Step({
   /** The one the closing sequence takes to fullscreen. */
   last: boolean;
 }) {
+  /* (its still held back from a phone's first load — see `useLatePoster`) */
+  const latePoster = useLatePoster(item.video ? item.src : undefined);
   /**
    * The picture is BORN AT A CORNER and grows out of it.
    *
@@ -359,7 +365,7 @@ function Step({
               data-about-finale-video={last ? "" : undefined}
               className="stair__img"
               src={item.video}
-              poster={item.src}
+              poster={latePoster}
             />
           ) : (
             <Image
@@ -572,12 +578,21 @@ export function AboutCapabilities() {
           const len = route?.img[i]?.len ?? view * 1.5;
           const full = Math.min(PLAY_MAX_SECONDS, (len / view) * PLAY_SECONDS_PER_SCREEN);
           runs[i]?.forEach((r) => r.stop());
-          runs[i] = [reveals[i], texts[i]].map((v) =>
-            animate(v, to, {
-              duration: Math.abs(to - v.get()) * full,
+          /* The picture opens over its own segment, as the scroll gave it; the WORDS get a pace
+             of their own — on the clock the segment came to a second or so, and the title's
+             letters, sorting themselves over all of it, were gone before they could be seen
+             doing it. So the title starts once the picture is a third open, and takes
+             `WORDS_PLAY`; going back out, both simply unwind at the picture's pace. */
+          const words = texts[i];
+          const fresh = to === 1 && words.get() < 0.05;
+          runs[i] = [
+            animate(reveals[i], to, { duration: Math.abs(to - reveals[i].get()) * full, ease: "linear" }),
+            animate(words, to, {
+              duration: Math.abs(to - words.get()) * (to === 1 ? Math.max(WORDS_PLAY, full) : full),
               ease: "linear",
+              delay: fresh ? full * 0.35 : 0,
             }),
-          );
+          ];
         });
       },
       { rootMargin: "0px 0px -25% 0px" },

@@ -536,6 +536,15 @@ const PHOTOS: Work[] = (
       poster: "/photo/iris-avi.jpg",
     },
     {
+      /* a dancer in body paint on a dark, wet stage — the stills to the ballet film */
+      slug: "andrea-miller-stills",
+      client: "NYC Ballet",
+      title: "Lincoln Center — Stills",
+      category: "Culture",
+      year: 2020,
+      poster: "/photo/babarinde-tosin.jpg",
+    },
+    {
       slug: "scotch-soda-better-together-stills",
       client: "Scotch & Soda",
       title: "Better Together — Stills",

@@ -1,7 +1,7 @@
 import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { chapterIndicatorTo } from "./chapter-indicator";
 import { frameSubject, win, STUDIO_MOTION } from "./studio";
-import { capsWindow, type CapsWindow } from "./caps-window";
 
 /**
  * What We Do — the capabilities beat of the homepage film. Tune here.
@@ -27,12 +27,6 @@ export const CAPS_MOTION = {
 // The edge each capability's media takes the window from — varied, so the rhythm isn't a loop
 const EDGES = ["inset(0% 0% 100% 0%)", "inset(0% 0% 0% 100%)", "inset(100% 0% 0% 0%)", "inset(0% 100% 0% 0%)", "inset(0% 0% 100% 0%)"];
 const SHIFTS = [[0, -1], [1, 0], [0, 1], [-1, 0], [0, -1]]; // matching direction of travel
-
-const cssVar = (el: HTMLElement, name: string) => getComputedStyle(el).getPropertyValue(name).trim() || "0%";
-const edge = (side: keyof CapsWindow, name: string) => {
-  const box = capsWindow();
-  return box ? `${box[side]}%` : cssVar(document.querySelector<HTMLElement>(".caps") ?? document.body, name);
-};
 
 export interface CapabilitiesBeat {
   timeline: gsap.core.Timeline;
@@ -167,21 +161,25 @@ export function capabilitiesTimeline(): CapabilitiesBeat | null {
 
   // 3 · Hand-off: the titles lift away, the window grows full-bleed, Chapter 03 is announced
   const h = m.handoff;
+  const opening = { v: 0 };
+  // (and written again after every refresh: a refresh renders the film through and back with
+  // its callbacks held, which would otherwise leave the window as the last update left it)
+  const writeOpening = () => frame.style.setProperty("--caps-open", opening.v.toFixed(4));
+  ScrollTrigger.addEventListener("refresh", writeOpening);
   const span = h.end - h.start;
   tl.to(one("[data-caps-list]"), { yPercent: -12, autoAlpha: 0, duration: span * 0.6, ease: "power2.in" }, h.start)
     .to(one("[data-caps-caption]"), { autoAlpha: 0, duration: span * 0.3 }, h.start)
     .to(one("[data-caps-folio]"), { autoAlpha: 0, duration: span * 0.3 }, h.start)
+    // The window opens full-bleed by one number the stylesheet's edges are multiplied by
+    // (`--caps-open` in capabilities.css), so the resting window is never a copy taken when
+    // this was built — a stage that has changed height since cannot leave the pictures in a
+    // frame other than the one the caption and the titles stand around
+    // (a plain number written out by hand: handed the custom property itself, GSAP's CSS
+    // handling pinned the frame's edges inline at 0 — the very copy this is here to avoid)
     .fromTo(
-      frame,
-      // The resting window, resolved off the stylesheet (a phone's foot is a calc() — see
-      // caps-window.ts); the raw custom property only if the stage cannot be measured
-      {
-        top: () => edge("top", "--wt"),
-        right: () => edge("right", "--wr"),
-        bottom: () => edge("bottom", "--wb"),
-        left: () => edge("left", "--wl"),
-      },
-      { top: "0%", right: "0%", bottom: "0%", left: "0%", duration: span, ease: "power3.inOut", immediateRender: false },
+      opening,
+      { v: 0 },
+      { v: 1, duration: span, ease: "power3.inOut", immediateRender: false, onUpdate: writeOpening },
       h.start,
     )
     .add(chapterIndicatorTo(2, 0.05), h.chapterAt)

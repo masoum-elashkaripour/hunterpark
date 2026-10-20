@@ -342,7 +342,10 @@ declare global {
 }
 
 // The interactions browsers accept as permission to play sound (scrolling and the wheel don't)
-const UNLOCK_EVENTS = ["pointerdown", "pointerup", "mousedown", "touchend", "keydown", "click"] as const;
+// (touchstart too: the very first touch of a page — even one that becomes a scroll — is the
+// earliest moment a phone may let the piece carry on after a page load; where the browser does
+// not count it, the touchend or tap after it does)
+const UNLOCK_EVENTS = ["touchstart", "pointerdown", "pointerup", "mousedown", "touchend", "keydown", "click"] as const;
 
 /**
  * `immediate`: the page has no preloader to wait for (the inner pages) — the piece may begin at
