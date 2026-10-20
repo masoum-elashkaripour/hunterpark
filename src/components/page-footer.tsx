@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMotionValue } from "motion/react";
 import { SiteFooter } from "@/components/site-footer";
 import {
-  PLAY_SECONDS_PER_SCREEN,
+  FOOTER_SECONDS,
   carryTo,
   usePlayMode,
 } from "@/components/use-beat";
@@ -137,11 +137,10 @@ export function PageFooter({
       const vh = window.innerHeight;
       const start = playStart();
       const end = doc.top + doc.height - vh;
-      const seconds = (d: number) => (d / vh) * PLAY_SECONDS_PER_SCREEN;
       if (prev <= start + SLACK && y > start + SLACK && y < end) {
-        carryTo(end, seconds(end - y), true);
+        carryTo(end, FOOTER_SECONDS, true);
       } else if (prev >= end - SLACK && y < end - SLACK && y > start) {
-        carryTo(start - 2, seconds(y - start), true);
+        carryTo(start - 2, FOOTER_SECONDS, true);
       }
     };
     window.addEventListener("scroll", carry, { passive: true });

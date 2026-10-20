@@ -314,6 +314,14 @@ export const PLAY_QUERY =
 /** Seconds of play per screen of the scroll it replaces — a touch quicker than the
     scroll's own second, so a phone's played stretches feel brisk rather than slow. */
 export const PLAY_SECONDS_PER_SCREEN = 0.8;
+/**
+ * ON A PHONE every page closes the same way, at the same pace: the way into (and back out of)
+ * the closing call to action is one CTA_SECONDS move, eased; the way into (and back off) the
+ * footer one FOOTER_SECONDS move at an even pace (the footer is scrubbed by it). The same on
+ * the home page, /about, /work, /contact and /news, whatever the length of each page's run.
+ */
+export const CTA_SECONDS = 2.8;
+export const FOOTER_SECONDS = 2;
 /** And no played stretch runs longer than this, whatever its length in screens: the
     long ones go faster to fit, the short ones keep their natural pace. */
 export const PLAY_MAX_SECONDS = 3;

@@ -15,6 +15,11 @@ gsap.registerPlugin(ScrollTrigger);
  * one pinned stage and played as a single scrubbed timeline, so each beat's last frame
  * is literally the next one's first. Beat lengths are in viewport heights.
  */
+/** The closing's pace on a phone — the same on every page (see `CTA_SECONDS` and
+    `FOOTER_SECONDS` in components/use-beat.ts, which the inner pages use). */
+const CTA_S = 2.8;
+const FOOTER_S = 2;
+
 export const FILM = {
   beats: { heroToStudio: 1.5, studio: 3.0, capabilities: 5.6, work: 15.5, footer: 4.5 },
   // Coupled directly to scroll (Lenis already smooths the scroll itself): motion stops the
@@ -310,13 +315,11 @@ export function initFilm(): void {
       // call to action standing whole — ONE brisk move through the finale opening out, not a
       // slow step to the hold's end and then the finale's own long carry after it
       wb.setSliderEnd(() => {
-        const from = window.scrollY;
         const to = yAt(workAt + workLen);
-        const screens = Math.abs(to - from) / window.innerHeight;
         exiting = true;
         lenis!.scrollTo(to, {
-          duration: Math.min(1.8, Math.max(1.1, screens * 0.45)),
-          easing: (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
+          duration: CTA_S,
+          easing: (t) => -(Math.cos(Math.PI * t) - 1) / 2,
           lock: true,
           force: true,
           onComplete: () => {
@@ -364,7 +367,9 @@ export function initFilm(): void {
   if (lenis && matchMedia("(max-width: 767px) and (prefers-reduced-motion: no-preference)").matches) {
     const studioRest = studioAt + b.studio * (STUDIO_MOTION.story.emphasisAt + 0.02);
     /** [from, to, seconds per screen] on the film's own clock. */
-    const runs: [number, number, number, number?][] = [[0, studioRest, 1.4]];
+    /** [from, to, seconds per screen, where the way back lands?, fixed { seconds, eased }?] */
+    type Run = [number, number, number, number?, { secs: number; eased: boolean }?];
+    const runs: Run[] = [[0, studioRest, 1.4]];
     // …the story film's zoom to the full frame, WHAT WE DO, and the film settling into the
     // capability window with the first capability lit (the end of its `settle`)
     if (capsBeat) runs.push([studioRest, capsAt + CAPS_MOTION.settle.end * capsLen + 0.02, 1.4]);
@@ -378,19 +383,22 @@ export function initFilm(): void {
     }
     // (and on the way back up from the footer, the call to action builds itself again, as it
     // did on the way down, rather than standing there whole as the footer slides off it)
-    let footerRun: [number, number, number, number?] | null = null;
+    let footerRun: Run | null = null;
     let ctaReplay = 0; // seconds: the call to action's share of its carry on the way down
     if (workBeat && footerBeat) {
       const finaleAt = workAt + workLen * workBeat.at(WORK_MOTION.finale.expand[0]);
-      footerRun = [workAt + workLen, total, 1];
+      // (the closing's pace, the same on every page — `CTA_SECONDS`/`FOOTER_SECONDS` in
+      // components/use-beat.ts: the call to action eased over 2.8s, the footer even over 2s)
+      footerRun = [workAt + workLen, total, 1, undefined, { secs: FOOTER_S, eased: false }];
       // (on the phone slider, coming back up from the call to action lands on the slider's own
       // resting point, live — not on the stop past it, where the finale stood and took no swipe)
       const back = workBeat.slides.length ? workAt + workLen * workBeat.slides[0] : undefined;
-      runs.push([finaleAt, workAt + workLen, 1, back], footerRun);
+      runs.push([finaleAt, workAt + workLen, 1, back, { secs: CTA_S, eased: true }], footerRun);
       const screens = workAt + workLen - finaleAt; // (the film's clock runs in screens)
       const F = WORK_MOTION.finale;
       const share = (workBeat.at(F.action[1]) - workBeat.at(F.words.start)) / (1 - workBeat.at(F.expand[0]));
-      ctaReplay = Math.max(1.4, Math.min(3, screens * 0.8) * share);
+      void screens;
+      ctaReplay = Math.max(1.2, CTA_S * share * 1.4);
     }
     const yAt = (time: number) => {
       const st = master.scrollTrigger!;
@@ -399,14 +407,17 @@ export function initFilm(): void {
     const SLACK = 12;
     let lastY = window.scrollY;
     let carrying = false;
-    const carry = (from: number, to: number, pace: number, then?: () => void) => {
+    // (a soft sine in-out: the closing's slow start and slow settle)
+    const inOut = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
+    const carry = (from: number, to: number, pace: number, then?: () => void, fixed?: Run[4]) => {
       const st = master.scrollTrigger!;
       const screens = (Math.abs(to - from) / (st.end - st.start)) * total;
       carrying = true;
-      // a second a screen at the stretch's pace, 20% brisker on a phone, and never over 3s
+      // a second a screen at the stretch's pace, 20% brisker on a phone, and never over 3s —
+      // or, for the closing, the fixed time every page shares
       lenis!.scrollTo(to, {
-        duration: Math.min(3, screens * pace * 0.8),
-        easing: (t) => t,
+        duration: fixed ? fixed.secs : Math.min(3, screens * pace * 0.8),
+        easing: fixed?.eased ? inOut : (t) => t,
         lock: true,
         force: true,
         onComplete: () => {
@@ -427,16 +438,16 @@ export function initFilm(): void {
       if (!carrying && Math.abs(y - prev) > 0.5) workBeat?.settleCta();
       const crossed = (at: number, down: boolean) => (down ? prev <= at && y > at : prev >= at && y < at);
       for (const run of runs) {
-        const [from, to, pace, back] = run;
+        const [from, to, pace, back, fixed] = run;
         const a = yAt(from);
         const z = yAt(to);
-        if (crossed(a + SLACK, true) && y < z) return carry(y, z, pace);
+        if (crossed(a + SLACK, true) && y < z) return carry(y, z, pace, undefined, fixed);
         if (crossed(z - SLACK, false) && y > a) {
           if (run === footerRun && workBeat) {
             workBeat.hideCta();
-            return carry(y, a - 2, pace, () => workBeat.replayCta(ctaReplay));
+            return carry(y, a - 2, pace, () => workBeat.replayCta(ctaReplay), fixed);
           }
-          return carry(y, back !== undefined ? yAt(back) - 2 : a > 0 ? a - 2 : 0, pace);
+          return carry(y, back !== undefined ? yAt(back) - 2 : a > 0 ? a - 2 : 0, pace, undefined, fixed);
         }
       }
     });

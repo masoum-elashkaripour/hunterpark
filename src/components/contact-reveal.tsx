@@ -12,12 +12,14 @@ import {
 } from "motion/react";
 import {
   PLAY_SECONDS_PER_SCREEN,
+  FOOTER_SECONDS,
   carryTo,
   useBeat,
   usePlayMode,
 } from "@/components/use-beat";
 import { ContactForm } from "@/components/contact-form";
 import { ScrollChars } from "@/components/scroll-chars";
+import { getLenis } from "@/components/smooth-scroll";
 import { ContactMap } from "@/components/contact-map";
 import {
   InstagramIcon,
@@ -217,6 +219,19 @@ export function ContactReveal() {
    * through the exit to the footer, and the first one back carries to the panel.
    */
   const playing = usePlayMode();
+  /* ON A PHONE the page always opens on its hero. Left to the browser, a reload or a return
+     with Back restored the scroll to where the reader had been — on the form — and the hero
+     and its opening were skipped, the page landing straight on the second section. */
+  useEffect(() => {
+    if (!playing || !("scrollRestoration" in history)) return;
+    const was = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+    getLenis()?.scrollTo(0, { immediate: true, force: true });
+    return () => {
+      history.scrollRestoration = was;
+    };
+  }, [playing]);
   useEffect(() => {
     if (!playing || reduced) return;
     const SLACK = 12;
@@ -230,9 +245,10 @@ export function ContactReveal() {
     const footY = () => document.documentElement.scrollHeight - window.innerHeight;
     let busy = 0;
     const seconds = (d: number) => (d / window.innerHeight) * PLAY_SECONDS_PER_SCREEN;
-    const run = (to: number, d: number) => {
-      busy = window.setTimeout(() => (busy = 0), Math.min(3, seconds(d)) * 1000 + 120);
-      carryTo(to, seconds(d), true);
+    const run = (to: number, d: number, fixed?: number) => {
+      const secs = fixed ?? Math.min(3, seconds(d));
+      busy = window.setTimeout(() => (busy = 0), secs * 1000 + 120);
+      carryTo(to, secs, true);
     };
     const onScroll = () => {
       const y = window.scrollY;
@@ -245,9 +261,9 @@ export function ContactReveal() {
       if (prev <= SLACK && y > SLACK && y < anchor) run(anchor, anchor - y);
       else if (prev >= anchor - SLACK && y < anchor - SLACK && y > 0) run(0, y);
       // (the page itself moving on past the panel — a wheel, a fling that got through)
-      else if (prev <= anchor + SLACK && y > anchor + SLACK && y < foot) run(foot, foot - y);
+      else if (prev <= anchor + SLACK && y > anchor + SLACK && y < foot) run(foot, foot - y, FOOTER_SECONDS);
       // …and off the footer's foot, back to the panel standing whole
-      else if (prev >= foot - SLACK && y < foot - SLACK && y > anchor + SLACK) run(anchor, y - anchor);
+      else if (prev >= foot - SLACK && y < foot - SLACK && y > anchor + SLACK) run(anchor, y - anchor, FOOTER_SECONDS);
     };
     /* THE WAY ON FROM THE PANEL IS TAKEN ON INTENT, not on the page crossing a line. The panel
        scrolls inside itself, so the page's own scroll there is whatever the inner scroller lets
@@ -279,11 +295,11 @@ export function ContactReveal() {
       if (dy > 0 && atFoot && y >= anchor - SLACK && y < foot - SLACK) {
         decided = true;
         if (e.cancelable) e.preventDefault();
-        run(foot, foot - y);
+        run(foot, foot - y, FOOTER_SECONDS);
       } else if (dy < 0 && y > anchor + SLACK) {
         decided = true;
         if (e.cancelable) e.preventDefault();
-        run(anchor, y - anchor);
+        run(anchor, y - anchor, FOOTER_SECONDS);
       }
     };
     window.addEventListener("scroll", onScroll, { passive: true });

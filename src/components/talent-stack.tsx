@@ -324,24 +324,33 @@ function Panel({
 }
 
 /**
- * ON A PHONE: a SLIDESHOW. The act stands on screen for a swipe or two, far too short for the
- * portraits to be tied to the cards arriving (they were still turning after the act had gone).
- * So while the act is on screen the portraits take turns on their own clock, round and round:
- * each one cut in from an edge — top, right, bottom, left in turn — over the one before (which
- * stays put beneath it), the picture inside settling from a slight zoom and offset, then left
- * whole for a moment before the next. Off screen the clock stops; back on, it carries on.
+ * ON A PHONE: A CASTING REEL. Each portrait belongs to one of the four roles listed beside it
+ * (the first, to the act's title), and while the act is on screen the roles are called in
+ * turn — Direction, Cinematography, Edit, Creative, and round again: the role lights (its
+ * title lime, the others dimmed, a lime timer filling under it — the cards are driven from
+ * here, by `data-active`, see globals.css) and the portrait cuts to its picture, in from an
+ * edge as the home page's What We Do media do, the picture settling inside. A tap on a role
+ * calls it at once and restarts the clock from there. Off screen the reel waits; back on, it
+ * carries on.
  */
-const SHOW = { cut: 1.3, hold: 1.7 };
+const REEL = { intro: 1.4, cut: 1.1, hold: 2.2 };
 function PhoneStack({ shots, progress, bounds }: { shots: Shot[]; progress: MotionValue<number>; bounds: number[] }) {
   const panels = useRef<(HTMLDivElement | null)[]>([]);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const els = panels.current;
     const n = shots.length;
-    if (n < 2) return;
-    let cur = 0;
+    const roles = n - 1; // shot k + 1 is role k
+    if (roles < 1) return;
+    let shot = 0; // the picture in front
+    let role = -1; // the role called (-1: the title's own picture, before the first)
     let z = n;
     let timer = 0;
     let run: { stop: () => void } | null = null;
+    const act = rootRef.current?.closest<HTMLElement>(".talent-act");
+    const cards = () => Array.from(act?.querySelectorAll<HTMLElement>(".talent-card") ?? []);
+    act?.style.setProperty("--talent-hold", `${REEL.cut + REEL.hold}s`);
+    act?.classList.add("is-reel");
     const live = () => {
       const v = progress.get();
       return v >= bounds[0] && v <= bounds[bounds.length - 1] && !document.hidden;
@@ -358,40 +367,64 @@ function PhoneStack({ shots, progress, bounds }: { shots: Shot[]; progress: Moti
         inner.style.transform = `translate(${sx * SETTLE_FROM.shift * (1 - e)}%, ${sy * SETTLE_FROM.shift * (1 - e)}%) scale(${sc})`;
       }
     };
-    // the first standing, whole; the rest waiting, shut
     els.forEach((el, i) => {
       if (!el) return;
       el.style.zIndex = String(i === 0 ? n : 0);
       paint(el, i === 0 ? 1 : 0, i);
     });
-    const next = () => {
-      if (!live()) {
-        timer = window.setTimeout(next, 500);
-        return;
-      }
-      const to = (cur + 1) % n;
+    /** Lights role `r` on the cards (none for -1), the timer starting afresh under it. */
+    const light = (r: number) => {
+      cards().forEach((c, i) => {
+        c.removeAttribute("data-active");
+        if (i === r) {
+          void c.offsetWidth; // (so the timer's animation restarts even on the same card)
+          c.setAttribute("data-active", "");
+        }
+      });
+    };
+    const cutTo = (to: number) => {
+      if (to === shot) return;
       const el = els[to];
       if (!el) return;
+      run?.stop();
       z += 1;
       el.style.zIndex = String(z);
       paint(el, 0, to);
-      run = animate(0, 1, {
-        duration: SHOW.cut,
-        ease: PLAY.ease,
-        onUpdate: (k) => paint(el, k, to),
-      });
-      cur = to;
-      timer = window.setTimeout(next, (SHOW.cut + SHOW.hold) * 1000);
+      run = animate(0, 1, { duration: REEL.cut, ease: PLAY.ease, onUpdate: (k) => paint(el, k, to) });
+      shot = to;
     };
-    timer = window.setTimeout(next, SHOW.hold * 1000);
+    const call = (r: number) => {
+      role = r;
+      light(r);
+      cutTo(r + 1);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(tick, (REEL.cut + REEL.hold) * 1000);
+    };
+    function tick() {
+      if (!live()) {
+        timer = window.setTimeout(tick, 400);
+        return;
+      }
+      call((role + 1) % roles);
+    }
+    timer = window.setTimeout(tick, REEL.intro * 1000);
+    // a tap on a role (dispatched by the cards) calls it at once
+    const onPick = (e: Event) => {
+      const r = (e as CustomEvent<number>).detail;
+      if (typeof r === "number" && r >= 0 && r < roles) call(r);
+    };
+    window.addEventListener("talent:pick", onPick);
     return () => {
       window.clearTimeout(timer);
       run?.stop();
+      window.removeEventListener("talent:pick", onPick);
+      act?.classList.remove("is-reel");
+      light(-1);
     };
   }, [shots.length, progress, bounds]);
 
   return (
-    <div className="talent-stack" aria-hidden>
+    <div className="talent-stack" aria-hidden ref={rootRef}>
       {shots.map((shot, i) => (
         <div
           key={shot.src}

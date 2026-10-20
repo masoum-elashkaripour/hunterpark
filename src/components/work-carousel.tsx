@@ -34,6 +34,8 @@ import { useInView } from "@/components/use-in-view";
 import { getLenis } from "@/components/smooth-scroll";
 import {
   PLAY_SECONDS_PER_SCREEN,
+  CTA_SECONDS,
+  FOOTER_SECONDS,
   carryTo,
   useGated,
   usePlayMode,
@@ -425,7 +427,8 @@ export function WorkCarousel({ works }: { works: Work[] }) {
   const [pushScreens, setPushScreens] = useState(2.8);
   const entry = useGated(entryScroll, {
     holds: [[0, 1]],
-    screens: pushScreens,
+    // (the push plays over the same CTA_SECONDS the page is carried in)
+    screens: CTA_SECONDS / PLAY_SECONDS_PER_SCREEN,
     enabled: playing,
     backOnScroll: true,
   });
@@ -457,11 +460,11 @@ export function WorkCarousel({ works }: { works: Work[] }) {
       const crossed = (at: number, down: boolean) =>
         down ? prev <= at && y > at : prev >= at && y < at;
       if (crossed(cta + SLACK, true) && foot > y) {
-        carryTo(foot, ((foot - y) / window.innerHeight) * PLAY_SECONDS_PER_SCREEN, true);
+        carryTo(foot, FOOTER_SECONDS, true);
       } else if (crossed(foot - SLACK, false)) {
-        carryTo(cta, ((y - cta) / window.innerHeight) * PLAY_SECONDS_PER_SCREEN, true);
+        carryTo(cta, FOOTER_SECONDS, true);
       } else if (crossed(cta - SLACK, false) && triggerY.current < y) {
-        carryTo(triggerY.current - 2, pushScreens * PLAY_SECONDS_PER_SCREEN);
+        carryTo(triggerY.current - 2, CTA_SECONDS);
       }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -474,7 +477,7 @@ export function WorkCarousel({ works }: { works: Work[] }) {
     const from = window.scrollY;
     const to = ctaTop.current;
     if (to <= from) return;
-    carryTo(to, pushScreens * PLAY_SECONDS_PER_SCREEN);
+    carryTo(to, CTA_SECONDS);
   });
 
   /**
