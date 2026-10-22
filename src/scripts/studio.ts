@@ -93,7 +93,8 @@ type Subject = { focusX: number; focusY: number; keep: number };
 const windowSet = () =>
   window.matchMedia("(max-width: 767px)").matches
     ? STUDIO_MOTION.windows.mobile
-    : window.matchMedia("(max-width: 1023px)").matches
+    : // (and every tablet held upright, the large iPads' 1024–1366 included)
+      window.matchMedia("(max-width: 1023px), (min-width: 768px) and (max-width: 1366px) and (orientation: portrait)").matches
       ? STUDIO_MOTION.windows.tablet
       : STUDIO_MOTION.windows.desktop;
 /** One window as an inset. `caps` is read off capabilities.css itself (see caps-window.ts) —
@@ -135,20 +136,40 @@ function phonePairBottom(): number {
   return Math.min(12, Math.max(5, (fromBottom / stage.clientHeight) * 100));
 }
 
+/** The page's own text edge, as a share of the stage's width (WHO WE ARE stands on it). */
+function gutterShare(fallback: number): number {
+  const stage = document.querySelector<HTMLElement>("[data-studio-stage]");
+  const heading = document.querySelector<HTMLElement>(".studio__heading");
+  if (!stage || !heading || !stage.clientWidth) return fallback;
+  let left = 0;
+  let n: HTMLElement | null = heading;
+  while (n && n !== stage) {
+    left += n.offsetLeft;
+    n = n.offsetParent as HTMLElement | null;
+  }
+  return n === stage && left > 0 ? (left / stage.clientWidth) * 100 : fallback;
+}
+
 const inset = (key: WindowKey) => {
   const set = windowSet();
-  if (set === STUDIO_MOTION.windows.mobile && PAIR_KEYS[key]) {
+  // A tablet held upright takes the phone's pair under the story (its own desktop-like
+  // arrangement — a column at one edge, a small strip at the other, a band of nothing between
+  // them, both down at the chapter marker — did not hold together on a portrait frame), set
+  // on the page's own text edge rather than the phone's 5%.
+  const tabletUpright = set === STUDIO_MOTION.windows.tablet && window.matchMedia("(orientation: portrait)").matches;
+  if ((set === STUDIO_MOTION.windows.mobile || tabletUpright) && PAIR_KEYS[key]) {
     const t = phonePairTop();
     if (t !== null) {
       const r = (v: number) => Math.round(v * 100) / 100;
       const b = phonePairBottom();
-      if (key === "column") return `inset(${r(t)}% 51.5% ${r(b)}% 5%)`;
+      const g = tabletUpright ? gutterShare(5) : 5;
+      if (key === "column") return `inset(${r(t)}% 51.5% ${r(b)}% ${r(g)}%)`;
       // the right-hand film a touch smaller than the left and hung at its own height:
       // a little narrower (its inner edge just past the seam), starting lower and ending higher
       const rt = t + 2;
       const rb = b + 3;
       const top = key === "stripFrom" ? r(rt + (100 - rb - rt) * 0.12) : r(rt);
-      return `inset(${top}% 5% ${r(rb)}% 54%)`;
+      return `inset(${top}% ${r(g)}% ${r(rb)}% 54%)`;
     }
   }
   return key === "caps" ? capsInset(set.caps, document.querySelector<HTMLElement>("[data-whatwedo-anchor]")) : set[key];

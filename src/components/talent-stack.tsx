@@ -216,6 +216,17 @@ const subscribePhone = (change: () => void) => {
 };
 const usePhone = () =>
   useSyncExternalStore(subscribePhone, () => window.matchMedia(PHONE_Q).matches, () => false);
+/** Where Talent is the casting board (`PhoneStack`): a phone, and a tablet held upright — the
+    desktop's column, narrowed to a portrait frame, could not line its parts up. Kept in step
+    with `BOARD_MEDIA` in about-studio.tsx and the board's own stylesheet rules. */
+export const BOARD_Q = "(max-width: 767px), (min-width: 768px) and (max-width: 1366px) and (orientation: portrait)";
+const subscribeBoard = (change: () => void) => {
+  const mq = window.matchMedia(BOARD_Q);
+  mq.addEventListener("change", change);
+  return () => mq.removeEventListener("change", change);
+};
+const useBoard = () =>
+  useSyncExternalStore(subscribeBoard, () => window.matchMedia(BOARD_Q).matches, () => false);
 
 /** One picture, growing out of the band at the centre of the frame. */
 function Panel({
@@ -365,6 +376,11 @@ function PhoneStack({
   const cast = useMemo(() => (roles.length ? shots.slice(1, 1 + roles.length) : shots), [shots, roles.length]);
   const n = cast.length;
   const [state, setState] = useState({ at: 0, dir: 1, turn: 0 });
+  /* The act is near: its pictures are asked for now, not left to the browser's lazy loading —
+     inside the act's moving, pinned stage that never judged them close enough to fetch (a
+     tablet showed four empty cards). Still not with the page's first load: only as the
+     reader comes up to the act. */
+  const [near, setNear] = useState(false);
   const cards = useRef<(HTMLDivElement | null)[]>([]);
   const slots = useRef<number[] | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -447,6 +463,8 @@ function PhoneStack({
     const sync = (v: number) => {
       const el = trackRef.current;
       if (!el) return;
+      // (the pictures are fetched as the act comes near — see `near`)
+      if (v >= bounds[0] - 0.08) setNear(true);
       const on = v >= bounds[0] && v <= bounds[bounds.length - 1];
       if (on) el.dataset.live = "";
       else delete el.dataset.live;
@@ -640,6 +658,7 @@ function PhoneStack({
               sizes="70vw"
               quality={75}
               fetchPriority="low"
+              loading={near ? "eager" : "lazy"}
               draggable={false}
               className="talent-board__img"
             />
@@ -668,16 +687,23 @@ function PhoneStack({
 
 export function TalentStack({
   roles,
+  boardShots,
   ...props
 }: {
   shots: Shot[];
   bounds: number[];
   progress: MotionValue<number>;
-  /** On a phone, the roles the board calls (see `PhoneStack`). */
+  /** On the board, the roles it calls (see `PhoneStack`)… */
   roles?: Role[];
+  /** …and its pictures: the act's own first, then one per role. */
+  boardShots?: Shot[];
 }) {
-  const phone = usePhone();
-  return phone ? <PhoneStack {...props} roles={roles} /> : <DeskStack {...props} />;
+  const board = useBoard();
+  return board ? (
+    <PhoneStack {...props} shots={boardShots ?? props.shots} roles={roles} />
+  ) : (
+    <DeskStack {...props} />
+  );
 }
 
 function DeskStack({
