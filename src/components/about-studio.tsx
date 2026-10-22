@@ -15,7 +15,7 @@ import {
 } from "@/components/use-beat";
 import { ScrollChars } from "@/components/scroll-chars";
 import { ScrollMorph } from "@/components/scroll-morph";
-import { TalentStack, REVEAL } from "@/components/talent-stack";
+import { BOARD_Q, TalentStack, REVEAL } from "@/components/talent-stack";
 import { TalentAura } from "@/components/talent-aura";
 
 /**
@@ -1194,12 +1194,12 @@ export function AboutStudio() {
       // (less the lift a phone's first act stands at while its paragraphs are up — see
       // `textShift` — which is a `translate`, so the rect has it and the layout does not)
       const lift = parseFloat(a.parentElement?.style.getPropertyValue("--act-lift") ?? "") || 0;
-      // On a phone the Talent act is set centred (the board under it is), so the word lands
+      // Where Talent is the board (a phone, a tablet upright) the act is set centred, so the word lands
       // in the middle of its column: half of what the column has over the word's own width,
       // measured in the heading's own type.
       let centre = 0;
       const h = titleBox.current;
-      if (h && window.matchMedia("(max-width: 767px)").matches) {
+      if (h && window.matchMedia(BOARD_Q).matches) {
         const probe = document.createElement("span");
         probe.textContent = "Talent";
         probe.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;white-space:nowrap;pointer-events:none;";
@@ -1441,6 +1441,26 @@ export function AboutStudio() {
     ],
     [0, 1, 1, playing ? 0 : 1],
   );
+  /* Where Talent is the board on a tablet held upright (the scroll scrubs it there, where a
+     phone plays it), the act's line arrives just after the board lands, not a thousand pixels of
+     scroll after it on the desktop's cue — which left a band of nothing under the title. A motion
+     value, not a closed-over flag: a transform's function is the one it was built with. */
+  const boardScrub = useMotionValue(0);
+  useEffect(() => {
+    const mq = window.matchMedia(BOARD_Q);
+    const sync = () => boardScrub.set(mq.matches && !playing ? 1 : 0);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [boardScrub, playing]);
+  // (on the board's own cue: once the portrait has landed — over the first quarter of the
+  // stretch after it, so the line does not arrive under a board still swinging in — and gone
+  // with the act)
+  const boardIn = [media[1], media[1] + (media[1] - media[0]) * 0.25] as const;
+  const boardLine = useTransform(p, [boardIn[0], boardIn[1], media[2] + (media[3] - media[2]) * 0.5, media[3]], [0, 1, 1, playing ? 0 : 1]);
+  const boardLineY = useTransform(p, [boardIn[0], boardIn[1]], [18, 0]);
+  const lineShown = useTransform([lineOpacity, boardLine, boardScrub], ([l, t, b]: number[]) => (b ? t : l));
+  const lineRise = useTransform([lineY, boardLineY, boardScrub], ([y, by, b]: number[]) => (b ? by : y));
 
   /**
    * The room's own presence — NOT the portraits'.
@@ -1633,6 +1653,7 @@ export function AboutStudio() {
               bounds={playing ? PHONE_SHOT_BOUNDS : SHOT_BOUNDS}
               progress={p}
               roles={CRAFT}
+              boardShots={PHONE_SHOTS}
             />
           </m.div>
 
@@ -1640,7 +1661,7 @@ export function AboutStudio() {
             <div>
               <m.p
                 className="hp-copy talent-act__line"
-                style={{ opacity: lineOpacity, y: lineY }}
+                style={{ opacity: lineShown, y: lineRise }}
               >
                 {TALENT_LINE}
               </m.p>

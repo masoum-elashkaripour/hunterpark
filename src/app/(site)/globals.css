@@ -6658,7 +6658,7 @@ html[data-logo-handoff] .site-header__logo {
 /* Talent on a phone: THE CASTING REEL (see `PhoneStack` in talent-stack.tsx). The roles are
    called in turn: the called one stands out — its title lime, its tags clear, a lime timer
    filling under it for its turn — and the others step back. A tap calls any of them. */
-@media (max-width: 767px) {
+@media (max-width: 767px), (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
   /* The desktop stack is in the server's HTML on every screen until hydration swaps in the
      reel; its lazy pictures, left displayed, were fetched at full quality on every phone. */
   .talent-stack--desk .talent-stack__img {
@@ -6704,10 +6704,23 @@ html[data-logo-handoff] .site-header__logo {
    turned over — the title and its line at the head, the board under them taking every pixel
    left: a slate (take number, role) over one card at a time, its neighbours at the screen's
    edges, and what the role covers under it. The list of roles steps aside for it (kept for a
-   screen reader, the board itself being a picture of it). */
-@media (max-width: 767px) {
+   screen reader, the board itself being a picture of it). A tablet held upright has the board
+   too (`BOARD_Q` in talent-stack.tsx). */
+@media (max-width: 767px), (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
   .talent-act {
+    /* (one column: the large iPads are past the 1024px rule that sets two) */
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
+    align-items: stretch;
+  }
+  /* the board's cell the act's full width, and a size container for it (restated for the large
+     iPads, past the 1024px rule that caps the desktop's portrait and sets it to the left) */
+  .talent-act__media {
+    min-height: 0;
+    max-width: none;
+    margin-inline: 0;
+    align-self: stretch;
+    container-type: size;
   }
   .talent-act__body {
     order: -1;
@@ -7055,5 +7068,151 @@ html[data-logo-handoff] .site-header__logo {
   .site-header .sound-toggle[aria-pressed="true"] .sound-toggle__bars span {
     transform-origin: center bottom;
     transform: scaleY(var(--eq, 1));
+  }
+}
+
+/* THE FOOTER ON A TABLET HELD UPRIGHT. The desktop's composition squeezed into a portrait
+   frame left every word in its top third — the links stepped down beside a narrowed
+   statement, the call to talk under them — and a band of empty night across the middle. Here
+   it is set for the frame it is in: the statement across the column, the two lists side by
+   side under it (level, not stepped), the call to talk standing in the middle of the room
+   they leave (an equal, flexible gap either side), and the tagline and the small print on
+   one line over the wordmark. The guide lines are the upright figure the phone draws. */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
+  .footer__lines--wide {
+    display: none;
+  }
+  .footer__lines--tall {
+    display: block;
+  }
+  /* (without the figure's small ring, as on a phone: here it sat against the social links) */
+  .footer__lines--tall circle {
+    display: none;
+  }
+  .footer__grid {
+    grid-template-rows: auto auto minmax(2rem, 1fr) auto minmax(2rem, 1fr) auto auto;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+  .footer__statement {
+    grid-area: 1 / 1 / auto / -1;
+    max-width: 20em;
+    margin-bottom: clamp(2rem, 5svh, 3.5rem);
+    font-size: clamp(2.25rem, 1rem + 3.2vw, 3rem);
+  }
+  .footer__group--index {
+    grid-area: 2 / 1 / auto / span 4;
+  }
+  .footer__group--social {
+    grid-area: 2 / 5 / auto / span 4;
+    margin-top: 0;
+  }
+  .footer__contact {
+    grid-area: 4 / 1 / auto / -1;
+    margin-top: 0;
+  }
+  /* the call to talk a size up — it is the one thing this screen stands in the middle */
+  .footer__say {
+    font-size: clamp(3.5rem, 1rem + 5.4vw, 4.5rem);
+  }
+  .footer__tagline {
+    grid-area: 6 / 1 / auto / span 5;
+  }
+  .footer__base {
+    grid-area: 6 / 6 / auto / -1;
+  }
+  .footer__mark {
+    grid-area: 7 / 1 / auto / -1;
+  }
+  /* the type a step up for a tablet's size and reading distance: the lists, the labels over
+     them, the tagline and the small print were all still at the desktop's small sizes */
+  .footer__link {
+    font-size: clamp(1.4rem, 1rem + 1vw, 1.65rem);
+  }
+  .footer__label,
+  .footer__tagline {
+    font-size: 0.8125rem;
+  }
+  .footer__small {
+    font-size: 0.875rem;
+  }
+}
+
+/* WHAT WE DO ON A TABLET HELD UPRIGHT. The desktop's 44/56 staircase, narrowed to a portrait
+   frame, set each step's words in a column so slim that they ran as tall as the picture beside
+   them — every paragraph ending hard against the next step's picture, and the whole descent
+   reading as pictures laid over text. Here the two columns are halves (the joins stay on the
+   one line both share, so the chain still holds), the words get room above and below them, and
+   the titles are sized to the half column — the longest, CREATIVE DIRECTION, about 12.4 of its
+   em, still on one line. */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
+  .stair {
+    grid-template-columns: 50% 50%;
+  }
+  .stair__body {
+    padding-block: clamp(1.5rem, 3svh, 2.25rem);
+  }
+  .stair[data-step="0"] .stair__body,
+  .stair[data-step="2"] .stair__body,
+  .stair[data-step="4"] .stair__body {
+    padding-left: 2rem;
+  }
+  .stair[data-step="1"] .stair__body,
+  .stair[data-step="3"] .stair__body {
+    padding-right: 2rem;
+  }
+  .stair__title {
+    font-size: calc((50vw - var(--hp-gutter) - 2rem) / 12.6);
+  }
+  .stair__line {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+}
+
+/* /work's reel on a TABLET held upright: as on a phone (see above), the stage and the caption
+   stand as one group in the middle of the window. The stage filled every pixel the caption
+   left and the centred card (0.7 of the width, so 0.39 of it tall) sat in the middle of it —
+   a third of a screen above its own name. Sized to the cards here (their swing needs a little
+   more than the centred card's height), the spare height above the group and below it. */
+@media (min-width: 600px) and (max-width: 1366px) and (orientation: portrait) {
+  .work-stage {
+    flex: 0 0 auto;
+    height: min(52vw, 50svh);
+    margin-top: auto;
+  }
+  .work-stage + div {
+    margin-bottom: auto;
+  }
+  /* (the caption's height held while the reel recedes without it — see the phone's rule) */
+  :has(> .work-stage:last-child)::after {
+    content: "";
+    flex: none;
+    height: 12.5rem; /* (the tablet caption, measured: 200px) */
+    margin-bottom: auto;
+  }
+  .work-stage + div .work-caption {
+    padding-top: 1rem;
+  }
+}
+
+/* THE NEWS OPENING ON A TABLET HELD UPRIGHT. The title was set for the desktop's width and
+   broke inside its own word (PRE / SS.). Here it is sized to the room it actually has — IN THE
+   and PRESS. each on their line, never broken. On the large iPads, where the picture's slot
+   stands beside it (it flies down to the story from there), that room is what the slot leaves:
+   the column less the slot and the gap, and PRESS. is about 4.1 of its em wide. */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
+  .news-hero__title {
+    font-size: min(16vw, 12svh);
+  }
+  .news-hero__title .chars__line {
+    white-space: nowrap;
+  }
+}
+@media (scripting: enabled) and (min-width: 1024px) and (max-width: 1366px) and (orientation: portrait) and (prefers-reduced-motion: no-preference) {
+  .news-hero__title {
+    font-size: calc((100vw - 2 * var(--hp-gutter) - 34vw - clamp(2rem, 4vw, 4rem)) / 4.4);
+  }
+  .news-hero__slot {
+    width: 34vw;
   }
 }

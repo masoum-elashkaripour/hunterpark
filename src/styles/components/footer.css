@@ -638,3 +638,69 @@ html.hp-motion .footer__mark {
     margin-top: 0.6rem;
   }
 }
+
+/* THE FOOTER ON A TABLET HELD UPRIGHT. The desktop's composition squeezed into a portrait
+   frame left every word in its top third — the links stepped down beside a narrowed
+   statement, the call to talk under them — and a band of empty night across the middle. Here
+   it is set for the frame it is in: the statement across the column, the two lists side by
+   side under it (level, not stepped), the call to talk standing in the middle of the room
+   they leave (an equal, flexible gap either side), and the tagline and the small print on
+   one line over the wordmark. The guide lines are the upright figure the phone draws. */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
+  .footer__lines--wide {
+    display: none;
+  }
+  .footer__lines--tall {
+    display: block;
+  }
+  /* (without the figure's small ring, as on a phone: here it sat against the social links) */
+  .footer__lines--tall circle {
+    display: none;
+  }
+  .footer__grid {
+    grid-template-rows: auto auto minmax(2rem, 1fr) auto minmax(2rem, 1fr) auto auto;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+  .footer__statement {
+    grid-area: 1 / 1 / auto / -1;
+    max-width: 20em;
+    margin-bottom: clamp(2rem, 5svh, 3.5rem);
+    font-size: clamp(2.25rem, 1rem + 3.2vw, 3rem);
+  }
+  .footer__group--index {
+    grid-area: 2 / 1 / auto / span 4;
+  }
+  .footer__group--social {
+    grid-area: 2 / 5 / auto / span 4;
+    margin-top: 0;
+  }
+  .footer__contact {
+    grid-area: 4 / 1 / auto / -1;
+    margin-top: 0;
+  }
+  /* the call to talk a size up — it is the one thing this screen stands in the middle */
+  .footer__say {
+    font-size: clamp(3.5rem, 1rem + 5.4vw, 4.5rem);
+  }
+  .footer__tagline {
+    grid-area: 6 / 1 / auto / span 5;
+  }
+  .footer__base {
+    grid-area: 6 / 6 / auto / -1;
+  }
+  .footer__mark {
+    grid-area: 7 / 1 / auto / -1;
+  }
+  /* the type a step up for a tablet's size and reading distance: the lists, the labels over
+     them, the tagline and the small print were all still at the desktop's small sizes */
+  .footer__link {
+    font-size: clamp(1.4rem, 1rem + 1vw, 1.65rem);
+  }
+  .footer__label,
+  .footer__tagline {
+    font-size: 0.8125rem;
+  }
+  .footer__small {
+    font-size: 0.875rem;
+  }
+}

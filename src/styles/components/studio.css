@@ -509,3 +509,13 @@ html.hp-motion .whatwedo__heading {
   }
 
 }
+
+/* A tablet held upright: the story stands on the heading's own edge, under WHO WE ARE rather
+   than indented beneath its second word (on a portrait frame the indent only left a stranded
+   block), and the pair of films goes under it as on a phone — see `inset` in scripts/studio.ts */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
+  .studio__story {
+    max-width: 28ch;
+    margin-left: 0;
+  }
+}

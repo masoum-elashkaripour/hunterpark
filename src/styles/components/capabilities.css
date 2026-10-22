@@ -80,15 +80,22 @@
 }
 
 /* --- Capability titles ------------------------------------------------------ */
+/* Centred on the stage by its box (top and bottom at the stage's edges, the margins taking up
+   the rest), not by a `translate: -50%`: GSAP folds a CSS `translate` into its own transform the
+   first time it touches the list (the hand-off lifts it) and keeps it — so a page opened wide
+   and then narrowed (an iPad turned from landscape to portrait) carried the desktop's -50% into
+   the tablet's layout, and the titles stood half their height too high, over the picture. */
 .caps__list {
   position: absolute;
   left: var(--hp-gutter);
-  top: 50%;
+  top: 0;
+  bottom: 0;
   z-index: 2;
   display: flex;
   flex-direction: column;
   gap: clamp(0.1rem, 0.6svh, 0.5rem);
-  translate: 0 -50%;
+  height: fit-content;
+  margin-block: auto;
 }
 
 .caps__title {
@@ -328,7 +335,7 @@ html.hp-motion .caps__title.is-active {
   .caps__list {
     top: auto;
     bottom: calc(var(--hp-gutter) + 2rem); /* clear of the chapter marker on the bottom edge */
-    translate: none;
+    margin-block: 0;
   }
 
   .caps__caption {
@@ -402,10 +409,11 @@ html.hp-motion .caps__title.is-active {
     min-height: 0;
   }
 
+  /* (centred in the room under the header) */
   .caps__list {
-    top: calc(50% + var(--hp-header-h) / 2);
-    bottom: auto;
-    translate: 0 -50%;
+    top: var(--hp-header-h);
+    bottom: 0;
+    margin-block: auto;
   }
 
   .caps__label {
@@ -414,5 +422,46 @@ html.hp-motion .caps__title.is-active {
 
   .caps__caption {
     bottom: calc(var(--wb) + 0.75rem);
+  }
+}
+
+/* A TABLET HELD UPRIGHT: the phone's arrangement, at a tablet's size. The desktop's — a window
+   on the right, the titles at the foot on the left — narrowed to a portrait frame, left the
+   picture hanging off one side over a block of empty night, with the titles under it on the
+   other. Here the window spans the column, gutter to gutter, and its foot is set by the list
+   under it (five titles at their size, the gaps, the room for the chapter marker), so the two
+   meet with a fixed step between them however tall the tablet. */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: portrait) {
+  .caps {
+    --cap-fs: clamp(1.9rem, 4.6vw, 2.6rem);
+    --cap-gap: 0.7rem;
+    --cap-list: calc(5 * var(--cap-fs) + 4 * var(--cap-gap));
+    --wt: 11%;
+    --wr: var(--hp-gutter);
+    --wl: var(--hp-gutter);
+    --wb: calc(var(--hp-gutter) + 2rem + var(--cap-list) + 2.25rem);
+  }
+
+  /* (at the foot, clear of the chapter marker — restated here for the large iPads, past the
+     1023px rule that does it for the smaller ones) */
+  .caps__list {
+    top: auto;
+    bottom: calc(var(--hp-gutter) + 2rem);
+    margin-block: 0;
+    gap: var(--cap-gap);
+  }
+
+  .caps__label {
+    font-size: var(--cap-fs);
+  }
+
+  .caps__caption {
+    left: calc(var(--wl) + var(--inset));
+    bottom: calc(var(--wb) + 1.1rem);
+  }
+
+  /* the caption on the picture reads from the left, as the list under it does */
+  .caps__line {
+    text-align: left;
   }
 }
